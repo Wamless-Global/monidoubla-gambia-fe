@@ -1,0 +1,27 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+.bg-card {
+	@apply bg-white dark:bg-gray-950 rounded-lg shadow-sm;
+}
+
+/* Custom NProgress styles */
+#nprogress .bar {
+	background: #2563eb !important; /* Tailwind blue-600 */
+	height: 3px !important;
+	z-index: 9999 !important;
+}
+
+#nprogress .peg {
+	box-shadow: 0 0 10px #2563eb, 0 0 5px #2563eb !important;
+}
+
+/* Smooth transitions for dark mode */
+html,
+body,
+[data-theme] {
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
