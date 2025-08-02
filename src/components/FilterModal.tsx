@@ -43,7 +43,7 @@ export function FilterModal({ isOpen, onClose, onApplyFilters, currentFilters }:
 		};
 	}, [isOpen]);
 
-	const locations = ['Accra, Ghana', 'Kumasi, Ghana', 'Tamale, Ghana', 'Nnewi, Ghana', 'Lagos, Nigeria', 'Abuja, Nigeria'];
+	const locations = ['Banjul, Gambia', 'Brikama, Gambia', 'Bakau, Gambia', 'Serekunda, Gambia', 'Farafenni, Gambia', 'Lamin, Gambia'];
 
 	const priceRanges = [
 		{ id: 'under10k', label: 'Under 10k', count: 50 },

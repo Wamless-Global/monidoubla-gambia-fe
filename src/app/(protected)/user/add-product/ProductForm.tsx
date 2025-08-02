@@ -43,7 +43,7 @@ const initialFormData: FormData = {
 	},
 };
 
-const locations = ['Accra', 'Kumasi', 'Tamale', 'Sekondi-Takoradi', 'Sunyani', 'Cape Coast', 'Koforidua', 'Wa', 'Ho', 'Techiman'];
+const locations = ['Banjul', 'Brikama', 'Bakau', 'Serekunda', 'Farafenni', 'Lamin', 'Soma', 'Basse', 'Gunjur', 'Barra'];
 
 const categories = ['Electronics', 'Clothing', 'Vehicles', 'Houses', 'Furniture', 'Books', 'Sports', 'Tools', 'Jewelry', 'Other'];
 

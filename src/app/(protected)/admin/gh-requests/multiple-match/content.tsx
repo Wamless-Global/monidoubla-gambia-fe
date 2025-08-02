@@ -53,7 +53,7 @@ export default function MultipleMatchPage() {
 	// Enhanced mock data generation with partial amounts
 	const generateMockGHRequests = (count: number): GHRequest[] => {
 		const names = ['John Michael', 'Sarah Johnson', 'Michael Brown', 'Emily Davis', 'David Wilson', 'Lisa Anderson', 'Robert Taylor', 'Jennifer Martinez', 'James Thompson', 'Maria Garcia'];
-		const locations = ['Accra, Ghana', 'Kumasi, Ghana', 'Tamale, Ghana', 'Cape Coast, Ghana', 'Takoradi, Ghana'];
+		const locations = ['Banjul, Gambia', 'Brikama, Gambia', 'Bakau, Gambia', 'Serekunda, Gambia', 'Farafenni, Gambia'];
 
 		return Array.from({ length: count }, (_, i) => {
 			const amount = Math.floor(Math.random() * 2000) + 500;
@@ -75,7 +75,7 @@ export default function MultipleMatchPage() {
 
 	const generateMockPHRequests = (count: number): PHRequest[] => {
 		const names = ['Alice Smith', 'Bob Johnson', 'Carol Williams', 'Daniel Brown', 'Eva Davis', 'Frank Wilson', 'Grace Taylor', 'Henry Martinez', 'Ivy Thompson', 'Jack Garcia'];
-		const locations = ['Accra, Ghana', 'Kumasi, Ghana', 'Tamale, Ghana', 'Cape Coast, Ghana', 'Takoradi, Ghana'];
+		const locations = ['Banjul, Gambia', 'Brikama, Gambia', 'Bakau, Gambia', 'Serekunda, Gambia', 'Farafenni, Gambia'];
 
 		return Array.from({ length: count }, (_, i) => {
 			const amount = Math.floor(Math.random() * 1500) + 300;

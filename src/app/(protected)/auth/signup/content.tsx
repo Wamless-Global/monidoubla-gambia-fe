@@ -225,7 +225,7 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 								<option value="" disabled>
 									Select country
 								</option>
-								<option value="decaa447-5a78-42e1-9d4a-af500cf59689">Liberia</option>
+								<option value="decaa447-5a78-42e1-9d4a-af500cf59689">Gambia</option>
 							</select>
 							{errors.country && <p className="mt-1 text-sm text-red-500">{errors.country}</p>}
 						</div>

@@ -369,11 +369,11 @@ export default function UserManagement({ countries }: { countries: { status: str
 							value={locationFilter}
 							onChange={(e) => setLocationFilter(e.target.value)}
 						>
-							<option value="All Locations">All Locations</option>
-							<option value="Accra, Ghana">Accra, Ghana</option>
-							<option value="Kumasi, Ghana">Kumasi, Ghana</option>
-							<option value="Tamale, Ghana">Tamale, Ghana</option>
-							<option value="Cape Coast, Ghana">Cape Coast, Ghana</option>
+							<option value="Banjul">Banjul</option>
+							<option value="Brikama">Brikama</option>
+							<option value="Bakau">Bakau</option>
+							<option value="Serekunda">Serekunda</option>
+							<option value="Farafenni">Farafenni</option>
 						</select>
 						<Button variant="outline" onClick={resetFilters} className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap">
 							Reset Filters

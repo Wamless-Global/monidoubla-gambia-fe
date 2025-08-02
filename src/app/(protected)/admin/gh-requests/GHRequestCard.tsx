@@ -81,11 +81,11 @@ export default function GHRequestCard({ requests, currentPage, totalPages, searc
 							onChange={(e) => onLocationFilterChange(e.target.value)}
 						>
 							<option value="All">All Locations</option>
-							<option value="Accra">Accra</option>
-							<option value="Kumasi">Kumasi</option>
-							<option value="Tamale">Tamale</option>
-							<option value="Cape Coast">Cape Coast</option>
-							<option value="Takoradi">Takoradi</option>
+							<option value="Banjul">Banjul</option>
+							<option value="Brikama">Brikama</option>
+							<option value="Bakau">Bakau</option>
+							<option value="Serekunda">Serekunda</option>
+							<option value="Farafenni">Farafenni</option>
 						</select>
 						<select className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm pr-8" value={sortBy} onChange={(e) => onSortChange(e.target.value)}>
 							<option value="date">Sort by Date</option>
