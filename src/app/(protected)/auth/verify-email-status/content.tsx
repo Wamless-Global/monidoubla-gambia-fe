@@ -18,9 +18,9 @@ function parseFragmentParams() {
 
 function ProjectSkeletonLoader() {
 	return (
-		<div className="auth-page flex flex-col items-center justify-center py-20 space-y-4">
+		<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex flex-col items-center justify-center py-20 space-y-4">
 			<Logo alt={`${getPlatformName()} Logo`} size="lg" variant="dark" />
-			<div className="w-full max-w-md text-center space-y-2 mt-5">
+			<div className="w-full max-w-md text-center space-y-2">
 				<Skeleton className="mb-2 h-8 w-full md:w-96 mx-auto" />
 				<Skeleton className="mb-2 h-8 w-full md:w-98 mx-auto" />
 				<Skeleton className="mb-8 h-4 w-64 mx-auto" />
@@ -73,9 +73,7 @@ export default function VerifyEmailStatusPageContent() {
 			toast.success('Email verified successfully!');
 			setTimeout(() => router.replace('/auth/login'), 4000);
 		}
-		// Prevent content flash
 		setTimeout(() => setShowContent(true), 400);
-		// eslint-disable-next-line
 	}, [searchParams, router]);
 
 	const title = pageStatus === 'success' ? 'Email Verified Successfully!' : pageStatus === 'expired' ? 'Verification Link Expired' : pageStatus === 'error' ? 'Email Verification Failed' : 'Email Verification Status';
@@ -116,32 +114,42 @@ export default function VerifyEmailStatusPageContent() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-100 flex items-center justify-center px-2 py-10 sm:p-16">
-			<div className="w-full">
-				<div className="max-w-md w-full mx-auto">
-					<div className="bg-white rounded-lg shadow-lg p-8">
-						<div className="text-center mb-8">
-							<h1 className="text-2xl font-bold text-gray-900 mb-2">Email Status</h1>
-							<p className="text-gray-600">{statusMessage}</p>
-						</div>
-						{pageStatus === 'error' && (
-							<Button onClick={() => router.push('/auth/login')} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium">
-								Back to Login
-							</Button>
-						)}
-						{pageStatus === 'expired' && (
-							<Button onClick={handleResendSubmit} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium" disabled={isResending}>
+		<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-8">
+			<div className="container flex flex-col lg:flex-row gap-8">
+				<div className="lg:w-1/3 bg-neutral-dark text-white p-8 rounded-lg shadow-xl flex flex-col justify-center">
+					<h1 className="text-3xl font-bold mb-4">Email Verification</h1>
+					<p className="text-neutral-light">Check the status of your email verification for Monidoublagambia.</p>
+				</div>
+				<div className="lg:w-2/3 card">
+					<div className="text-center mb-8">
+						<h2 className="text-2xl font-bold">{title}</h2>
+						<p className="text-text-secondary">{statusMessage}</p>
+					</div>
+					{pageStatus === 'expired' && (
+						<form onSubmit={handleResendSubmit} className="space-y-6">
+							<div>
+								<label htmlFor="emailForResend" className="label">
+									Email Address
+								</label>
+								<input type="email" id="emailForResend" name="emailForResend" value={emailForResend} onChange={(e) => setEmailForResend(e.target.value)} className="input" placeholder="Enter your email" />
+							</div>
+							<Button type="submit" className="button button-primary w-full" disabled={isResending}>
 								{isResending ? 'Resending...' : 'Resend Verification Email'}
 							</Button>
-						)}
-						<div className="mt-6 text-center">
-							<p className="text-sm text-gray-600">
-								Back to{' '}
-								<CustomLink href="/auth/login" className="text-blue-600 hover:text-blue-500 font-medium">
-									Sign in
-								</CustomLink>
-							</p>
-						</div>
+						</form>
+					)}
+					{pageStatus === 'error' && (
+						<Button onClick={() => router.push('/auth/login')} className="button button-primary w-full">
+							Back to Login
+						</Button>
+					)}
+					<div className="mt-6 text-center">
+						<p className="text-sm text-text-secondary">
+							Back to{' '}
+							<CustomLink href="/auth/login" className="text-primary hover:text-secondary font-medium">
+								Sign in
+							</CustomLink>
+						</p>
 					</div>
 				</div>
 			</div>

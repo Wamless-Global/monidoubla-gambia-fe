@@ -6,7 +6,7 @@ import { CustomLink } from './CustomLink';
 
 export default function Footer() {
 	return (
-		<footer className="bg-indigo-900 text-white">
+		<footer className="bg-neutral-dark text-white">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
 				<div className="flex flex-col space-y-8 sm:space-y-12">
 					<div className="flex flex-col sm:flex-row sm:justify-between gap-8">
@@ -19,11 +19,11 @@ export default function Footer() {
 						</div>
 						<div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
 							<div className="space-y-4">
-								<h3 className="text-lg sm:text-xl font-bold text-red-400 font-clash-display">Quick Links</h3>
+								<h3 className="text-lg sm:text-xl font-bold text-neutral-light font-clash-display">Quick Links</h3>
 								<ul className="space-y-2 sm:space-y-3">
 									{['Home', 'About Us', 'Contact Us', 'FAQs'].map((link, index) => (
 										<li key={index}>
-											<CustomLink href={link === 'Home' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`} className="text-gray-300 hover:text-red-400 font-montserrat text-sm sm:text-base transition-all hover:underline">
+											<CustomLink href={link === 'Home' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`} className="text-gray-300 hover:text-neutral-light font-montserrat text-sm sm:text-base transition-all hover:underline">
 												{link}
 											</CustomLink>
 										</li>
@@ -31,26 +31,26 @@ export default function Footer() {
 								</ul>
 							</div>
 							<div className="space-y-4">
-								<h3 className="text-lg sm:text-xl font-bold text-red-400 font-clash-display">Contact</h3>
+								<h3 className="text-lg sm:text-xl font-bold text-neutral-light font-clash-display">Contact</h3>
 								<ul className="space-y-2 sm:space-y-3">
 									<li className="flex items-start text-gray-300 text-sm sm:text-base font-montserrat">
-										<i className="ri-map-pin-line mr-2 mt-1 text-red-400 text-lg"></i>
+										<i className="ri-map-pin-line mr-2 mt-1 text-neutral-light text-lg"></i>
 										Office Address
 									</li>
 									<li className="flex items-center text-gray-300 text-sm sm:text-base font-montserrat">
-										<i className="ri-phone-line mr-2 text-red-400 text-lg"></i>
+										<i className="ri-phone-line mr-2 text-neutral-light text-lg"></i>
 										+233 806 696 0533
 									</li>
 									<li className="flex items-start text-gray-300 text-sm sm:text-base font-montserrat">
-										<i className="ri-mail-line mr-2 mt-1 text-red-400 text-lg"></i>
-										support@monidoubla.com
+										<i className="ri-mail-line mr-2 mt-1 text-neutral-light text-lg"></i>
+										support@Monidoublagambia.com
 									</li>
 								</ul>
 							</div>
 						</div>
 					</div>
-					<div className="border-t border-indigo-700 pt-6 flex flex-col items-center gap-4 sm:gap-6">
-						<div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+					<div className="border-t border-neutral-light/20 mt-8 sm:mt-12 pt-6 sm:pt-8 flex flex-col items-center gap-4 sm:gap-6">
+						<div className="flex flex-row gap-4 sm:gap-6">
 							{[
 								{ icon: 'ri-facebook-fill', href: '#' },
 								{ icon: 'ri-twitter-fill', href: '#' },
@@ -62,10 +62,10 @@ export default function Footer() {
 								</CustomLink>
 							))}
 						</div>
-						<p className="text-gray-300 text-xs sm:text-sm font-montserrat text-center">Copyright {new Date().getFullYear()} Monidoubla, All Rights Reserved</p>
+						<p className="text-gray-300 text-xs sm:text-sm font-montserrat text-center">Copyright {new Date().getFullYear()} Monidoublagambia, All Rights Reserved</p>
 						<div className="flex gap-4 sm:gap-6">
 							{['Privacy Policy', 'Terms & Conditions'].map((link, index) => (
-								<CustomLink key={index} href="#" className="text-gray-300 hover:text-red-400 font-montserrat text-xs sm:text-sm transition-all hover:underline">
+								<CustomLink key={index} href="#" className="text-gray-300 hover:text-neutral-light font-montserrat text-xs sm:text-sm transition-all hover:underline">
 									{link}
 								</CustomLink>
 							))}

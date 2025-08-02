@@ -48,35 +48,37 @@ export default function ForgotPasswordPageContent() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-100 flex items-center justify-center px-2 py-10 sm:p-16">
-			<div className="w-full">
-				<div className="max-w-md w-full mx-auto">
-					<div className="bg-white rounded-lg shadow-lg p-8">
-						<div className="text-center mb-8">
-							<h1 className="text-2xl font-bold text-gray-900 mb-2">Forgot Password</h1>
-							<p className="text-gray-600">Enter your email to receive a password reset link.</p>
+		<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-8">
+			<div className="container flex flex-col lg:flex-row gap-8">
+				<div className="lg:w-1/3 bg-neutral-dark text-white p-8 rounded-lg shadow-xl flex flex-col justify-center">
+					<h1 className="text-3xl font-bold mb-4">Reset Your Password</h1>
+					<p className="text-neutral-light">Enter your email to receive a secure link to reset your password.</p>
+				</div>
+				<div className="lg:w-2/3 card">
+					<div className="text-center mb-8">
+						<h2 className="text-2xl font-bold">Forgot Password</h2>
+						<p className="text-text-secondary">Enter your email to receive a password reset link.</p>
+					</div>
+					<form onSubmit={onSubmit} className="space-y-6">
+						<div>
+							<label htmlFor="email" className="label">
+								Email Address
+							</label>
+							<input type="email" id="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input" placeholder="Enter your email" required />
+							{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+							{success && <p className="mt-1 text-sm text-green-600">{success}</p>}
 						</div>
-						<form onSubmit={onSubmit} className="space-y-6">
-							<div>
-								<label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-									Email Address
-								</label>
-								<input type="email" id="email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your email" required />
-								{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-								{success && <p className="mt-1 text-sm text-green-600">{success}</p>}
-							</div>
-							<button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium" disabled={loading}>
-								{loading ? 'Sending...' : 'Send Reset Link'}
-							</button>
-						</form>
-						<div className="mt-6 text-center">
-							<p className="text-sm text-gray-600">
-								Remember your password?{' '}
-								<a href="/auth/login" className="text-blue-600 hover:text-blue-500 font-medium">
-									Sign in
-								</a>
-							</p>
-						</div>
+						<button type="submit" className="button button-primary w-full" disabled={loading}>
+							{loading ? 'Sending...' : 'Send Reset Link'}
+						</button>
+					</form>
+					<div className="mt-6 text-center">
+						<p className="text-sm text-text-secondary">
+							Remember your password?{' '}
+							<a href="/auth/login" className="text-primary hover:text-secondary font-medium">
+								Sign in
+							</a>
+						</p>
 					</div>
 				</div>
 			</div>

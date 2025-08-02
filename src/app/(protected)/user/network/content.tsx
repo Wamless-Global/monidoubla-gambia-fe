@@ -110,111 +110,107 @@ export default function NetworkPage() {
 
 	if (!networkStats) {
 		return (
-			<div className="p-4 lg:p-6 flex items-center justify-center min-h-screen">
+			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
 				<div className="text-center">
-					<i className="ri-error-warning-line w-12 h-12 flex items-center justify-center mx-auto mb-4 text-destructive"></i>
-					<h3 className="text-lg font-semibold text-foreground mb-2">Failed to load network data</h3>
-					<p className="text-muted-foreground">Please try refreshing the page</p>
+					<i className="ri-error-warning-line w-16 h-16 flex items-center justify-center mx-auto mb-6 text-red-400 dark:text-red-600"></i>
+					<h3 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 mb-2">Failed to load network data</h3>
+					<p className="text-indigo-700 dark:text-indigo-200">Please try refreshing the page</p>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="p-4 lg:p-6">
-			<div className="max-w-6xl mx-auto space-y-6">
+		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0">
+			<div className="max-w-6xl mx-auto py-10 px-4 space-y-10">
 				{/* Header */}
-				<div className="flex items-center justify-between">
-					<h1 className="text-2xl font-bold text-foreground">My Network</h1>
+				<div className="flex flex-col md:flex-row gap-2 md:items-center md:justify-between mb-6">
+					<h1 className="text-3xl md:text-4xl font-extrabold text-indigo-900 dark:text-indigo-100 drop-shadow-lg">My Network</h1>
 				</div>
 
 				{/* Stats Cards */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-					<Card>
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm text-muted-foreground">Total Members</p>
-									<p className="text-2xl font-bold text-foreground">{networkStats.totalMembers.toLocaleString()}</p>
-								</div>
-								<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-									<i className="ri-group-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
-								</div>
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
+						<CardContent className="p-8 flex items-center justify-between">
+							<div>
+								<p className="text-base text-indigo-700 dark:text-indigo-200 font-semibold">Total Members</p>
+								<p className="text-3xl font-black text-indigo-900 dark:text-indigo-100">{networkStats.totalMembers.toLocaleString()}</p>
+							</div>
+							<div className="w-16 h-16 bg-gradient-to-tr from-indigo-200 via-purple-200 to-emerald-200 dark:from-indigo-900 dark:via-purple-900 dark:to-emerald-900 rounded-full flex items-center justify-center shadow-lg">
+								<i className="ri-group-line w-8 h-8 flex items-center justify-center text-indigo-600 dark:text-indigo-300"></i>
 							</div>
 						</CardContent>
 					</Card>
-
-					<Card>
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm text-muted-foreground">Active Members</p>
-									<p className="text-2xl font-bold text-foreground">{networkStats.activeMembers.toLocaleString()}</p>
-								</div>
-								<div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-									<i className="ri-user-star-line w-6 h-6 flex items-center justify-center text-green-600 dark:text-green-400"></i>
-								</div>
+					<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
+						<CardContent className="p-8 flex items-center justify-between">
+							<div>
+								<p className="text-base text-green-700 dark:text-green-200 font-semibold">Active Members</p>
+								<p className="text-3xl font-black text-green-900 dark:text-green-100">{networkStats.activeMembers.toLocaleString()}</p>
+							</div>
+							<div className="w-16 h-16 bg-gradient-to-tr from-green-200 via-emerald-200 to-indigo-200 dark:from-green-900 dark:via-emerald-900 dark:to-indigo-900 rounded-full flex items-center justify-center shadow-lg">
+								<i className="ri-user-star-line w-8 h-8 flex items-center justify-center text-green-600 dark:text-green-300"></i>
 							</div>
 						</CardContent>
 					</Card>
-
-					<Card>
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm text-muted-foreground">Total Help Provided</p>
-									<p className="text-2xl font-bold text-foreground">{formatCurrency(networkStats.totalHelpProvided)}</p>
-								</div>
-								<div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
-									<i className="ri-hand-heart-line w-6 h-6 flex items-center justify-center text-purple-600 dark:text-purple-400"></i>
-								</div>
+					<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
+						<CardContent className="p-8 flex items-center justify-between">
+							<div>
+								<p className="text-base text-purple-700 dark:text-purple-200 font-semibold">Total Help Provided</p>
+								<p className="text-3xl font-black text-purple-900 dark:text-purple-100">{formatCurrency(networkStats.totalHelpProvided)}</p>
+							</div>
+							<div className="w-16 h-16 bg-gradient-to-tr from-purple-200 via-indigo-200 to-emerald-200 dark:from-purple-900 dark:via-indigo-900 dark:to-emerald-900 rounded-full flex items-center justify-center shadow-lg">
+								<i className="ri-hand-heart-line w-8 h-8 flex items-center justify-center text-purple-600 dark:text-purple-300"></i>
 							</div>
 						</CardContent>
 					</Card>
 				</div>
 
 				{/* Members List */}
-				<Card>
-					<CardContent className="p-6">
-						<div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-6">
-							<h2 className="text-xl font-semibold text-foreground">Network Members</h2>
-
+				<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
+					<CardContent className="p-8">
+						<div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-8">
+							<h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">Network Members</h2>
 							<div className="relative flex-1 lg:max-w-md">
-								<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-								<input type="text" placeholder="Search members..." value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm bg-background" />
+								<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-400 w-5 h-5 flex items-center justify-center"></i>
+								<input
+									type="text"
+									placeholder="Search members..."
+									value={searchQuery}
+									onChange={(e) => handleSearch(e.target.value)}
+									className="w-full pl-10 pr-4 py-2.5 border-2 border-indigo-100 dark:border-indigo-900 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 text-base bg-white/80 dark:bg-gray-900/80 text-indigo-900 dark:text-indigo-100 shadow"
+								/>
 							</div>
 						</div>
-
 						<div className="space-y-4">
 							{filteredMembers.map((member) => (
-								<div key={member.id} className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors">
+								<div
+									key={member.id}
+									className="flex items-center gap-6 p-6 rounded-2xl border-2 border-indigo-100 dark:border-indigo-900 bg-gradient-to-tr from-indigo-50 via-white to-emerald-50 dark:from-indigo-950 dark:via-gray-900 dark:to-emerald-950 hover:scale-[1.02] hover:shadow-xl transition-all"
+								>
 									<div className="relative">
-										<img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
-										<div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background ${member.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+										<img src={member.avatar} alt={member.name} className="w-16 h-16 rounded-full object-cover border-4 border-white dark:border-gray-900 shadow" />
+										<div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-gray-900 ${member.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
 									</div>
-
 									<div className="flex-1 min-w-0">
 										<div className="flex items-center gap-2 mb-1">
-											<h3 className="font-medium text-foreground">{member.name}</h3>
-											<span className="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-full">Level {member.level}</span>
+											<h3 className="font-extrabold text-indigo-900 dark:text-indigo-100 text-lg">{member.name}</h3>
+											<span className="text-xs bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-full font-bold">Level {member.level}</span>
 										</div>
-										<p className="text-sm text-muted-foreground">@{member.username}</p>
-										<p className="text-xs text-muted-foreground">Joined {formatDate(member.joinDate)}</p>
+										<p className="text-sm text-indigo-700 dark:text-indigo-200">@{member.username}</p>
+										<p className="text-xs text-indigo-400 dark:text-indigo-400">Joined {formatDate(member.joinDate)}</p>
 									</div>
-
 									<div className="text-right">
-										<p className="text-sm font-medium text-foreground">{formatCurrency(member.totalHelp)}</p>
-										<p className="text-xs text-muted-foreground">Help provided</p>
+										<p className="text-lg font-black text-emerald-700 dark:text-emerald-300">{formatCurrency(member.totalHelp)}</p>
+										<p className="text-xs text-indigo-700 dark:text-indigo-200">Help provided</p>
 									</div>
 								</div>
 							))}
 						</div>
-
 						{filteredMembers.length === 0 && (
-							<div className="text-center py-8">
-								<i className="ri-user-search-line w-12 h-12 flex items-center justify-center mx-auto mb-4 text-muted-foreground"></i>
-								<h3 className="text-lg font-medium text-foreground mb-2">No members found</h3>
-								<p className="text-muted-foreground">{searchQuery ? 'Try adjusting your search terms' : 'Your network is empty'}</p>
+							<div className="text-center py-16">
+								<i className="ri-user-search-line w-16 h-16 flex items-center justify-center mx-auto mb-6 text-indigo-200 dark:text-indigo-900"></i>
+								<h3 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 mb-2">No members found</h3>
+								<p className="text-indigo-700 dark:text-indigo-200 text-lg">{searchQuery ? 'Try adjusting your search terms' : 'Your network is empty'}</p>
 							</div>
 						)}
 					</CardContent>

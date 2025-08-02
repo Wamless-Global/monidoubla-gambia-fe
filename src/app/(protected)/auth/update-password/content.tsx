@@ -146,15 +146,14 @@ export default function UpdatePasswordPageContent() {
 
 	if (pageStatus === 'loading') {
 		return (
-			<div className="min-h-screen bg-gray-100 flex items-center justify-center">
-				<div className="max-w-md w-full mx-auto px-4 py-12">
-					<div className="bg-white rounded-lg shadow-lg p-10">
+			<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-8">
+				<div className="container">
+					<div className="card max-w-md mx-auto">
 						<div className="text-center">
-							<h1 className="text-2xl font-bold text-gray-900  mb-8">Update Password</h1>
-
+							<h2 className="text-2xl font-bold mb-8">Update Password</h2>
 							<div className="flex items-center justify-center gap-2">
-								<Loader2 className="h-5 w-5 animate-spin" />
-								<h2 className="text-lg">Loading...</h2>
+								<Loader2 className="h-5 w-5 animate-spin text-primary" />
+								<h3 className="text-lg">Loading...</h3>
 							</div>
 						</div>
 					</div>
@@ -164,59 +163,43 @@ export default function UpdatePasswordPageContent() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-100 flex items-center justify-center px-2 py-10 sm:p-16">
-			<div className="w-full">
-				<div className="max-w-md w-full mx-auto">
-					<div className="bg-white rounded-lg shadow-lg p-8">
-						<div className="text-center mb-8">
-							<h1 className="text-2xl font-bold text-gray-900 mb-2">Update Password</h1>
-							<p className="text-gray-600">Enter your new password below.</p>
+		<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-8">
+			<div className="container flex flex-col lg:flex-row gap-8">
+				<div className="lg:w-1/3 bg-neutral-dark text-white p-8 rounded-lg shadow-xl flex flex-col justify-center">
+					<h1 className="text-3xl font-bold mb-4">Update Your Password</h1>
+					<p className="text-neutral-light">Set a new password to secure your Monidoublagambia account.</p>
+				</div>
+				<div className="lg:w-2/3 card">
+					<div className="text-center mb-8">
+						<h2 className="text-2xl font-bold">{title}</h2>
+						<p className="text-text-secondary">{statusMessage}</p>
+					</div>
+					<form onSubmit={onSubmit} className="space-y-6">
+						<div>
+							<label htmlFor="newPassword" className="label">
+								New Password
+							</label>
+							<input type="password" id="newPassword" name="newPassword" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="input" placeholder="Enter new password" required />
 						</div>
-						<form onSubmit={onSubmit} className="space-y-6">
-							<div>
-								<label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
-									New Password
-								</label>
-								<input
-									type="password"
-									id="newPassword"
-									name="newPassword"
-									value={newPassword}
-									onChange={(e) => setNewPassword(e.target.value)}
-									className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-									placeholder="Enter new password"
-									required
-								/>
-							</div>
-							<div>
-								<label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-									Confirm Password
-								</label>
-								<input
-									type="password"
-									id="confirmPassword"
-									name="confirmPassword"
-									value={confirmPassword}
-									onChange={(e) => setConfirmPassword(e.target.value)}
-									className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-									placeholder="Confirm new password"
-									required
-								/>
-							</div>
-							{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-							{success && <p className="mt-1 text-sm text-green-600">{success}</p>}
-							<button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium" disabled={loading}>
-								{loading ? 'Updating...' : 'Update Password'}
-							</button>
-						</form>
-						<div className="mt-6 text-center">
-							<p className="text-sm text-gray-600">
-								Back to{' '}
-								<a href="/auth/login" className="text-blue-600 hover:text-blue-500 font-medium">
-									Sign in
-								</a>
-							</p>
+						<div>
+							<label htmlFor="confirmPassword" className="label">
+								Confirm Password
+							</label>
+							<input type="password" id="confirmPassword" name="confirmPassword" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="input" placeholder="Confirm new password" required />
 						</div>
+						{error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+						{success && <p className="mt-1 text-sm text-green-600">{success}</p>}
+						<button type="submit" className="button button-primary w-full" disabled={loading}>
+							{loading ? 'Updating...' : 'Update Password'}
+						</button>
+					</form>
+					<div className="mt-6 text-center">
+						<p className="text-sm text-text-secondary">
+							Back to{' '}
+							<a href="/auth/login" className="text-primary hover:text-secondary font-medium">
+								Sign in
+							</a>
+						</p>
 					</div>
 				</div>
 			</div>

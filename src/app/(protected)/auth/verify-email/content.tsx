@@ -54,27 +54,29 @@ export default function VerifyEmailContent({ email, initialStatus }: { email?: s
 	};
 
 	return (
-		<div className="min-h-screen bg-gray-100 flex items-center justify-center px-2 py-10 sm:p-16">
-			<div className="w-full">
-				<div className="max-w-md w-full mx-auto">
-					<div className="bg-white rounded-lg shadow-lg p-8">
-						<div className="text-center mb-8">
-							<h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Email</h1>
-							<p className="text-gray-600">{statusMessage}</p>
-						</div>
-						{allowResend && (
-							<Button onClick={handleResendEmail} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium" disabled={isResending}>
-								{isResending ? 'Resending...' : 'Resend Verification Email'}
-							</Button>
-						)}
-						<div className="mt-6 text-center">
-							<p className="text-sm text-gray-600">
-								Back to{' '}
-								<CustomLink href="/auth/login" className="text-blue-600 hover:text-blue-500 font-medium">
-									Sign in
-								</CustomLink>
-							</p>
-						</div>
+		<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-8">
+			<div className="container flex flex-col lg:flex-row gap-8">
+				<div className="lg:w-1/3 bg-neutral-dark text-white p-8 rounded-lg shadow-xl flex flex-col justify-center">
+					<h1 className="text-3xl font-bold mb-4">Verify Your Email</h1>
+					<p className="text-neutral-light">Complete your signup by verifying your email address.</p>
+				</div>
+				<div className="lg:w-2/3 card">
+					<div className="text-center mb-8">
+						<h2 className="text-2xl font-bold">Verify Email</h2>
+						<p className="text-text-secondary">{statusMessage}</p>
+					</div>
+					{allowResend && (
+						<Button onClick={handleResendEmail} className="button button-primary w-full" disabled={isResending}>
+							{isResending ? 'Resending...' : 'Resend Verification Email'}
+						</Button>
+					)}
+					<div className="mt-6 text-center">
+						<p className="text-sm text-text-secondary">
+							Back to{' '}
+							<CustomLink href="/auth/login" className="text-primary hover:text-secondary font-medium">
+								Sign in
+							</CustomLink>
+						</p>
 					</div>
 				</div>
 			</div>

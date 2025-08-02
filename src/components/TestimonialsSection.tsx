@@ -5,17 +5,17 @@ export default function TestimonialsSection() {
 		{
 			name: 'Ivonne Mensah',
 			role: 'Apr 12, 2024',
-			content: 'Monidoubla helped me pay my school fees when I needed it most. The process was simple, and I received my payout right on time. I’ve already told my friends to join!',
+			content: 'Monidoublagambia helped me pay my school fees when I needed it most. The process was simple, and I received my payout right on time. I’ve already told my friends to join!',
 		},
 		{
 			name: 'Phillip Baateng',
 			role: 'Feb 27, 2025',
-			content: 'I was amazed by the support from the community. Not only did I double my contribution, but I also made new friends. Monidoubla truly delivers on its promise.',
+			content: 'I was amazed by the support from the community. Not only did I double my contribution, but I also made new friends. Monidoublagambia truly delivers on its promise.',
 		},
 		{
 			name: 'Ama Serwaa',
 			role: 'Jul 8, 2025',
-			content: 'I joined out of curiosity, but Monidoubla exceeded my expectations. The transparency and quick payments make it stand out. I’m grateful for this platform!',
+			content: 'I joined out of curiosity, but Monidoublagambia exceeded my expectations. The transparency and quick payments make it stand out. I’m grateful for this platform!',
 		},
 	];
 
@@ -24,7 +24,7 @@ export default function TestimonialsSection() {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="text-center mb-12 space-y-4">
 					<h2 className="text-4xl sm:text-5xl font-bold text-indigo-600 dark:text-indigo-400 font-clash-display">What Our Users Are Saying</h2>
-					<p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-montserrat max-w-2xl mx-auto">Real people, real results: hear how Monidoubla is changing lives through trust, giving, and community-powered growth.</p>
+					<p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 font-montserrat max-w-2xl mx-auto">Real people, real results: hear how Monidoublagambia is changing lives through trust, giving, and community-powered growth.</p>
 				</div>
 				<div className="relative flex flex-col md:flex-row gap-8 justify-center">
 					{testimonials.map((testimonial, index) => (

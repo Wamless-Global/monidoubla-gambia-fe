@@ -60,7 +60,7 @@ export default function MaintenanceMode() {
 						<a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-500 transition-colors">
 							<i className="ri-facebook-fill w-5 h-5"></i>
 						</a>
-						<a href="mailto:support@Monidoubla.com" className="text-gray-400 hover:text-blue-500 transition-colors">
+						<a href="mailto:support@Monidoublagambia.com" className="text-gray-400 hover:text-blue-500 transition-colors">
 							<i className="ri-mail-fill w-5 h-5"></i>
 						</a>
 					</div>
@@ -69,7 +69,7 @@ export default function MaintenanceMode() {
 				<div className="text-sm text-gray-500 dark:text-gray-400 font-montserrat">
 					<p>
 						Follow us for updates or contact{' '}
-						<a href="mailto:support@Monidoubla.com" className="text-blue-600 dark:text-blue-500 hover:underline">
+						<a href="mailto:support@Monidoublagambia.com" className="text-blue-600 dark:text-blue-500 hover:underline">
 							support
 						</a>
 					</p>

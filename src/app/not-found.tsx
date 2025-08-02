@@ -30,7 +30,7 @@ export default function NotFound() {
 				<div className="text-sm text-gray-500 dark:text-gray-400 font-montserrat">
 					<p>
 						Need help?{' '}
-						<CustomLink href="/contact" className="text-blue-600 dark:text-blue-500 hover:underline">
+						<CustomLink href="/contact-us" className="text-blue-600 dark:text-blue-500 hover:underline">
 							Contact support
 						</CustomLink>
 					</p>

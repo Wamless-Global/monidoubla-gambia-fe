@@ -148,131 +148,97 @@ export default function Content() {
 	}
 
 	return (
-		<div className="p-4 lg:p-6 bg-background min-h-screen">
-			<div className="max-w-4xl mx-auto">
-				<div className="mb-8 flex flex-col items-center lg:items-start lg:flex-row lg:gap-8">
-					<div className="mb-6 lg:mb-0">
-						<ProfileImageUpload currentImage={currentUser?.avatar_url} onImageChange={handleImageChange} />
-					</div>
-
-					<div className="text-center lg:text-left lg:flex-1">
-						<h2 className="text-2xl font-semibold text-foreground mb-2">{profileData.name}</h2>
-						<p className="text-muted-foreground mb-4">@{profileData.username}</p>
-						<div className="flex flex-col sm:flex-row gap-3">
-							<Button onClick={() => setShowEditModal(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-								<i className="ri-edit-line mr-2 w-4 h-4 flex items-center justify-center"></i>
-								Edit Profile
+		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0">
+			<div className="max-w-5xl mx-auto px-4 pt-10 pb-0">
+				{/* Profile Hero Section */}
+				<div className="rounded-3xl bg-gradient-to-tr from-indigo-500/80 via-purple-500/80 to-emerald-400/80 dark:from-indigo-900/80 dark:via-purple-900/80 dark:to-emerald-900/80 shadow-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 overflow-hidden mb-10">
+					<div className="flex flex-col items-center gap-3">
+						<div className="w-32 h-32 rounded-full border-4 border-white/30 shadow-xl bg-gradient-to-tr from-indigo-400 via-purple-400 to-blue-400 flex items-center justify-center overflow-hidden mb-2">
+							<ProfileImageUpload currentImage={currentUser?.avatar_url} onImageChange={handleImageChange} />
+						</div>
+						<span className="inline-block px-3 py-1 rounded-xl bg-white/20 text-indigo-100 font-bold text-lg tracking-tight shadow">{profileData.name}</span>
+						<span className="text-indigo-100/90 font-medium">@{profileData.username}</span>
+						<div className="flex gap-3 mt-2">
+							<Button onClick={() => setShowEditModal(true)} className="bg-gradient-to-r from-emerald-400 via-blue-500 to-indigo-500 text-white font-bold px-6 py-2 rounded-xl shadow-lg hover:scale-105 hover:shadow-2xl transition-all text-base">
+								<i className="ri-edit-line mr-2 text-xl align-middle"></i> Edit Profile
 							</Button>
 							<CustomLink href="/user/change-password">
-								<Button variant="outline" className="w-full">
-									<i className="ri-lock-line mr-2 w-4 h-4 flex items-center justify-center"></i>
-									Change Password
+								<Button variant="outline" className="bg-white/20 border-white/30 text-white font-bold px-6 py-2 rounded-xl shadow-lg hover:bg-white/30 hover:scale-105 hover:shadow-2xl transition-all text-base">
+									<i className="ri-lock-line mr-2 text-xl align-middle"></i> Change Password
 								</Button>
 							</CustomLink>
 						</div>
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-					<Card className="bg-card shadow-sm">
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between mb-4">
-								<h3 className="text-lg font-semibold text-card-foreground">Basic Information</h3>
-								<button onClick={() => setShowEditModal(true)} className="text-primary hover:text-primary/90 p-1 rounded-lg hover:bg-accent transition-colors">
-									<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
-								</button>
+				{/* Info Cards Section */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+					{/* Basic Info */}
+					<div className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900 p-6 min-h-[220px] flex flex-col justify-between">
+						<div className="flex items-center justify-between mb-4">
+							<h3 className="text-lg font-extrabold text-indigo-900 dark:text-indigo-100">Basic Information</h3>
+							<button onClick={() => setShowEditModal(true)} className="text-indigo-500 hover:text-indigo-700 p-1 rounded-lg hover:bg-indigo-100/40 transition-colors">
+								<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
+							</button>
+						</div>
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<i className="ri-user-line text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
+								<span className="text-indigo-900 dark:text-indigo-100 font-semibold">{profileData.name}</span>
 							</div>
-
-							<div className="space-y-4">
-								<div>
-									<label className="block text-sm font-medium text-muted-foreground mb-1">Name</label>
-									<div className="flex items-center gap-2">
-										<i className="ri-user-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-										<span className="text-card-foreground">{profileData.name}</span>
-									</div>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-muted-foreground mb-1">Username</label>
-									<div className="flex items-center gap-2">
-										<i className="ri-at-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-										<span className="text-card-foreground">{profileData.username}</span>
-									</div>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-muted-foreground mb-1">Email Address</label>
-									<div className="flex items-center gap-2">
-										<i className="ri-mail-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-										<span className="text-card-foreground">{profileData.email}</span>
-									</div>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-muted-foreground mb-1">Phone Number</label>
-									<div className="flex items-center gap-2">
-										<i className="ri-phone-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-										<span className="text-card-foreground">{profileData.phone}</span>
-									</div>
-								</div>
+							<div className="flex items-center gap-2">
+								<i className="ri-at-line text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
+								<span className="text-indigo-900 dark:text-indigo-100 font-semibold">{profileData.username}</span>
 							</div>
-						</CardContent>
-					</Card>
-
-					<Card className="bg-card shadow-sm">
-						<CardContent className="p-6">
-							<div className="flex items-center justify-between mb-4">
-								<h3 className="text-lg font-semibold text-card-foreground">Bank Information</h3>
-								<CustomLink href="/user/add-bank" className="text-primary hover:text-primary/90 p-1 rounded-lg hover:bg-accent transition-colors">
-									<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
-								</CustomLink>
+							<div className="flex items-center gap-2">
+								<i className="ri-mail-line text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
+								<span className="text-indigo-900 dark:text-indigo-100 font-semibold">{profileData.email}</span>
 							</div>
-
-							<div className="space-y-4">
-								<div>
-									<label className="block text-sm font-medium text-muted-foreground mb-1">Account Number</label>
-									<div className="flex items-center gap-2">
-										<i className="ri-bank-card-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-										<span className="text-card-foreground">{profileData.accountNumber}</span>
-									</div>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-muted-foreground mb-1">Bank Name</label>
-									<div className="flex items-center gap-2">
-										<i className="ri-bank-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-										<span className="text-card-foreground">{profileData.bankName}</span>
-									</div>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-muted-foreground mb-1">Account Name</label>
-									<div className="flex items-center gap-2">
-										<i className="ri-user-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-										<span className="text-card-foreground">{profileData.accountName}</span>
-									</div>
-								</div>
+							<div className="flex items-center gap-2">
+								<i className="ri-phone-line text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
+								<span className="text-indigo-900 dark:text-indigo-100 font-semibold">{profileData.phone}</span>
 							</div>
-						</CardContent>
-					</Card>
+						</div>
+					</div>
 
-					<Card className="bg-card shadow-sm">
-						<CardContent className="p-6">
-							<h3 className="text-lg font-semibold text-card-foreground mb-4">Referral Information</h3>
-
-							<div>
-								<label className="block text-sm font-medium text-muted-foreground mb-1">Referral Link</label>
-								<div className="flex items-center gap-2 p-3 bg-secondary rounded-lg">
-									<i className="ri-link text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
-									<span className="text-card-foreground text-sm flex-1 truncate">{referralCode}</span>
-								</div>
-								<Button onClick={handleCopyReferralLink} variant="outline" size="sm" className="mt-2 w-full">
-									<i className="ri-file-copy-line mr-2 w-4 h-4 flex items-center justify-center"></i>
-									Copy
-								</Button>
+					{/* Bank Info */}
+					<div className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900 p-6 min-h-[220px] flex flex-col justify-between">
+						<div className="flex items-center justify-between mb-4">
+							<h3 className="text-lg font-extrabold text-indigo-900 dark:text-indigo-100">Bank Information</h3>
+							<CustomLink href="/user/add-bank" className="text-indigo-500 hover:text-indigo-700 p-1 rounded-lg hover:bg-indigo-100/40 transition-colors">
+								<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
+							</CustomLink>
+						</div>
+						<div className="space-y-4">
+							<div className="flex items-center gap-2">
+								<i className="ri-bank-card-line text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
+								<span className="text-indigo-900 dark:text-indigo-100 font-semibold">{profileData.accountNumber}</span>
 							</div>
-						</CardContent>
-					</Card>
+							<div className="flex items-center gap-2">
+								<i className="ri-bank-line text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
+								<span className="text-indigo-900 dark:text-indigo-100 font-semibold">{profileData.bankName}</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<i className="ri-user-line text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
+								<span className="text-indigo-900 dark:text-indigo-100 font-semibold">{profileData.accountName}</span>
+							</div>
+						</div>
+					</div>
+
+					{/* Referral Info */}
+					<div className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900 p-6 min-h-[220px] flex flex-col justify-between">
+						<h3 className="text-lg font-extrabold text-indigo-900 dark:text-indigo-100 mb-4">Referral Information</h3>
+						<div>
+							<div className="flex items-center gap-2 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+								<i className="ri-link text-indigo-400 w-4 h-4 flex items-center justify-center"></i>
+								<span className="text-indigo-900 dark:text-indigo-100 text-sm flex-1 truncate">{referralCode}</span>
+							</div>
+							<Button onClick={handleCopyReferralLink} variant="outline" size="sm" className="mt-2 w-full bg-white/20 border-white/30 text-indigo-900 dark:text-indigo-100 font-bold rounded-xl hover:bg-white/30 hover:scale-105 transition-all">
+								<i className="ri-file-copy-line mr-2 w-4 h-4 flex items-center justify-center"></i>
+								Copy
+							</Button>
+						</div>
+					</div>
 				</div>
 			</div>
 

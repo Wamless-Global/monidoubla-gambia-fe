@@ -5,14 +5,14 @@ import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
 	title: 'FAQs',
-	description: 'Frequently Asked Questions about MonidoublA',
+	description: 'Frequently Asked Questions about Monidoublagambia',
 };
 
 export default function FAQsPage() {
 	const faqs = [
 		{
-			question: 'What is MonidoublA?',
-			answer: 'MonidoublA is a peer-to-peer financial empowerment platform that helps individuals grow their money through a structured tier-based system. Our mission is to provide financial freedom through team-based value creation and collaborative donation opportunities.',
+			question: 'What is Monidoublagambia?',
+			answer: 'Monidoublagambia is a peer-to-peer financial empowerment platform that helps individuals grow their money through a structured tier-based system. Our mission is to provide financial freedom through team-based value creation and collaborative donation opportunities.',
 		},
 		{
 			question: 'How does the tier system work?',
@@ -20,15 +20,15 @@ export default function FAQsPage() {
 		},
 		{
 			question: 'What is the minimum donation required?',
-			answer: 'The minimum donation to get started with MonidoublA is 5 LRD. This allows you to enter the first tier and begin your journey toward financial growth through our structured system.',
+			answer: 'The minimum donation to get started with Monidoublagambia is 5 LRD. This allows you to enter the first tier and begin your journey toward financial growth through our structured system.',
 		},
 		{
 			question: 'How do referrals work?',
-			answer: 'When you refer someone to MonidoublA, you earn commissions based on their donation and activity. The referral system is designed to reward active participants who help grow our community. Higher tiers unlock better referral commission rates.',
+			answer: 'When you refer someone to Monidoublagambia, you earn commissions based on their donation and activity. The referral system is designed to reward active participants who help grow our community. Higher tiers unlock better referral commission rates.',
 		},
 		{
-			question: 'Is MonidoublA safe and secure?',
-			answer: 'Yes, MonidoublA prioritizes the security and safety of all user donations. We use advanced security measures and follow strict financial protocols to protect your funds and personal information.',
+			question: 'Is Monidoublagambia safe and secure?',
+			answer: 'Yes, Monidoublagambia prioritizes the security and safety of all user donations. We use advanced security measures and follow strict financial protocols to protect your funds and personal information.',
 		},
 		{
 			question: 'How can I withdraw my earnings?',
@@ -45,25 +45,23 @@ export default function FAQsPage() {
 	];
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-gray-100 dark:bg-gray-800 pt-16">
 			<Header />
-
-			<div className="pt-16">
-				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-					<div className="text-center mb-12">
-						<h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">FAQs</h1>
-						<p className="text-gray-600 max-w-2xl mx-auto">Find answers to commonly asked questions about MonidoublA, our platform, and how to get started on your financial growth journey.</p>
+			<section className="py-16 sm:py-24">
+				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+					<div className="text-center mb-8 sm:mb-12">
+						<h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-indigo-600 dark:text-indigo-400 font-clash-display">FAQs</h1>
+						<p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 font-montserrat mt-4 max-w-2xl mx-auto">Find answers to commonly asked questions about Monidoublagambia, our platform, and how to get started on your financial growth journey.</p>
 					</div>
-
-					<div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 sm:p-8">
+						<div className="grid grid-cols-1 gap-4 sm:gap-6">
 							{faqs.map((faq, index) => (
 								<FAQItem key={index} question={faq.question} answer={faq.answer} />
 							))}
 						</div>
 					</div>
 				</div>
-			</div>
+			</section>
 			<Footer />
 		</div>
 	);

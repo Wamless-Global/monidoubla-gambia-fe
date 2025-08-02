@@ -30,7 +30,7 @@ export default function ServerError() {
 				<div className="text-sm text-gray-500 dark:text-gray-400 font-montserrat">
 					<p>
 						Error persists?{' '}
-						<CustomLink href="/contact" className="text-red-600 dark:text-red-500 hover:underline">
+						<CustomLink href="/contact-us" className="text-red-600 dark:text-red-500 hover:underline">
 							Contact support
 						</CustomLink>
 					</p>

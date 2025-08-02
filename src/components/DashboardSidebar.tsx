@@ -46,7 +46,7 @@ export function DashboardSidebar({ onClose }: DashboardSidebarProps) {
 				<div className="flex items-center justify-between mb-2">
 					<div className="flex items-center gap-2">
 						<i className="ri-wallet-line w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center text-xl lg:text-2xl"></i>
-						<h1 className="text-lg lg:text-xl font-bold font-clash">MONIDOUBLA</h1>
+						<h1 className="text-lg lg:text-xl font-bold font-clash">Monidoublagambia</h1>
 					</div>
 					{onClose && (
 						<button onClick={onClose} className="lg:hidden p-2 hover:bg-blue-800 rounded-lg transition-colors">

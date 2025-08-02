@@ -48,11 +48,18 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
 	title: {
-		default: 'Monidoubla',
-		template: `%s | Monidoubla`,
+		default: 'Monidoublagambia',
+		template: `%s | Monidoublagambia`,
 	},
 	description: 'A comprehensive financial platform for GH and PH requests',
 };
+
+declare global {
+	interface Window {
+		google?: any;
+		googleTranslateElementInit?: () => void;
+	}
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (

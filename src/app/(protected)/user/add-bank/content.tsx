@@ -165,22 +165,22 @@ export default function AddBankAccountPage() {
 	};
 
 	return (
-		<div className="p-4 lg:p-6  min-h-screen">
-			<div className="max-w-2xl mx-auto">
+		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0 flex items-center justify-center">
+			<div className="w-full max-w-2xl mx-auto py-10 px-2 sm:px-6">
 				{/* Header */}
-				<div className="mb-6">
-					<CustomLink href="/user/profile" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors mb-4">
-						<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center"></i>
+				<div className="mb-8">
+					<CustomLink href="/user/profile" className="inline-flex items-center gap-2 text-indigo-700 dark:text-indigo-200 hover:text-indigo-900 dark:hover:text-indigo-100 font-bold transition-colors mb-4">
+						<i className="ri-arrow-left-line w-5 h-5 flex items-center justify-center"></i>
 						Back to Profile
 					</CustomLink>
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Add Bank Account</h1>
-					<p className="text-gray-600 dark:text-gray-400">Add your bank account details to receive payments</p>
+					<h1 className="text-3xl font-extrabold text-indigo-900 dark:text-indigo-100 mb-2 drop-shadow">Add Bank Account</h1>
+					<p className="text-indigo-700 dark:text-indigo-200 text-lg">Add your bank account details to receive payments</p>
 				</div>
 
 				{/* Form */}
-				<Card className="bg-white dark:bg-gray-800 border-0 shadow-sm">
-					<CardContent className="p-6">
-						<form onSubmit={handleSubmit} className="space-y-6">
+				<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
+					<CardContent className="p-8">
+						<form onSubmit={handleSubmit} className="space-y-8">
 							{/* Account Number */}
 							<div>
 								<label htmlFor="accountNumber" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">

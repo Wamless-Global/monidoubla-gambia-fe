@@ -62,7 +62,7 @@ export default function HowItWorksSection() {
 						</Button>
 					</div>
 					<div>
-						<img src="/images/ai-how-it-works.jpg" alt="Community collaboration illustration" className="w-full h-auto rounded-xl shadow-xl" />
+						<img src="/images/img4.jpg" alt="Community collaboration illustration" className="w-full h-auto rounded-xl shadow-xl" />
 					</div>
 				</div>
 			</div>

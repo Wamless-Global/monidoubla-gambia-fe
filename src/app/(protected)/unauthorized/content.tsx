@@ -35,14 +35,12 @@ const UnauthorizedPageContent: React.FC = () => {
 	};
 
 	useEffect(() => {
-		// Define the callback before loading script
 		window.googleTranslateElementInit = function () {
 			if (window.google?.translate?.TranslateElement) {
 				new window.google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
 			}
 		};
 
-		// Prevent duplicate script appending
 		if (!document.getElementById('google-translate-script')) {
 			const script = document.createElement('script');
 			script.id = 'google-translate-script';
@@ -57,26 +55,29 @@ const UnauthorizedPageContent: React.FC = () => {
 	}, []);
 
 	return (
-		<div className="bg-background min-h-screen flex flex-col justify-between">
+		<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex flex-col">
 			<Header />
-			<div className="flex flex-col items-center justify-center text-foreground p-4 min-h-96 mt-20">
-				<h1 className="text-4xl font-bold mb-4 text-destructive">Unauthorized Access</h1>
-				<p className="text-lg mb-6 text-center">You do not have the necessary permissions to access {attemptedPath ? <code className="bg-muted px-1 py-0.5 rounded">{attemptedPath}</code> : 'this page'}.</p>
-				<div className="flex gap-4">
-					<CustomLink href="/user" passHref>
-						<Button variant="outline" className="cursor-pointer" disabled={isLoggingOut}>
-							My Account
-						</Button>
-					</CustomLink>
-					<Button variant="destructive" onClick={handleLogout} className="cursor-pointer" disabled={isLoggingOut}>
-						{isLoggingOut ? (
-							<>
-								<Loader2 className="mr-2 h-5 w-5 animate-spin" /> <span>Logging out...</span>
-							</>
-						) : (
-							'Logout'
-						)}
-					</Button>
+			<div className="flex-grow flex items-center justify-center p-4 sm:p-8">
+				<div className="container">
+					<div className="card max-w-md mx-auto text-center">
+						<h1 className="text-3xl font-bold text-neutral-dark mb-4">Unauthorized Access</h1>
+						<p className="text-text-secondary mb-6">You do not have the necessary permissions to access {attemptedPath ? <code className="bg-neutral-light px-1 py-0.5 rounded">{attemptedPath}</code> : 'this page'}.</p>
+						<div className="flex flex-col sm:flex-row gap-4 justify-center">
+							<CustomLink href="/user" passHref>
+								<Button className="button button-secondary w-full sm:w-auto">My Account</Button>
+							</CustomLink>
+							<Button className="button button-accent w-full sm:w-auto" onClick={handleLogout} disabled={isLoggingOut}>
+								{isLoggingOut ? (
+									<>
+										<Loader2 className="mr-2 h-5 w-5 animate-spin" />
+										<span>Logging out...</span>
+									</>
+								) : (
+									'Logout'
+								)}
+							</Button>
+						</div>
+					</div>
 				</div>
 			</div>
 			<Footer />

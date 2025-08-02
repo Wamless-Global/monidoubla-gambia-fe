@@ -29,56 +29,69 @@ export default function Header() {
 	}, []);
 
 	return (
-		<header className="sticky top-0 z-50 bg-transparent backdrop-blur-lg border-b border-indigo-200/30">
-			<nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col items-center justify-center gap-4 md:flex-row md:justify-between">
-				<div className="flex items-center justify-between w-full md:w-auto">
+		<header className="fixed top-0 left-0 right-0 z-50 bg-neutral-dark/80 backdrop-blur-sm py-2">
+			<nav className="container flex items-center justify-between h-16">
+				<div className="flex items-center space-x-4">
 					<CustomLink href="/">
 						<Logo size="xl" variant="default" alt="" />
 					</CustomLink>
-					<button className="md:hidden text-indigo-600 dark:text-indigo-400 p-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 rounded-lg" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}>
-						<i className={`${isMenuOpen ? 'ri-close-line' : 'ri-menu-line'} text-2xl`}></i>
-					</button>
-				</div>
-
-				<div className="hidden md:flex items-center gap-8">
-					{['Home', 'About Us', 'Contact Us', 'FAQs'].map((link, index) => (
-						<CustomLink key={index} href={link === 'Home' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-poppins text-lg transition-all hover:scale-105">
-							{link}
-						</CustomLink>
-					))}
 					<div id="google_translate_element" className="ml-4"></div>
 				</div>
 
-				<div className="hidden md:flex items-center gap-4">
-					<CustomLink href="/auth/login">
-						<Button variant="outline" size="lg" className="text-indigo-600 dark:text-indigo-400 border-indigo-400 hover:bg-indigo-400 hover:text-white font-poppins text-lg px-6 py-2 rounded-full transition-all hover:scale-105">
-							Login
-						</Button>
+				<div className="hidden md:flex items-center space-x-8">
+					<CustomLink href="/" className="text-neutral-light hover:text-white">
+						Home
 					</CustomLink>
-					<CustomLink href="/auth/signup">
-						<Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white font-poppins text-lg px-6 py-2 rounded-full transition-all hover:scale-105">
-							Get Started
-						</Button>
+					<CustomLink href="/about-us" className="text-neutral-light hover:text-white">
+						About Us
+					</CustomLink>
+					<CustomLink href="/contact-us" className="text-neutral-light hover:text-white">
+						Contact Us
+					</CustomLink>
+					<CustomLink href="/faqs" className="text-neutral-light hover:text-white">
+						FAQs
 					</CustomLink>
 				</div>
 
+				<div className="hidden md:flex items-center space-x-4">
+					<CustomLink href="/auth/login">
+						<Button className="button button-secondary text-white">Login</Button>
+					</CustomLink>
+					<CustomLink href="/auth/signup">
+						<Button className="button button-primary">Get Started</Button>
+					</CustomLink>
+				</div>
+
+				<button className="md:hidden text-white p-2" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu">
+					<i className={`${isMenuOpen ? 'ri-close-line' : 'ri-menu-line'} text-xl`}></i>
+				</button>
+
 				{isMenuOpen && (
-					<div className="md:hidden w-full bg-indigo-50 dark:bg-indigo-900/90 absolute top-full left-0 p-6 flex flex-col gap-4">
-						{['Home', 'About Us', 'Contact Us', 'FAQs'].map((link, index) => (
-							<CustomLink key={index} href={link === 'Home' ? '/' : `/${link.toLowerCase().replace(' ', '-')}`} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-poppins text-lg" onClick={() => setIsMenuOpen(false)}>
-								{link}
+					<div className="md:hidden fixed inset-0 z-50 flex items-center justify-center">
+						<div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-blue-900/80 to-purple-800/80 backdrop-blur-2xl" />
+						<div className="relative w-full max-w-xs mx-auto rounded-3xl shadow-2xl bg-white/10 border border-white/20 p-8 flex flex-col items-center space-y-6 animate-fade-in">
+							<button className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors text-2xl focus:outline-none" onClick={() => setIsMenuOpen(false)} aria-label="Close menu">
+								<i className="ri-close-line"></i>
+							</button>
+							<CustomLink href="/" className="text-white text-xl font-semibold hover:text-blue-200 transition-colors" onClick={() => setIsMenuOpen(false)}>
+								Home
 							</CustomLink>
-						))}
-						<CustomLink href="/auth/login">
-							<Button variant="outline" size="lg" className="w-full text-indigo-600 dark:text-indigo-400 border-indigo-400 hover:bg-indigo-400 hover:text-white font-poppins text-lg rounded-full" onClick={() => setIsMenuOpen(false)}>
-								Login
-							</Button>
-						</CustomLink>
-						<CustomLink href="/auth/signup">
-							<Button size="lg" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-poppins text-lg rounded-full" onClick={() => setIsMenuOpen(false)}>
-								Get Started
-							</Button>
-						</CustomLink>
+							<CustomLink href="/about-us" className="text-white text-xl font-semibold hover:text-blue-200 transition-colors" onClick={() => setIsMenuOpen(false)}>
+								About Us
+							</CustomLink>
+							<CustomLink href="/contact-us" className="text-white text-xl font-semibold hover:text-blue-200 transition-colors" onClick={() => setIsMenuOpen(false)}>
+								Contact Us
+							</CustomLink>
+							<CustomLink href="/faqs" className="text-white text-xl font-semibold hover:text-blue-200 transition-colors" onClick={() => setIsMenuOpen(false)}>
+								FAQs
+							</CustomLink>
+							<CustomLink href="/auth/login" onClick={() => setIsMenuOpen(false)} className="w-full">
+								<Button className="button button-secondary w-full max-w-xs mt-2">Login</Button>
+							</CustomLink>
+							<CustomLink href="/auth/signup" onClick={() => setIsMenuOpen(false)} className="w-full">
+								<Button className="button button-primary w-full max-w-xs">Get Started</Button>
+							</CustomLink>
+						</div>
 					</div>
 				)}
 			</nav>

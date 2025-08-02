@@ -179,39 +179,30 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 
 	if (!isMounted) {
 		return (
-			<div className="flex items-center justify-center min-h-screen bg-background">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+			<div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
 			</div>
 		);
 	}
 
 	if (loading) {
 		return (
-			<div className="p-4 lg:p-6 space-y-6 bg-background min-h-screen">
-				<div className="animate-pulse">
-					<div className="flex items-center gap-4 mb-6">
-						<div className="h-9 w-9 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-						<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+			<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center">
+				<div className="w-full max-w-6xl mx-auto p-8 animate-pulse">
+					<div className="flex items-center gap-4 mb-8">
+						<div className="h-12 w-12 bg-indigo-100 dark:bg-indigo-900 rounded-2xl"></div>
+						<div className="h-10 bg-indigo-100 dark:bg-indigo-900 rounded w-72"></div>
 					</div>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
 						{[...Array(3)].map((_, index) => (
-							<div key={index} className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
-								<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-							</div>
+							<div key={index} className="bg-indigo-50 dark:bg-indigo-900 rounded-2xl p-8 shadow-lg"></div>
 						))}
 					</div>
-					<div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-						<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-6"></div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					<div className="bg-white/90 dark:bg-gray-900/90 rounded-3xl border-2 border-indigo-100 dark:border-indigo-900 p-10">
+						<div className="h-8 bg-indigo-100 dark:bg-indigo-900 rounded w-48 mb-8"></div>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 							{[...Array(3)].map((_, index) => (
-								<div key={index} className="bg-gray-200 dark:bg-gray-700 rounded-lg p-4">
-									<div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20 mb-4"></div>
-									<div className="space-y-2">
-										<div className="h-3 bg-gray-300 dark:bg-gray-600 rounded"></div>
-										<div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
-									</div>
-								</div>
+								<div key={index} className="bg-indigo-100 dark:bg-indigo-900 rounded-2xl p-6"></div>
 							))}
 						</div>
 					</div>
@@ -222,15 +213,15 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 
 	if (!data || data.data.matches.length === 0) {
 		return (
-			<div className="p-4 lg:p-6 bg-background min-h-screen">
+			<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex items-center justify-center">
 				<div className="max-w-2xl mx-auto text-center py-20">
-					<div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-						<i className="ri-error-warning-line w-10 h-10 flex items-center justify-center text-red-600 dark:text-red-400"></i>
+					<div className="w-24 h-24 bg-gradient-to-tr from-red-200 via-yellow-200 to-indigo-200 dark:from-red-900 dark:via-yellow-900 dark:to-indigo-900 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
+						<i className="ri-error-warning-line w-12 h-12 flex items-center justify-center text-red-600 dark:text-red-300"></i>
 					</div>
-					<h1 className="text-2xl font-bold text-foreground mb-4">Help Request Not Found</h1>
-					<p className="text-muted-foreground mb-8">The help request you're looking for doesn't exist or has been removed.</p>
+					<h1 className="text-3xl font-extrabold text-indigo-900 dark:text-indigo-100 mb-4 drop-shadow">Help Request Not Found</h1>
+					<p className="text-indigo-700 dark:text-indigo-200 mb-8 text-lg">The help request you're looking for doesn't exist or has been removed.</p>
 					<CustomLink href="/user/get-help">
-						<Button className="bg-blue-600 hover:bg-blue-700 text-white">Back to Get Help</Button>
+						<Button className="bg-gradient-to-tr from-indigo-600 via-purple-600 to-emerald-500 hover:from-indigo-700 hover:to-emerald-600 text-white font-bold rounded-xl px-8 py-4 shadow-lg text-lg">Back to Get Help</Button>
 					</CustomLink>
 				</div>
 			</div>
@@ -241,57 +232,57 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 	const packageName = firstPH?.packageInfo.name || 'Unknown Package';
 
 	return (
-		<div className="p-4 lg:p-6 bg-background min-h-screen" suppressHydrationWarning={true}>
-			<div className="max-w-6xl mx-auto">
+		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0" suppressHydrationWarning={true}>
+			<div className="max-w-6xl mx-auto py-10 px-4">
 				{/* Header */}
-				<div className="flex items-center gap-4 mb-6">
-					<CustomLink href="/user/get-help" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-						<i className="ri-arrow-left-line w-5 h-5 flex items-center justify-center text-muted-foreground"></i>
+				<div className="flex items-center gap-4 mb-10">
+					<CustomLink href="/user/get-help" className="p-3 bg-gradient-to-tr from-indigo-100 via-blue-100 to-emerald-100 dark:from-indigo-900 dark:via-blue-900 dark:to-emerald-900 rounded-xl hover:scale-105 transition-all shadow">
+						<i className="ri-arrow-left-line w-6 h-6 flex items-center justify-center text-indigo-700 dark:text-indigo-200"></i>
 					</CustomLink>
-					<h1 className="text-2xl font-bold text-foreground">Help Request Details - {packageName}</h1>
+					<h1 className="text-3xl font-extrabold text-indigo-900 dark:text-indigo-100 drop-shadow">Help Request Details - {packageName}</h1>
 				</div>
 
 				{/* Summary Cards */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-					<Card className="p-6 bg-blue-50 dark:bg-blue-900/20">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+					<Card className="rounded-2xl shadow bg-gradient-to-tr from-indigo-100 via-blue-100 to-emerald-100 dark:from-indigo-900 dark:via-blue-900 dark:to-emerald-900 p-8">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-money-dollar-circle-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-indigo-200 dark:bg-indigo-800 rounded-full flex items-center justify-center">
+									<i className="ri-money-dollar-circle-line w-7 h-7 flex items-center justify-center text-indigo-600 dark:text-indigo-300"></i>
 								</div>
 								<div>
-									<div className="text-sm text-blue-600 dark:text-blue-400">Total Expected</div>
-									<div className="text-2xl font-bold text-blue-900 dark:text-blue-300">
+									<div className="text-lg text-indigo-700 dark:text-indigo-200 font-bold">Total Expected</div>
+									<div className="text-2xl font-extrabold text-indigo-900 dark:text-indigo-100">
 										{getMaturedAmount()} {getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-green-50 dark:bg-green-900/20">
+					<Card className="rounded-2xl shadow bg-gradient-to-tr from-green-100 via-emerald-100 to-indigo-100 dark:from-green-900 dark:via-emerald-900 dark:to-indigo-900 p-8">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-check-double-line w-6 h-6 flex items-center justify-center text-green-600 dark:text-green-400"></i>
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-green-200 dark:bg-green-800 rounded-full flex items-center justify-center">
+									<i className="ri-check-double-line w-7 h-7 flex items-center justify-center text-green-600 dark:text-green-300"></i>
 								</div>
 								<div>
-									<div className="text-sm text-green-600 dark:text-green-400">Confirmed</div>
-									<div className="text-2xl font-bold text-green-900 dark:text-green-300">
+									<div className="text-lg text-green-700 dark:text-green-200 font-bold">Confirmed</div>
+									<div className="text-2xl font-extrabold text-green-900 dark:text-green-100">
 										{getTotalConfirmedAmount()} {getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-yellow-50 dark:bg-yellow-900/20">
+					<Card className="rounded-2xl shadow bg-gradient-to-tr from-yellow-100 via-yellow-200 to-emerald-100 dark:from-yellow-900 dark:via-yellow-800 dark:to-emerald-900 p-8">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-time-line w-6 h-6 flex items-center justify-center text-yellow-600 dark:text-yellow-400"></i>
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-yellow-200 dark:bg-yellow-800 rounded-full flex items-center justify-center">
+									<i className="ri-time-line w-7 h-7 flex items-center justify-center text-yellow-600 dark:text-yellow-300"></i>
 								</div>
 								<div>
-									<div className="text-sm text-yellow-600 dark:text-yellow-400">Pending</div>
-									<div className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">
+									<div className="text-lg text-yellow-700 dark:text-yellow-200 font-bold">Pending</div>
+									<div className="text-2xl font-extrabold text-yellow-900 dark:text-yellow-100">
 										{getTotalPendingAmount()} {getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
@@ -301,63 +292,63 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 				</div>
 
 				{/* Progress Bar */}
-				<Card className="p-6 mb-8">
+				<Card className="rounded-2xl shadow bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900 p-8 mb-10">
 					<CardContent className="p-0">
 						<div className="flex items-center justify-between mb-4">
-							<h3 className="text-lg font-semibold text-foreground">Payment Progress</h3>
-							<span className="text-sm text-muted-foreground">{((getTotalConfirmedAmount() || 0 / getMaturedAmount() || 0) * 100).toFixed(1)}% Complete</span>
+							<h3 className="text-xl font-bold text-indigo-900 dark:text-indigo-100">Payment Progress</h3>
+							<span className="text-base text-indigo-700 dark:text-indigo-200 font-bold">{((getTotalConfirmedAmount() / getMaturedAmount()) * 100).toFixed(1)}% Complete</span>
 						</div>
-						<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-							<div className="bg-green-600 h-3 rounded-full transition-all duration-300" style={{ width: `${Math.min((getTotalConfirmedAmount() / getMaturedAmount()) * 100, 100)}%` }}></div>
+						<div className="w-full bg-indigo-100 dark:bg-indigo-900 rounded-full h-4">
+							<div className="bg-gradient-to-r from-green-500 via-emerald-500 to-indigo-500 h-4 rounded-full transition-all duration-300" style={{ width: `${Math.min((getTotalConfirmedAmount() / getMaturedAmount()) * 100, 100)}%` }}></div>
 						</div>
 					</CardContent>
 				</Card>
 
 				{/* PH Users (who provided help to you) */}
 				{data.data.myPHs.length > 0 && (
-					<Card className="bg-card border-0 shadow-sm rounded-lg mb-8">
-						<div className="p-6 border-b border-border">
-							<h2 className="text-lg font-semibold text-foreground">Users Who Provided Help</h2>
-							<p className="text-sm text-muted-foreground mt-1">{data.data.myPHs[0].details.length} users who helped you with this request</p>
+					<Card className="rounded-2xl shadow bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900 mb-10">
+						<div className="p-8 border-b border-indigo-100 dark:border-indigo-900">
+							<h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">Users Who Provided Help</h2>
+							<p className="text-base text-indigo-700 dark:text-indigo-200 mt-1">{data.data.myPHs[0].details.length} users who helped you with this request</p>
 						</div>
-						<div className="p-6">
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<div className="p-8">
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 								{data.data.myPHs[0].details.map((detail) => (
-									<div key={detail.id} className="border border-border rounded-lg p-6">
+									<div key={detail.id} className="rounded-2xl border-2 border-emerald-100 dark:border-emerald-900 bg-gradient-to-tr from-green-100 via-emerald-100 to-indigo-100 dark:from-green-900 dark:via-emerald-900 dark:to-indigo-900 p-6 shadow">
 										<div className="flex items-center justify-between mb-4">
 											<div className="flex items-center gap-3">
-												<div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-													<i className="ri-hand-heart-line w-5 h-5 flex items-center justify-center text-green-600 dark:text-green-400"></i>
+												<div className="w-12 h-12 bg-green-200 dark:bg-green-800 rounded-full flex items-center justify-center">
+													<i className="ri-hand-heart-line w-6 h-6 flex items-center justify-center text-green-600 dark:text-green-300"></i>
 												</div>
 												<div>
-													<h4 className="font-semibold text-foreground">{detail.name}</h4>
-													<p className="text-sm text-muted-foreground break-words max-w-[200px]">{detail.username}</p>
+													<h4 className="font-bold text-indigo-900 dark:text-indigo-100">{detail.name}</h4>
+													<p className="text-sm text-emerald-700 dark:text-emerald-200 break-words max-w-[200px]">{detail.username}</p>
 												</div>
 											</div>
-											<span className={`px-2 py-1 rounded-full text-xs font-medium max-w-[100px] text-center truncate ${getPaymentStatusColor(detail.status)}`}>{detail.status}</span>
+											<span className={`px-3 py-1 rounded-full text-sm font-bold max-w-[100px] text-center truncate ${getPaymentStatusColor(detail.status)} shadow`}>{detail.status}</span>
 										</div>
 										<div className="space-y-3">
 											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Phone:</span>
-												<span className="text-foreground">{detail.phoneNumber}</span>
+												<span className="text-emerald-700 dark:text-emerald-200 font-bold">Phone:</span>
+												<span className="text-indigo-900 dark:text-indigo-100">{detail.phoneNumber}</span>
 											</div>
 											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Account Name:</span>
-												<span className="text-foreground">{detail.accountName}</span>
+												<span className="text-emerald-700 dark:text-emerald-200 font-bold">Account Name:</span>
+												<span className="text-indigo-900 dark:text-indigo-100">{detail.accountName}</span>
 											</div>
 											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Account Number:</span>
-												<span className="text-foreground">{detail.accountNumber}</span>
+												<span className="text-emerald-700 dark:text-emerald-200 font-bold">Account Number:</span>
+												<span className="text-indigo-900 dark:text-indigo-100">{detail.accountNumber}</span>
 											</div>
 											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Amount:</span>
-												<span className="text-foreground font-semibold">
+												<span className="text-emerald-700 dark:text-emerald-200 font-bold">Amount:</span>
+												<span className="text-indigo-900 dark:text-indigo-100 font-extrabold">
 													{detail.amount} {getCurrencyFromLocalStorage()?.code}
 												</span>
 											</div>
 											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Date:</span>
-												<span className="text-foreground">{new Date(detail.timeAssigned).toLocaleDateString()}</span>
+												<span className="text-emerald-700 dark:text-emerald-200 font-bold">Date:</span>
+												<span className="text-indigo-900 dark:text-indigo-100">{new Date(detail.timeAssigned).toLocaleDateString()}</span>
 											</div>
 										</div>
 									</div>
@@ -368,49 +359,53 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 				)}
 
 				{/* Matched Users */}
-				<Card className="bg-card border-0 shadow-sm rounded-lg">
-					<div className="p-6 border-b border-border">
-						<h2 className="text-lg font-semibold text-foreground">Matched Users</h2>
-						<p className="text-sm text-muted-foreground mt-1">{data.data.matches.length} users matched to fulfill your request</p>
+				<Card className="rounded-2xl shadow bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
+					<div className="p-8 border-b border-indigo-100 dark:border-indigo-900">
+						<h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100">Matched Users</h2>
+						<p className="text-base text-indigo-700 dark:text-indigo-200 mt-1">{data.data.matches.length} users matched to fulfill your request</p>
 					</div>
-					<div className="p-6">
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					<div className="p-8">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 							{data.data.matches.map((match) => (
-								<div key={match.id} className="border border-border rounded-lg p-6">
+								<div key={match.id} className="rounded-2xl border-2 border-indigo-100 dark:border-indigo-900 bg-gradient-to-tr from-indigo-100 via-blue-100 to-emerald-100 dark:from-indigo-900 dark:via-blue-900 dark:to-emerald-900 p-6 shadow">
 									<div className="flex items-center justify-between mb-4">
 										<div className="flex items-center gap-3">
-											<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-												<i className="ri-user-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+											<div className="w-12 h-12 bg-blue-200 dark:bg-blue-800 rounded-full flex items-center justify-center">
+												<i className="ri-user-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-300"></i>
 											</div>
 											<div>
-												<h4 className="font-semibold text-foreground">{match.ghUserInfo.name}</h4>
-												<p className="text-sm text-muted-foreground break-words max-w-[200px]">{match.ghUserInfo.email}</p>
+												<h4 className="font-bold text-indigo-900 dark:text-indigo-100">{match.ghUserInfo.name}</h4>
+												<p className="text-sm text-blue-700 dark:text-blue-200 break-words max-w-[200px]">{match.ghUserInfo.email}</p>
 											</div>
 										</div>
-										<span className={`px-2 py-1 rounded-full text-xs font-medium max-w-[100px] text-center truncate ${getPaymentStatusColor(match.status)}`}>{match.status}</span>
+										<span className={`px-3 py-1 rounded-full text-sm font-bold max-w-[100px] text-center truncate ${getPaymentStatusColor(match.status)} shadow`}>{match.status}</span>
 									</div>
 									<div className="space-y-3 mb-4">
 										<div className="flex justify-between text-sm">
-											<span className="text-muted-foreground">Username:</span>
-											<span className="text-foreground">{match.ghUserInfo.username}</span>
+											<span className="text-blue-700 dark:text-blue-200 font-bold">Username:</span>
+											<span className="text-indigo-900 dark:text-indigo-100">{match.ghUserInfo.username}</span>
 										</div>
 										<div className="flex justify-between text-sm">
-											<span className="text-muted-foreground">Amount:</span>
-											<span className="text-foreground font-semibold">
+											<span className="text-blue-700 dark:text-blue-200 font-bold">Amount:</span>
+											<span className="text-indigo-900 dark:text-indigo-100 font-extrabold">
 												{match.amount} {getCurrencyFromLocalStorage()?.code}
 											</span>
 										</div>
 										<div className="flex justify-between text-sm">
-											<span className="text-muted-foreground">Date:</span>
-											<span className="text-foreground">{new Date(match.created_at).toLocaleDateString()}</span>
+											<span className="text-blue-700 dark:text-blue-200 font-bold">Date:</span>
+											<span className="text-indigo-900 dark:text-indigo-100">{new Date(match.created_at).toLocaleDateString()}</span>
 										</div>
 									</div>
 									{match.proof_of_payment && (match.status === 'submitted' || match.status === 'proof-submitted') && (
 										<div className="space-y-4">
-											<div className="text-sm font-medium text-foreground">Payment Proof:</div>
-											<img src={match.proof_of_payment} alt="Payment proof" className="w-full h-40 object-cover rounded-lg border border-border" />
+											<div className="text-base font-bold text-indigo-900 dark:text-indigo-100">Payment Proof:</div>
+											<img src={match.proof_of_payment} alt="Payment proof" className="w-full h-40 object-cover rounded-xl border-2 border-indigo-100 dark:border-indigo-900" />
 											<div className="flex gap-3">
-												<Button onClick={() => handlePaymentAction(match.id, 'confirm')} disabled={processingPayment === match.id} className="bg-green-600 hover:bg-green-700 text-white flex-1">
+												<Button
+													onClick={() => handlePaymentAction(match.id, 'confirm')}
+													disabled={processingPayment === match.id}
+													className="bg-gradient-to-tr from-green-600 via-emerald-500 to-indigo-500 hover:from-green-700 hover:to-indigo-700 text-white font-bold rounded-xl px-4 py-2 shadow-lg flex-1"
+												>
 													{processingPayment === match.id ? (
 														<div className="flex items-center gap-2">
 															<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -423,7 +418,12 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 														</>
 													)}
 												</Button>
-												<Button onClick={() => handlePaymentAction(match.id, 'decline')} disabled={processingPayment === match.id} variant="outline" className="bg-card border-border text-foreground hover:bg-accent flex-1">
+												<Button
+													onClick={() => handlePaymentAction(match.id, 'decline')}
+													disabled={processingPayment === match.id}
+													variant="outline"
+													className="bg-white/80 dark:bg-gray-900/80 border-2 border-indigo-100 dark:border-indigo-900 text-indigo-900 dark:text-indigo-100 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 font-bold rounded-xl px-4 py-2 shadow flex-1"
+												>
 													<i className="ri-close-line w-4 h-4 flex items-center justify-center mr-2"></i>
 													Decline
 												</Button>
@@ -431,20 +431,20 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 										</div>
 									)}
 									{match.status === 'confirmed' && (
-										<div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
-											<i className="ri-check-double-line w-4 h-4 flex items-center justify-center"></i>
+										<div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-base font-bold">
+											<i className="ri-check-double-line w-5 h-5 flex items-center justify-center"></i>
 											<span>Payment confirmed</span>
 										</div>
 									)}
 									{match.status === 'declined' && (
-										<div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
-											<i className="ri-close-circle-line w-4 h-4 flex items-center justify-center"></i>
+										<div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-base font-bold">
+											<i className="ri-close-circle-line w-5 h-5 flex items-center justify-center"></i>
 											<span>Payment declined</span>
 										</div>
 									)}
 									{match.status === 'pending' && (
-										<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm">
-											<i className="ri-time-line w-4 h-4 flex items-center justify-center"></i>
+										<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-base font-bold">
+											<i className="ri-time-line w-5 h-5 flex items-center justify-center"></i>
 											<span>Awaiting payment</span>
 										</div>
 									)}

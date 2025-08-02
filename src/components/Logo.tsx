@@ -22,7 +22,7 @@ const logoVariants = {
 export default function Logo({
 	size = 'lg',
 	variant = 'light',
-	alt = 'Monidoubla Logo',
+	alt = 'Monidoublagambia Logo',
 	style,
 	className,
 	...props

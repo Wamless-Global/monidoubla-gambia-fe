@@ -382,15 +382,37 @@ export default function ProvideHelpPage() {
 	logger.log;
 
 	const renderSelectPackage = () => (
-		<div className="p-4 lg:p-6 min-h-screen">
-			<div className="max-w-6xl mx-auto">
+		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0">
+			<div className="max-w-6xl mx-auto px-4 pt-10 pb-0">
+				{/* Hero Section */}
+				<div className="rounded-3xl bg-gradient-to-tr from-indigo-500/80 via-purple-500/80 to-emerald-400/80 dark:from-indigo-900/80 dark:via-purple-900/80 dark:to-emerald-900/80 shadow-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 overflow-hidden mb-10">
+					<div className="flex-1 flex flex-col gap-2">
+						<h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg mb-2">
+							Select a <span className="bg-white/20 px-2 py-1 rounded-xl text-indigo-100 font-black tracking-tight">Donation Package</span>
+						</h1>
+						<p className="text-lg text-indigo-100/90 font-medium mb-2">Choose the package that best suits your donation goals and start helping others.</p>
+					</div>
+					<div className="flex-1 flex justify-center items-center relative">
+						<div className="w-64 h-40 bg-gradient-to-tr from-indigo-400 via-purple-400 to-emerald-300 rounded-3xl shadow-2xl transform rotate-[-8deg] scale-105 blur-[1px] absolute left-4 top-6 opacity-30" />
+						<div className="w-72 h-44 bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 rounded-3xl shadow-2xl flex flex-col justify-between p-6 relative z-10 border-4 border-white/20">
+							<div className="flex items-center justify-between">
+								<span className="text-white/80 font-bold text-lg tracking-wider">Monidoublagambia</span>
+								<i className="ri-hand-heart-line text-2xl text-white/70"></i>
+							</div>
+							<div className="text-3xl font-black text-white tracking-widest mt-4 mb-2 drop-shadow-xl">Give &amp; Grow</div>
+							<div className="flex items-center justify-between">
+								<span className="text-white/70 text-xs">Peer-to-Peer</span>
+								<span className="text-white/70 text-xs">Secure</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
 				<div className="mb-6">
-					<Button onClick={() => setCurrentState('view-requests')} variant="ghost" className="mb-4 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+					<Button onClick={() => setCurrentState('view-requests')} variant="ghost" className="mb-4 whitespace-nowrap text-indigo-700 dark:text-indigo-200 hover:text-indigo-900 dark:hover:text-indigo-100">
 						<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center mr-2"></i>
 						Back to Requests
 					</Button>
-					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Select a package</h2>
-					<p className="text-gray-600 dark:text-gray-400">Choose the package that best suits your donation goals</p>
 				</div>
 
 				{packages.length === 0 ? (
@@ -402,36 +424,43 @@ export default function ProvideHelpPage() {
 						<p className="text-gray-600 dark:text-gray-400 mb-6">There are currently no donation packages available. Please check back later.</p>
 					</div>
 				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 						{packages.map((pkg) => (
-							<Card key={pkg.id} className="p-6 hover:shadow-lg transition-shadow bg-white dark:bg-gray-800 border-0">
+							<Card key={pkg.id} className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900 p-6 min-h-[220px] flex flex-col justify-between hover:scale-105 hover:shadow-2xl transition-all duration-300">
 								<CardContent className="p-0">
-									<div className="mb-4">
-										<div className="flex items-center gap-2 mb-2">
-											<h3 className="font-semibold text-gray-900 dark:text-white">{pkg.name}</h3>
-											<i className="ri-crown-line w-4 h-4 flex items-center justify-center text-yellow-500"></i>
-										</div>
+									<div className="mb-4 flex items-center gap-2">
+										<h3 className="font-extrabold text-indigo-900 dark:text-indigo-100 text-lg">{pkg.name}</h3>
+										<i className="ri-crown-line w-5 h-5 flex items-center justify-center text-yellow-400"></i>
 									</div>
-
 									<div className="space-y-3 mb-6">
 										<div className="flex items-center gap-2 text-sm">
 											<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-green-500"></i>
-											<span className="text-gray-600 dark:text-gray-400">Percentage profit: {pkg.profitPercentage}%</span>
+											<span className="text-indigo-700 dark:text-indigo-200">
+												Profit: <span className="font-bold">{pkg.profitPercentage}%</span>
+											</span>
 										</div>
 										<div className="flex items-center gap-2 text-sm">
 											<i className="ri-time-line w-4 h-4 flex items-center justify-center text-blue-500"></i>
-											<span className="text-gray-600 dark:text-gray-400">Maturity period: {pkg.maturityPeriod} days</span>
+											<span className="text-indigo-700 dark:text-indigo-200">
+												Maturity: <span className="font-bold">{pkg.maturityPeriod} days</span>
+											</span>
 										</div>
 										<div className="flex items-center gap-2 text-sm">
 											<i className="ri-money-dollar-circle-line w-4 h-4 flex items-center justify-center text-purple-500"></i>
-											<span className="text-gray-600 dark:text-gray-400">
-												Amount: {pkg.minAmount} - {pkg.maxAmount} {getCurrencyFromLocalStorage()?.code}
+											<span className="text-indigo-700 dark:text-indigo-200">
+												Amount:{' '}
+												<span className="font-bold">
+													{pkg.minAmount} - {pkg.maxAmount} {getCurrencyFromLocalStorage()?.code}
+												</span>
 											</span>
 										</div>
 									</div>
-
-									<Button onClick={() => handlePackageSelect(pkg)} variant="outline" className="w-full whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-										Select package
+									<Button
+										onClick={() => handlePackageSelect(pkg)}
+										variant="outline"
+										className="w-full whitespace-nowrap bg-white/30 dark:bg-gray-700/30 border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-100 font-bold rounded-xl hover:bg-white/40 hover:scale-105 transition-all"
+									>
+										Select Package
 									</Button>
 								</CardContent>
 							</Card>

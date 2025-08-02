@@ -6,7 +6,7 @@ export default function TeamSection() {
 			name: 'David Mensah',
 			role: 'CEO & Founder',
 			image: 'https://readdy.ai/api/search-image?query=Professional%20African%20business%20man%20CEO%20in%20modern%20suit%2C%20confident%20leader%2C%20corporate%20headshot%2C%20executive%20portrait%2C%20modern%20office%20background%2C%20successful%20entrepreneur%2C%20formal%20business%20attire&width=300&height=400&seq=team-ceo&orientation=portrait',
-			bio: 'David founded Monidoubla with a vision to democratize financial growth through community-driven peer-to-peer giving.',
+			bio: 'David founded Monidoublagambia with a vision to democratize financial growth through community-driven peer-to-peer giving.',
 		},
 		{
 			name: 'Sarah Osei',

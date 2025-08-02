@@ -17,7 +17,7 @@ export default function CallToAction() {
 							</Button>
 						</CustomLink>
 
-						<CustomLink href={`/about`} className="w-full sm:w-auto">
+						<CustomLink href={`/about-us`} className="w-full sm:w-auto">
 							<Button variant="outline" size="lg" className="text-white border-white hover:bg-white hover:text-blue-900 px-8 py-4 text-lg font-semibold w-full sm:w-auto">
 								Learn More
 							</Button>
