@@ -26,8 +26,6 @@ interface Product {
 	status: 'active' | 'inactive' | 'sold';
 }
 
-title = 'Remove Product';
-
 export default function MyListingsPage() {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [products, setProducts] = useState<Product[]>([]);
