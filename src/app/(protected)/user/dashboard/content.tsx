@@ -127,7 +127,7 @@ export default function DashboardPage() {
 
 	if (!data) {
 		return (
-			<div className="p-4 lg:p-8  min-h-screen flex items-center justify-center">
+			<div className="p-4 lg:p-8 min-h-screen flex items-center justify-center">
 				<div className="text-center">
 					<i className="ri-error-warning-line w-12 h-12 flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400"></i>
 					<h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Failed to load dashboard</h3>
@@ -138,43 +138,56 @@ export default function DashboardPage() {
 	}
 
 	return (
-		<div className="p-4 lg:p-8  min-h-screen">
-			<div className="max-w-6xl mx-auto">
-				<div className="space-y-6 lg:space-y-8">
-					{/* Welcome message */}
-					<div className="flex items-center justify-between">
-						<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back, {data.userName}</h1>
+		<div className="min-h-screen p-0 lg:p-0 bg-gradient-to-br from-[#23272f]/90 via-[#1a2236]/80 to-[#10131a]/90 relative">
+			{/* Hero Welcome Banner */}
+			<div className="relative w-full max-w-6xl mx-auto px-4 pt-10 pb-8 lg:pt-16 lg:pb-12">
+				<div className="rounded-2xl bg-gradient-to-br from-[#23272f]/90 via-[#1a2236]/80 to-[#10131a]/90 shadow-xl border border-white/10 px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-md">
+					<div>
+						<h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight mb-2 font-sans">
+							Welcome back, <span className="text-gold-400">{data.userName}</span>
+						</h1>
+						<p className="text-base lg:text-lg text-slate-300 font-medium max-w-xl">Your financial overview and recent activity are below. Take action or review your timeline at a glance.</p>
 					</div>
-
-					{/* Credit cards - single column on mobile */}
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-						{data.creditCards.map((card, index) => (
-							<CreditCard key={index} card={card} variant={index === 0 ? 'primary' : 'default'} />
-						))}
-					</div>
-
-					{/* Action buttons */}
-					<div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+					<div className="flex gap-3 items-center">
 						<CustomLink href={'/user/provide-help'}>
-							<Button variant="outline-yellow" className="whitespace-nowrap flex-1 sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-white">
-								Provide Help
+							<Button variant="outline-yellow" className="rounded-lg px-6 py-3 font-semibold text-gold-400 border-gold-400 bg-white/5 hover:bg-gold-400/10 transition-all shadow-none">
+								<i className="ri-hand-heart-line mr-2 text-lg"></i> Provide Help
 							</Button>
 						</CustomLink>
-
 						<CustomLink href={'/user/get-help'}>
-							<Button variant="solid-dark" className="whitespace-nowrap flex-1 sm:flex-none bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:hover:bg-gray-200 dark:text-gray-900">
-								Get Help
+							<Button variant="solid-dark" className="rounded-lg px-6 py-3 font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-all shadow-none">
+								<i className="ri-hand-coin-line mr-2 text-lg"></i> Get Help
 							</Button>
 						</CustomLink>
-					</div>
-
-					<ProvideHelpPage hideHeader={true} />
-
-					{/* Recent transactions */}
-					<div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
-						<TransactionList transactions={data.transactions} />
 					</div>
 				</div>
+				{/* Minimal floating elements for depth */}
+				<div className="absolute left-0 top-0 w-32 h-32 bg-gradient-to-br from-gold-400/10 to-slate-400/10 rounded-full blur-2xl -z-10" />
+				<div className="absolute right-0 bottom-0 w-24 h-24 bg-gradient-to-tr from-slate-400/10 to-gold-400/10 rounded-full blur-2xl -z-10" />
+			</div>
+
+			{/* Financial Cards */}
+			<div className="max-w-6xl mx-auto px-4 mt-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+				{data.creditCards.map((card, index) => (
+					<CreditCard key={index} card={card} variant={index === 0 ? 'primary' : 'default'} />
+				))}
+			</div>
+
+			{/* Quick Action Grid (optional, can add more actions here) */}
+			{/* <div className="max-w-6xl mx-auto px-4 mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+				...action buttons here...
+			</div> */}
+
+			{/* Timeline & Transactions */}
+			<div className="max-w-6xl mx-auto px-4 mt-10">
+				<div className="rounded-2xl bg-white/90 dark:bg-[#181c24]/90 border border-white/10 shadow-lg p-0 overflow-hidden">
+					<TransactionList transactions={data.transactions} />
+				</div>
+			</div>
+
+			{/* Provide Help Section (hidden header) */}
+			<div className="max-w-6xl mx-auto px-4 mt-10">
+				<ProvideHelpPage hideHeader={true} />
 			</div>
 		</div>
 	);

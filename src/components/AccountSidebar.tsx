@@ -57,13 +57,14 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
 	};
 
 	return (
-		<aside className="w-72 h-screen max-h-screen flex flex-col p-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-black shadow-2xl border-r border-white/10 relative z-40 overflow-hidden">
+		<aside className="w-72 h-screen max-h-screen flex flex-col p-0 bg-gradient-to-br from-[#23272f] via-[#181c24] to-[#10131a] shadow-2xl border-r border-white/10 relative z-40 overflow-hidden">
 			{/* Branding */}
-			<div className="flex items-center justify-between px-6 pt-8 pb-4 mb-2 shrink-0">
+			<div className="flex items-center justify-between px-7 pt-8 pb-4 mb-2 shrink-0">
 				<div className="flex items-center gap-3">
-					<div className="flex flex-col">
-						<span className="text-xl font-extrabold text-white tracking-tight leading-tight">Monidoublagambia</span>
-						<span className="text-xs font-medium text-indigo-200 tracking-wide">User Portal</span>
+					<Logo size="sm" variant="darkIcon" className="drop-shadow-lg" alt="Monidoublagambia Logo" />
+					<div className="flex flex-col ml-2">
+						<span className="text-xl font-extrabold text-white tracking-tight leading-tight font-sans">Monidoublagambia</span>
+						<span className="text-xs font-semibold text-gold-400 tracking-wide uppercase">User Portal</span>
 					</div>
 				</div>
 				{onClose && (
@@ -72,37 +73,39 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
 					</button>
 				)}
 			</div>
-			<div className="px-6 pb-2 shrink-0">
-				<div className="h-1 rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 opacity-40 blur-sm" />
+			<div className="px-7 pb-2 shrink-0">
+				<div className="h-1 rounded-full bg-gradient-to-r from-gold-400 via-slate-400 to-silver-400 opacity-40 blur-sm" />
 			</div>
 			{/* Navigation */}
 			<div className="flex-1 min-h-0 overflow-y-auto px-2 py-2">
-				<nav>
-					{navigationItems.map((section, idx) => (
-						<div key={section.category} className="mb-6">
-							<h3 className="text-xs font-bold text-indigo-200 mb-3 uppercase tracking-widest pl-3 opacity-80">{section.category}</h3>
-							<ul className="space-y-2">
-								{section.items.map((item) => (
-									<li key={item.name}>
-										<button
-											onClick={() => handleNavigation(item.href)}
-											className={cn(
-												'w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-base font-semibold transition-all duration-200 group relative',
-												pathname === item.href
-													? 'bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-800 text-white shadow-lg scale-105 ring-2 ring-indigo-400/40'
-													: 'bg-white/5 text-indigo-100 hover:bg-gradient-to-r hover:from-indigo-800 hover:to-blue-900 hover:text-white hover:scale-105 hover:shadow-xl hover:ring-2 hover:ring-indigo-400/30',
-												'backdrop-blur-md'
-											)}
-										>
-											<span className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-500 via-indigo-500 to-blue-500 shadow group-hover:scale-110 group-hover:shadow-lg transition-all">
-												<i className={`${item.icon} text-lg text-white drop-shadow`}></i>
-											</span>
-											<span className="flex-1 text-left tracking-wide">{item.name}</span>
-										</button>
-									</li>
-								))}
+				<nav className="space-y-6">
+					{navigationItems.map((group, idx) => (
+						<div key={group.category} className="space-y-1">
+							<div className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-400/80 select-none">{group.category}</div>
+							<ul className="space-y-1">
+								{group.items.map((item) => {
+									const isActive = pathname === item.href;
+									const isLogout = item.name === 'Log Out';
+									return (
+										<li key={item.name}>
+											<button
+												className={cn(
+													'w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-semibold text-base group',
+													'bg-transparent text-slate-200 hover:bg-white/5 hover:scale-[1.03] hover:shadow-gold-400/10',
+													isActive && 'bg-gradient-to-r from-gold-400/10 to-slate-700/40 text-gold-400 shadow-lg',
+													isLogout && 'hover:text-red-400 focus:text-red-400'
+												)}
+												onClick={() => handleNavigation(item.href)}
+												aria-label={item.name}
+											>
+												<i className={cn(item.icon, 'text-xl transition-all', isActive ? 'text-gold-400' : 'text-slate-400 group-hover:text-gold-400', isLogout && 'group-hover:text-red-400')}></i>
+												<span className="truncate font-sans tracking-tight">{item.name}</span>
+											</button>
+										</li>
+									);
+								})}
 							</ul>
-							{idx < navigationItems.length - 1 && <div className="my-5 h-0.5 rounded-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 opacity-20 blur-sm" />}
+							{idx < navigationItems.length - 1 && <div className="my-3 border-t border-white/10" />}
 						</div>
 					))}
 				</nav>

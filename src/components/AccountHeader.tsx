@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+
+import Logo from './Logo';
 import { useTheme } from 'next-themes';
 
 interface AccountHeaderProps {
@@ -36,7 +38,6 @@ export function AccountHeader({ onMenuClick, onNotificationClick, unreadNotifica
 				new window.google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
 			}
 		};
-
 		if (!document.getElementById('google-translate-script')) {
 			const script = document.createElement('script');
 			script.id = 'google-translate-script';
@@ -44,61 +45,44 @@ export function AccountHeader({ onMenuClick, onNotificationClick, unreadNotifica
 			script.async = true;
 			document.body.appendChild(script);
 		}
-
 		return () => {
 			delete window.googleTranslateElementInit;
 		};
 	}, []);
-
 	useEffect(() => {
 		setMounted(true);
 	}, []);
-
 	const toggleTheme = () => {
 		setTheme(theme === 'light' ? 'dark' : 'light');
 	};
-
 	if (!mounted) {
 		return null;
 	}
-
 	return (
-		<header className="relative z-30 w-full px-0 lg:px-0">
-			<div className="backdrop-blur-xl bg-gradient-to-r from-purple-600/70 via-indigo-700/60 to-blue-700/60 dark:from-indigo-900/80 dark:via-purple-900/70 dark:to-slate-900/80 shadow-xl rounded-b-3xl mx-auto py-6 px-4 lg:px-10 flex items-center justify-between border-b border-white/10">
-				<div id="google_translate_element" className="ml-4"></div>
-
-				{/* Left: Logo and Menu */}
+		<header className="backdrop-blur-lg bg-gradient-to-br from-[#23272f]/90 via-[#1a2236]/80 to-[#10131a]/90 shadow-xl border-b border-white/10 sticky top-0 z-30 transition-all duration-300" style={{ WebkitBackdropFilter: 'blur(16px)', backdropFilter: 'blur(16px)' }}>
+			<div className="flex items-center justify-between px-4 py-3 lg:px-8 lg:py-4">
 				<div className="flex items-center gap-4">
-					<button onClick={onMenuClick} className="lg:hidden p-2 bg-white/20 hover:bg-white/40 rounded-xl shadow transition-all backdrop-blur-md">
-						<i className="ri-menu-line w-6 h-6 flex items-center justify-center text-white"></i>
+					<button onClick={onMenuClick} className="lg:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-gold-400" aria-label="Open menu">
+						<i className="ri-menu-2-line w-6 h-6 text-white"></i>
 					</button>
+					<Logo size="sm" variant="darkIcon" className="hidden md:block" alt="Monidoublagambia Logo" />
+					<span className="text-xl font-extrabold tracking-tight text-white/90 drop-shadow-sm select-none font-sans" style={{ letterSpacing: '0.01em' }}>
+						{title}
+					</span>
 				</div>
-
-				{/* Center: Page Title */}
-				<div className="flex-1 flex justify-center">
-					<h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-xl bg-gradient-to-r from-white/90 to-indigo-200/80 bg-clip-text text-transparent">{title}</h1>
-				</div>
-
-				{/* Right: User, Theme, Notifications */}
 				<div className="flex items-center gap-4">
-					{/* User Avatar with status */}
-					{/* <div className="relative group">
-						<div className="w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-400 via-purple-400 to-blue-400 border-4 border-white/30 shadow-lg flex items-center justify-center overflow-hidden">
-							<i className="ri-user-3-fill text-white text-2xl"></i>
-						</div>
-						<span className="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white animate-pulse"></span>
-					</div> */}
-					{/* Theme toggle */}
-					{/* <button onClick={toggleTheme} className="p-2 rounded-xl bg-white/20 hover:bg-white/40 shadow transition-all backdrop-blur-md" title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
-						{theme === 'light' ? <i className="ri-moon-line w-5 h-5 text-white"></i> : <i className="ri-sun-line w-5 h-5 text-white"></i>}
-					</button> */}
-					{/* Notifications */}
-					<button onClick={onNotificationClick} className="relative p-2 rounded-xl bg-white/20 hover:bg-white/40 shadow transition-all backdrop-blur-md">
-						<i className="ri-notification-3-line w-5 h-5 text-white"></i>
-						{unreadNotifications > 0 && (
-							<span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-400 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-bounce border-2 border-white">{unreadNotifications}</span>
-						)}
+					<div id="google_translate_element" className="hidden lg:block" />
+					<button onClick={toggleTheme} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-gold-400" aria-label="Toggle theme">
+						<i className={`ri-${theme === 'light' ? 'moon' : 'sun'}-line w-6 h-6 text-white`}></i>
 					</button>
+					<button onClick={onNotificationClick} className="relative p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-all focus:outline-none focus:ring-2 focus:ring-gold-400" aria-label="Notifications">
+						<i className="ri-notification-3-line w-6 h-6 text-white"></i>
+						{unreadNotifications > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-gold-400 rounded-full shadow-lg"></span>}
+					</button>
+					<div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 via-gray-900 to-black border-2 border-white/20 flex items-center justify-center overflow-hidden shadow-md">
+						<i className="ri-user-3-line text-white text-2xl"></i>
+						<span className="absolute bottom-1 right-1 w-2 h-2 rounded-full bg-gold-400 border-2 border-white/80 shadow" title="Online"></span>
+					</div>
 				</div>
 			</div>
 		</header>

@@ -49,24 +49,26 @@ const TermsAndConditionsModal: React.FC<TermsModalProps> = ({ isOpen, onAgree })
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 !mt-0">
-			<Card className="max-w-lg w-full p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-200/60 via-white/70 to-blue-400/30 dark:from-blue-900/60 dark:via-blue-950/40 dark:to-blue-950/10 backdrop-blur-[6px]">
+			<Card className="max-w-lg w-full p-0 border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-blue-50/60 dark:from-blue-900/40 dark:to-blue-950/10">
 				<CardContent className="p-0">
-					<h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Provide Help Terms & Conditions</h2>
-					<div className="mb-6 text-gray-700 dark:text-gray-300 text-sm max-h-60 overflow-y-auto">
-						<p className="mb-2">By continuing, you agree to the following terms and conditions for providing help on this platform:</p>
-						<ul className="list-disc pl-5 space-y-2">
-							<li>You understand that providing help is voluntary and it involves your finance.</li>
-							<li>You agree to follow all platform rules and act in good faith with other users.</li>
-							{/* <li>You will not hold the platform responsible for any loss or delay in matching or payment.</li>
-							<li>You agree to provide accurate information and proof of payment when required.</li> */}
-							<li>Violation of these terms may result in account suspension or removal.</li>
-						</ul>
-					</div>
-					<div className="flex justify-end gap-2">
-						<Button onClick={handleAgree} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-							{loading ? 'Processing...' : 'I Agree & Continue'}
-						</Button>
+					<div className="px-8 pt-8 pb-6">
+						<h2 className="text-2xl font-extrabold mb-4 text-blue-900 dark:text-white tracking-tight">Provide Help Terms &amp; Conditions</h2>
+						<div className="mb-8 text-blue-900/80 dark:text-blue-100 text-base max-h-60 overflow-y-auto rounded-xl bg-white/40 dark:bg-blue-900/20 p-4 shadow-inner">
+							<p className="mb-3">By continuing, you agree to the following terms and conditions for providing help on this platform:</p>
+							<ul className="list-disc pl-6 space-y-3">
+								<li>You understand that providing help is voluntary and it involves your finance.</li>
+								<li>You agree to follow all platform rules and act in good faith with other users.</li>
+								{/* <li>You will not hold the platform responsible for any loss or delay in matching or payment.</li>
+							   <li>You agree to provide accurate information and proof of payment when required.</li> */}
+								<li>Violation of these terms may result in account suspension or removal.</li>
+							</ul>
+						</div>
+						<div className="flex justify-end gap-2 mt-2">
+							<Button onClick={handleAgree} disabled={loading} className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white py-3 px-6 rounded-xl shadow-lg text-lg font-semibold min-w-[180px]">
+								{loading ? 'Processing...' : 'I Agree & Continue'}
+							</Button>
+						</div>
 					</div>
 				</CardContent>
 			</Card>

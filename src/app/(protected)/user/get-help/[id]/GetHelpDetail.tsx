@@ -186,29 +186,29 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 
 	if (loading) {
 		return (
-			<div className="p-4 lg:p-6 space-y-6 bg-background min-h-screen">
+			<div className="p-4 lg:p-6 space-y-6 min-h-screen bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10">
 				<div className="animate-pulse">
 					<div className="flex items-center gap-4 mb-6">
-						<div className="h-9 w-9 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-						<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+						<div className="h-10 w-10 bg-blue-100/60 dark:bg-blue-900/30 rounded-xl shadow"></div>
+						<div className="h-8 bg-blue-100/60 dark:bg-blue-900/30 rounded-xl w-64 shadow"></div>
 					</div>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 						{[...Array(3)].map((_, index) => (
-							<div key={index} className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
-								<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+							<div key={index} className="bg-blue-100/60 dark:bg-blue-900/30 rounded-xl p-6 shadow">
+								<div className="h-4 bg-blue-200/60 dark:bg-blue-900/40 rounded w-24 mb-2"></div>
+								<div className="h-8 bg-blue-200/60 dark:bg-blue-900/40 rounded w-20"></div>
 							</div>
 						))}
 					</div>
-					<div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-						<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-6"></div>
+					<div className="bg-blue-100/60 dark:bg-blue-900/30 rounded-xl p-6 shadow">
+						<div className="h-6 bg-blue-200/60 dark:bg-blue-900/40 rounded w-32 mb-6"></div>
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{[...Array(3)].map((_, index) => (
-								<div key={index} className="bg-gray-200 dark:bg-gray-700 rounded-lg p-4">
-									<div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20 mb-4"></div>
+								<div key={index} className="bg-blue-200/60 dark:bg-blue-900/40 rounded-xl p-4">
+									<div className="h-4 bg-blue-300/60 dark:bg-blue-900/50 rounded"></div>
 									<div className="space-y-2">
-										<div className="h-3 bg-gray-300 dark:bg-gray-600 rounded"></div>
-										<div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
+										<div className="h-3 bg-blue-300/60 dark:bg-blue-900/50 rounded"></div>
+										<div className="h-3 bg-blue-300/60 dark:bg-blue-900/50 rounded w-3/4"></div>
 									</div>
 								</div>
 							))}
@@ -221,15 +221,15 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 
 	if (!data || data.data.matches.length === 0) {
 		return (
-			<div className="p-4 lg:p-6 bg-background min-h-screen">
+			<div className="p-4 lg:p-6 min-h-screen bg-gradient-to-br from-white/80 to-red-50/40 dark:from-red-900/30 dark:to-red-950/10">
 				<div className="max-w-2xl mx-auto text-center py-20">
-					<div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+					<div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
 						<i className="ri-error-warning-line w-10 h-10 flex items-center justify-center text-red-600 dark:text-red-400"></i>
 					</div>
-					<h1 className="text-2xl font-bold text-foreground mb-4">Help Request Not Found</h1>
-					<p className="text-muted-foreground mb-8">The help request you're looking for doesn't exist or has been removed.</p>
+					<h1 className="text-3xl font-extrabold text-foreground mb-4">Help Request Not Found</h1>
+					<p className="text-muted-foreground text-lg mb-8">The help request you're looking for doesn't exist or has been removed.</p>
 					<CustomLink href="/user/get-help">
-						<Button className="bg-blue-600 hover:bg-blue-700 text-white">Back to Get Help</Button>
+						<Button className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white py-3 rounded-xl shadow-lg text-lg font-semibold">Back to Get Help</Button>
 					</CustomLink>
 				</div>
 			</div>
@@ -240,57 +240,57 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 	const packageName = firstPH?.packageInfo?.name || 'Unknown Package';
 
 	return (
-		<div className="p-4 lg:p-6 bg-background min-h-screen" suppressHydrationWarning={true}>
+		<div className="p-4 lg:p-6 min-h-screen bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10" suppressHydrationWarning={true}>
 			<div className="max-w-6xl mx-auto">
 				{/* Header */}
-				<div className="flex items-center gap-4 mb-6">
-					<CustomLink href="/user/get-help" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-						<i className="ri-arrow-left-line w-5 h-5 flex items-center justify-center text-muted-foreground"></i>
+				<div className="flex items-center gap-4 mb-8">
+					<CustomLink href="/user/get-help" className="p-3 hover:bg-blue-100/60 dark:hover:bg-blue-900/20 rounded-xl transition-colors shadow">
+						<i className="ri-arrow-left-line w-6 h-6 flex items-center justify-center text-blue-400"></i>
 					</CustomLink>
-					<h1 className="text-2xl font-bold text-foreground">Help Request Details - {packageName}</h1>
+					<h1 className="text-3xl font-extrabold text-foreground tracking-tight">Help Request Details - {packageName}</h1>
 				</div>
 
 				{/* Summary Cards */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-					<Card className="p-6 bg-blue-50 dark:bg-blue-900/20">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-money-dollar-circle-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+					<Card className="border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10">
+						<CardContent className="p-8">
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center shadow">
+									<i className="ri-money-dollar-circle-line w-7 h-7 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
 								</div>
 								<div>
-									<div className="text-sm text-blue-600 dark:text-blue-400">Total Expected</div>
-									<div className="text-2xl font-bold text-blue-900 dark:text-blue-300">
+									<div className="text-base text-blue-600 dark:text-blue-400 font-semibold">Total Expected</div>
+									<div className="text-3xl font-extrabold text-blue-900 dark:text-blue-300 mt-1">
 										{getMaturedAmount()} {getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-green-50 dark:bg-green-900/20">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-check-double-line w-6 h-6 flex items-center justify-center text-green-600 dark:text-green-400"></i>
+					<Card className="border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-green-50/40 dark:from-green-900/30 dark:to-green-950/10">
+						<CardContent className="p-8">
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center shadow">
+									<i className="ri-check-double-line w-7 h-7 flex items-center justify-center text-green-600 dark:text-green-400"></i>
 								</div>
 								<div>
-									<div className="text-sm text-green-600 dark:text-green-400">Confirmed</div>
-									<div className="text-2xl font-bold text-green-900 dark:text-green-300">
+									<div className="text-base text-green-600 dark:text-green-400 font-semibold">Confirmed</div>
+									<div className="text-3xl font-extrabold text-green-900 dark:text-green-300 mt-1">
 										{getTotalConfirmedAmount()} {getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-yellow-50 dark:bg-yellow-900/20">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-time-line w-6 h-6 flex items-center justify-center text-yellow-600 dark:text-yellow-400"></i>
+					<Card className="border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-yellow-50/40 dark:from-yellow-900/30 dark:to-yellow-950/10">
+						<CardContent className="p-8">
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center shadow">
+									<i className="ri-time-line w-7 h-7 flex items-center justify-center text-yellow-600 dark:text-yellow-400"></i>
 								</div>
 								<div>
-									<div className="text-sm text-yellow-600 dark:text-yellow-400">Pending</div>
-									<div className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">
+									<div className="text-base text-yellow-600 dark:text-yellow-400 font-semibold">Pending</div>
+									<div className="text-3xl font-extrabold text-yellow-900 dark:text-yellow-300 mt-1">
 										{getTotalPendingAmount()} {getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
@@ -300,61 +300,61 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 				</div>
 
 				{/* Progress Bar */}
-				<Card className="p-6 mb-8">
-					<CardContent className="p-0">
+				<Card className="border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-green-50/40 dark:from-green-900/30 dark:to-green-950/10 mb-10">
+					<CardContent className="p-8">
 						<div className="flex items-center justify-between mb-4">
-							<h3 className="text-lg font-semibold text-foreground">Payment Progress</h3>
-							<span className="text-sm text-muted-foreground">{((getTotalConfirmedAmount() || 0 / getMaturedAmount() || 0) * 100).toFixed(1)}% Complete</span>
+							<h3 className="text-lg font-bold text-foreground">Payment Progress</h3>
+							<span className="text-base text-muted-foreground font-semibold">{((getTotalConfirmedAmount() / getMaturedAmount()) * 100).toFixed(1)}% Complete</span>
 						</div>
-						<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-							<div className="bg-green-600 h-3 rounded-full transition-all duration-300" style={{ width: `${Math.min((getTotalConfirmedAmount() / getMaturedAmount()) * 100, 100)}%` }}></div>
+						<div className="w-full bg-blue-100 dark:bg-blue-900/20 rounded-full h-4 shadow-inner">
+							<div className="bg-gradient-to-r from-green-400 to-green-600 h-4 rounded-full transition-all duration-300 shadow" style={{ width: `${Math.min((getTotalConfirmedAmount() / getMaturedAmount()) * 100, 100)}%` }}></div>
 						</div>
 					</CardContent>
 				</Card>
 
 				{/* PH Users (who provided help to you) */}
 				{data.data.myPHs.length > 0 && (
-					<Card className="bg-card border-0 shadow-sm rounded-lg mb-8">
-						<div className="p-6 border-b border-border">
-							<h2 className="text-lg font-semibold text-foreground">Users Who Provided Help</h2>
-							<p className="text-sm text-muted-foreground mt-1">{data.data.myPHs[0].details.length} users who helped you with this request</p>
+					<Card className="border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10 mb-10">
+						<div className="p-8 border-b border-blue-100 dark:border-blue-900/20">
+							<h2 className="text-2xl font-bold text-foreground">Users Who Provided Help</h2>
+							<p className="text-base text-muted-foreground mt-1">{data.data.myPHs[0].details.length} users who helped you with this request</p>
 						</div>
-						<div className="p-6">
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<div className="p-8">
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 								{data.data.myPHs[0].details.map((detail) => (
-									<div key={detail.id} className="border border-border rounded-lg p-6">
+									<div key={detail.id} className="border-0 shadow rounded-2xl bg-gradient-to-br from-white/80 to-green-50/40 dark:from-green-900/30 dark:to-green-950/10 p-6">
 										<div className="flex items-center justify-between mb-4">
 											<div className="flex items-center gap-3">
-												<div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-													<i className="ri-hand-heart-line w-5 h-5 flex items-center justify-center text-green-600 dark:text-green-400"></i>
+												<div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center shadow">
+													<i className="ri-hand-heart-line w-6 h-6 flex items-center justify-center text-green-600 dark:text-green-400"></i>
 												</div>
 												<div>
-													<h4 className="font-semibold text-foreground">{detail?.name}</h4>
-													<p className="text-sm text-muted-foreground break-words max-w-[200px]">{detail?.username}</p>
+													<h4 className="font-bold text-lg text-foreground">{detail?.name}</h4>
+													<p className="text-base text-muted-foreground break-words max-w-[200px]">{detail?.username}</p>
 												</div>
 											</div>
-											<span className={`px-2 py-1 rounded-full text-xs font-medium max-w-[100px] text-center truncate ${getPaymentStatusColor(detail.status)}`}>{detail.status}</span>
+											<span className={`px-3 py-1 rounded-full text-xs font-bold max-w-[100px] text-center truncate ${getPaymentStatusColor(detail.status)}`}>{detail.status}</span>
 										</div>
 										<div className="space-y-3">
-											<div className="flex justify-between text-sm">
+											<div className="flex justify-between text-base">
 												<span className="text-muted-foreground">Phone:</span>
 												<span className="text-foreground">{detail.phoneNumber}</span>
 											</div>
-											<div className="flex justify-between text-sm">
+											<div className="flex justify-between text-base">
 												<span className="text-muted-foreground">Account Name:</span>
 												<span className="text-foreground">{detail.accountName}</span>
 											</div>
-											<div className="flex justify-between text-sm">
+											<div className="flex justify-between text-base">
 												<span className="text-muted-foreground">Account Number:</span>
 												<span className="text-foreground">{detail.accountNumber}</span>
 											</div>
-											<div className="flex justify-between text-sm">
+											<div className="flex justify-between text-base">
 												<span className="text-muted-foreground">Amount:</span>
-												<span className="text-foreground font-semibold">
+												<span className="text-foreground font-bold">
 													{detail.amount} {getCurrencyFromLocalStorage()?.code}
 												</span>
 											</div>
-											<div className="flex justify-between text-sm">
+											<div className="flex justify-between text-base">
 												<span className="text-muted-foreground">Date:</span>
 												<span className="text-foreground">{new Date(detail.timeAssigned).toLocaleDateString()}</span>
 											</div>
@@ -367,49 +367,53 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 				)}
 
 				{/* Matched Users */}
-				<Card className="bg-card border-0 shadow-sm rounded-lg">
-					<div className="p-6 border-b border-border">
-						<h2 className="text-lg font-semibold text-foreground">Matched Users</h2>
-						<p className="text-sm text-muted-foreground mt-1">{data.data.matches.length} users matched to fulfill your request</p>
+				<Card className="border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10">
+					<div className="p-8 border-b border-blue-100 dark:border-blue-900/20">
+						<h2 className="text-2xl font-bold text-foreground">Matched Users</h2>
+						<p className="text-base text-muted-foreground mt-1">{data.data.matches.length} users matched to fulfill your request</p>
 					</div>
-					<div className="p-6">
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					<div className="p-8">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 							{data.data.matches.map((match) => (
-								<div key={match.id} className="border border-border rounded-lg p-6">
+								<div key={match.id} className="border-0 shadow rounded-2xl bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/20 dark:to-blue-950/5 p-6">
 									<div className="flex items-center justify-between mb-4">
 										<div className="flex items-center gap-3">
-											<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-												<i className="ri-user-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+											<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center shadow">
+												<i className="ri-user-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
 											</div>
 											<div>
-												<h4 className="font-semibold text-foreground">{match.userInfo?.name}</h4>
-												<p className="text-sm text-muted-foreground break-words max-w-[200px]">{match.userInfo.email}</p>
+												<h4 className="font-bold text-lg text-foreground">{match.userInfo?.name}</h4>
+												<p className="text-base text-muted-foreground break-words max-w-[200px]">{match.userInfo.email}</p>
 											</div>
 										</div>
-										<span className={`px-2 py-1 rounded-full text-xs font-medium max-w-[100px] text-center truncate ${getPaymentStatusColor(match.status)}`}>{match.status}</span>
+										<span className={`px-3 py-1 rounded-full text-xs font-bold max-w-[100px] text-center truncate ${getPaymentStatusColor(match.status)}`}>{match.status}</span>
 									</div>
 									<div className="space-y-3 mb-4">
-										<div className="flex justify-between text-sm">
+										<div className="flex justify-between text-base">
 											<span className="text-muted-foreground">Username:</span>
 											<span className="text-foreground">{match.userInfo.username}</span>
 										</div>
-										<div className="flex justify-between text-sm">
+										<div className="flex justify-between text-base">
 											<span className="text-muted-foreground">Amount:</span>
-											<span className="text-foreground font-semibold">
+											<span className="text-foreground font-bold">
 												{match.amount} {getCurrencyFromLocalStorage()?.code}
 											</span>
 										</div>
-										<div className="flex justify-between text-sm">
+										<div className="flex justify-between text-base">
 											<span className="text-muted-foreground">Date:</span>
 											<span className="text-foreground">{new Date(match.created_at).toLocaleDateString()}</span>
 										</div>
 									</div>
 									{match.proof_of_payment && (match.status === 'submitted' || match.status === 'proof-submitted') && (
 										<div className="space-y-4">
-											<div className="text-sm font-medium text-foreground">Payment Proof:</div>
-											<img src={match.proof_of_payment} alt="Payment proof" className="w-full h-40 object-cover rounded-lg border border-border" />
+											<div className="text-base font-bold text-foreground">Payment Proof:</div>
+											<img src={match.proof_of_payment} alt="Payment proof" className="w-full h-40 object-cover rounded-xl border border-blue-100 dark:border-blue-900/20 shadow" />
 											<div className="flex gap-3">
-												<Button onClick={() => handlePaymentAction(match.id, 'confirm')} disabled={processingPayment === match.id} className="bg-green-600 hover:bg-green-700 text-white flex-1">
+												<Button
+													onClick={() => handlePaymentAction(match.id, 'confirm')}
+													disabled={processingPayment === match.id}
+													className="bg-gradient-to-r from-green-600 to-green-400 hover:from-green-700 hover:to-green-500 text-white flex-1 rounded-xl shadow-lg text-lg font-semibold"
+												>
 													{processingPayment === match.id ? (
 														<div className="flex items-center gap-2">
 															<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -422,7 +426,12 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 														</>
 													)}
 												</Button>
-												<Button onClick={() => handlePaymentAction(match.id, 'decline')} disabled={processingPayment === match.id} variant="outline" className="bg-card border-border text-foreground hover:bg-accent flex-1">
+												<Button
+													onClick={() => handlePaymentAction(match.id, 'decline')}
+													disabled={processingPayment === match.id}
+													variant="outline"
+													className="bg-white/80 border-blue-100 dark:bg-blue-900/10 dark:border-blue-900/20 text-foreground hover:bg-blue-50/40 flex-1 rounded-xl text-lg font-semibold"
+												>
 													<i className="ri-close-line w-4 h-4 flex items-center justify-center mr-2"></i>
 													Decline
 												</Button>
@@ -430,19 +439,19 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 										</div>
 									)}
 									{match.status === 'confirmed' && (
-										<div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
+										<div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-base font-semibold">
 											<i className="ri-check-double-line w-4 h-4 flex items-center justify-center"></i>
 											<span>Payment confirmed</span>
 										</div>
 									)}
 									{match.status === 'declined' && (
-										<div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
+										<div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-base font-semibold">
 											<i className="ri-close-circle-line w-4 h-4 flex items-center justify-center"></i>
 											<span>Payment declined</span>
 										</div>
 									)}
 									{match.status === 'pending' && (
-										<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm">
+										<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-base font-semibold">
 											<i className="ri-time-line w-4 h-4 flex items-center justify-center"></i>
 											<span>Awaiting payment</span>
 										</div>

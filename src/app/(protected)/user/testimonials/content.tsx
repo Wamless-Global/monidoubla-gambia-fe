@@ -174,55 +174,55 @@ export default function UserTestimonialsPage() {
 			/>
 			<div className="p-4 lg:p-6 min-h-screen">
 				<div className="max-w-3xl mx-auto">
-					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">My Testimonials</h2>
-					<Card className="mb-8 p-6 bg-white dark:bg-gray-800 border-0">
-						<CardContent className="p-0">
-							<h3 className="font-semibold text-gray-900 dark:text-white mb-2">Share Your Testimony</h3>
+					<h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-6">My Testimonials</h2>
+					<Card className="mb-10 border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10">
+						<CardContent className="p-8">
+							<h3 className="font-semibold text-lg text-foreground mb-3">Share Your Testimony</h3>
 							<textarea
 								value={content}
 								onChange={(e) => setContent(e.target.value)}
 								placeholder="Write your testimony..."
 								rows={3}
-								className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+								className="w-full px-4 py-3 border-0 rounded-xl shadow bg-gradient-to-r from-white/80 to-blue-50/40 dark:from-blue-900/20 dark:to-blue-950/5 text-base focus:ring-2 focus:ring-blue-400 focus:outline-none mb-3"
 							/>
-							<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, false)} className="mb-2" />
+							<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, false)} className="mb-3" />
 							{videoPreview && (
-								<video controls className="w-full max-w-md mb-2 rounded">
+								<video controls className="w-full max-w-md mb-3 rounded-xl shadow">
 									<source src={videoPreview} type="video/mp4" />
 									Your browser does not support the video tag.
 								</video>
 							)}
-							<Button onClick={handleUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
+							<Button onClick={handleUpload} className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white py-3 rounded-xl shadow-lg text-lg font-semibold">
 								Upload
 							</Button>
 						</CardContent>
 					</Card>
-					<div className="space-y-6">
+					<div className="space-y-8">
 						{isLoading ? (
-							<div>Loading...</div>
+							<div className="text-center text-muted-foreground text-lg">Loading...</div>
 						) : testimonies.length === 0 ? (
-							<div className="text-center text-gray-500 dark:text-gray-400">No testimonies yet.</div>
+							<div className="text-center text-muted-foreground text-lg">No testimonies yet.</div>
 						) : (
 							testimonies.map((testimony) => (
-								<Card key={testimony.id} className="p-4 bg-white dark:bg-gray-800 border-0">
-									<CardContent className="p-0">
+								<Card key={testimony.id} className="border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-green-50/40 dark:from-green-900/30 dark:to-green-950/10">
+									<CardContent className="p-8">
 										{editingId === testimony.id ? (
 											<>
 												<textarea
 													value={editContent}
 													onChange={(e) => setEditContent(e.target.value)}
 													rows={3}
-													className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+													className="w-full px-4 py-3 border-0 rounded-xl shadow bg-gradient-to-r from-white/80 to-green-50/40 dark:from-green-900/20 dark:to-green-950/5 text-base focus:ring-2 focus:ring-green-400 focus:outline-none mb-3"
 												/>
-												<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, true)} className="mb-2" />
+												<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, true)} className="mb-3" />
 												{editVideoPreview && (
-													<video controls className="w-full max-w-md mb-2 rounded">
+													<video controls className="w-full max-w-md mb-3 rounded-xl shadow">
 														<source src={editVideoPreview} type="video/mp4" />
 														Your browser does not support the video tag.
 													</video>
 												)}
-												<div className="flex gap-2">
-													<Button onClick={() => handleEditSave(testimony.id)} className="bg-green-600 hover:bg-green-700 text-white">
+												<div className="flex gap-3">
+													<Button onClick={() => handleEditSave(testimony.id)} className="bg-gradient-to-r from-green-600 to-green-400 hover:from-green-700 hover:to-green-500 text-white py-3 rounded-xl shadow-lg text-lg font-semibold">
 														Save
 													</Button>
 													<Button
@@ -234,6 +234,7 @@ export default function UserTestimonialsPage() {
 															}
 														}}
 														variant="outline"
+														className="py-3 rounded-xl text-lg font-semibold"
 													>
 														Cancel
 													</Button>
@@ -241,20 +242,20 @@ export default function UserTestimonialsPage() {
 											</>
 										) : (
 											<>
-												<div className="mb-2 text-gray-900 dark:text-white whitespace-pre-line break-words overflow-auto" style={{ maxHeight: '12rem', wordBreak: 'break-word' }}>
+												<div className="mb-3 text-foreground whitespace-pre-line break-words overflow-auto text-lg" style={{ maxHeight: '12rem', wordBreak: 'break-word' }}>
 													{testimony.content}
 												</div>
 												{testimony.video_url && (
-													<video controls className="w-full max-w-md mb-2 rounded">
+													<video controls className="w-full max-w-md mb-3 rounded-xl shadow">
 														<source src={testimony.video_url} type="video/mp4" />
 														Your browser does not support the video tag.
 													</video>
 												)}
-												<div className="flex gap-2">
-													<Button onClick={() => handleEdit(testimony)} variant="outline">
+												<div className="flex gap-3">
+													<Button onClick={() => handleEdit(testimony)} variant="outline" className="py-3 rounded-xl text-lg font-semibold">
 														Edit
 													</Button>
-													<Button onClick={() => handleDelete(testimony.id)} variant="outline" className="text-red-600 border-red-600">
+													<Button onClick={() => handleDelete(testimony.id)} variant="outline" className="py-3 rounded-xl text-lg font-semibold text-red-600 border-red-600">
 														Delete
 													</Button>
 												</div>

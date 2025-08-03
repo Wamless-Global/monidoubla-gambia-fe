@@ -140,33 +140,46 @@ export default function MarketplacePage() {
 	};
 
 	if (isLoading) {
-		return <MarketplaceSkeleton />;
+		return (
+			<div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-blue-50 dark:to-blue-950/40">
+				<div className="w-full max-w-6xl px-4 lg:px-0">
+					<div className="animate-pulse space-y-8">
+						<div className="h-8 w-48 rounded-lg bg-gradient-to-r from-blue-200/60 to-blue-100/30 mb-6" />
+						<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+							{[...Array(4)].map((_, i) => (
+								<div key={i} className="rounded-xl bg-gradient-to-br from-white/60 to-blue-100/30 dark:from-blue-900/30 dark:to-blue-950/10 shadow-lg p-4 h-72" />
+							))}
+						</div>
+					</div>
+				</div>
+			</div>
+		);
 	}
 
 	return (
-		<div className="p-4 lg:p-6">
-			<div className="max-w-6xl mx-auto space-y-6">
+		<div className="min-h-screen bg-gradient-to-br from-background to-blue-50 dark:to-blue-950/40 py-8 px-2 lg:px-0">
+			<div className="max-w-6xl mx-auto w-full space-y-8">
 				{/* Search and Filter */}
 				<div className="flex flex-col lg:flex-row gap-4">
 					<div className="flex-1">
 						<div className="relative">
-							<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex items-center justify-center"></i>
+							<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 w-5 h-5 flex items-center justify-center" />
 							<input
 								type="text"
 								placeholder="Search products, categories, or locations..."
 								value={searchQuery}
 								onChange={(e) => handleSearch(e.target.value)}
-								className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+								className="w-full pl-12 pr-4 py-3 border-0 rounded-xl shadow bg-gradient-to-r from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10 text-base focus:ring-2 focus:ring-blue-400 focus:outline-none"
 							/>
 						</div>
 					</div>
 					<div className="flex gap-2">
-						<Button variant="outline" onClick={() => setIsFilterModalOpen(true)} className="whitespace-nowrap">
-							<i className="ri-filter-line w-4 h-4 flex items-center justify-center mr-2"></i>
+						<Button onClick={() => setIsFilterModalOpen(true)} className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white px-6 py-2 text-base font-semibold rounded-xl shadow-lg">
+							<i className="ri-filter-line w-5 h-5 flex items-center justify-center mr-2" />
 							Filters
 						</Button>
-						<Button variant="outline" onClick={handleFilterReset} className="whitespace-nowrap">
-							<i className="ri-refresh-line w-4 h-4 flex items-center justify-center mr-2"></i>
+						<Button onClick={handleFilterReset} className="bg-gradient-to-r from-gray-300 to-gray-100 hover:from-gray-400 hover:to-gray-200 text-gray-800 px-6 py-2 text-base font-semibold rounded-xl shadow-lg">
+							<i className="ri-refresh-line w-5 h-5 flex items-center justify-center mr-2" />
 							Reset
 						</Button>
 					</div>
@@ -174,11 +187,11 @@ export default function MarketplacePage() {
 
 				{/* Results count */}
 				<div className="flex items-center justify-between">
-					<p className="text-sm text-gray-600">
+					<p className="text-base text-muted-foreground">
 						Showing {filteredProducts.length} of {products.length} products
 					</p>
 					{(searchQuery || selectedCategory) && (
-						<p className="text-sm text-gray-500">
+						<p className="text-base text-muted-foreground">
 							{searchQuery && `Search: "${searchQuery}"`}
 							{searchQuery && selectedCategory && ' • '}
 							{selectedCategory && `Category: ${selectedCategory}`}
@@ -190,34 +203,29 @@ export default function MarketplacePage() {
 				<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
 					{filteredProducts.map((product) => (
 						<CustomLink key={product.id} href={`/user/marketplace/${product.id}`}>
-							<Card className="group hover:shadow-lg transition-shadow h-full cursor-pointer">
+							<Card className="group hover:shadow-2xl transition-shadow h-full cursor-pointer bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10 border-0 rounded-xl">
 								<CardContent className="p-4">
-									<div className="aspect-square mb-4 bg-gray-100 rounded-lg overflow-hidden">
+									<div className="aspect-square mb-4 bg-gradient-to-br from-blue-100/60 to-white/40 dark:from-blue-900/20 dark:to-blue-950/5 rounded-lg overflow-hidden flex items-center justify-center">
 										<Image src={product.image} alt={product.name} width={400} height={400} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300" />
-										import Image from 'next/image';
 									</div>
-
 									<div className="space-y-2">
-										<h3 className="font-semibold text-gray-900 line-clamp-1">{product.name}</h3>
-										<p className="text-2xl font-bold text-blue-900">
+										<h3 className="font-bold text-foreground line-clamp-1">{product.name}</h3>
+										<p className="text-2xl font-extrabold text-blue-900 dark:text-blue-200">
 											{product.price} {getCurrencyFromLocalStorage()?.code}
 										</p>
-										<p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
-
-										<div className="flex items-center gap-1 text-sm text-gray-500">
-											<i className="ri-map-pin-line w-3 h-3 flex items-center justify-center"></i>
+										<p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+										<div className="flex items-center gap-1 text-sm text-muted-foreground">
+											<i className="ri-map-pin-line w-4 h-4 flex items-center justify-center" />
 											<span className="line-clamp-1">{product.location}</span>
 										</div>
-
-										<div className="flex items-center gap-1 text-sm text-gray-500">
-											<i className="ri-user-line w-3 h-3 flex items-center justify-center"></i>
+										<div className="flex items-center gap-1 text-sm text-muted-foreground">
+											<i className="ri-user-line w-4 h-4 flex items-center justify-center" />
 											<span className="line-clamp-1">{product.seller}</span>
 										</div>
-
 										<div className="flex items-center justify-between pt-2">
-											<span className="text-xs text-gray-500">{product.datePosted}</span>
-											<div className="flex items-center gap-1 text-xs text-gray-500">
-												<i className="ri-eye-line w-3 h-3 flex items-center justify-center"></i>
+											<span className="text-xs text-muted-foreground">{product.datePosted}</span>
+											<div className="flex items-center gap-1 text-xs text-muted-foreground">
+												<i className="ri-eye-line w-4 h-4 flex items-center justify-center" />
 												<span>{product.views}</span>
 											</div>
 										</div>
@@ -231,10 +239,10 @@ export default function MarketplacePage() {
 				{/* No results */}
 				{filteredProducts.length === 0 && !isLoading && (
 					<div className="flex flex-col items-center justify-center py-16 text-center">
-						<i className="ri-search-line w-16 h-16 flex items-center justify-center text-gray-400 mb-4"></i>
-						<h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-						<p className="text-gray-500 mb-4">Try adjusting your search terms or filters</p>
-						<Button onClick={handleFilterReset} variant="outline" className="whitespace-nowrap">
+						<i className="ri-search-line w-16 h-16 flex items-center justify-center text-gray-400 mb-4" />
+						<h3 className="text-lg font-semibold text-foreground mb-2">No products found</h3>
+						<p className="text-muted-foreground mb-4">Try adjusting your search terms or filters</p>
+						<Button onClick={handleFilterReset} className="bg-gradient-to-r from-gray-300 to-gray-100 hover:from-gray-400 hover:to-gray-200 text-gray-800 px-6 py-2 text-base font-semibold rounded-xl shadow-lg">
 							Clear filters
 						</Button>
 					</div>
