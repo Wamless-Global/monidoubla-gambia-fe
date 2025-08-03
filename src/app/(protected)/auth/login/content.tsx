@@ -130,9 +130,9 @@ export default function LoginPageContent() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-8">
 			<div className="container flex flex-col lg:flex-row gap-8">
-				<div className="lg:w-1/3 bg-neutral-dark text-white p-8 rounded-lg shadow-xl flex flex-col justify-center">
-					<h1 className="text-3xl font-bold mb-4">Welcome Back</h1>
-					<p className="text-neutral-light">Sign in to access your Monidoublagambia account and continue your journey.</p>
+				<div className="lg:w-1/3 bg-neutral-dark text-white p-8 rounded-lg shadow-xl flex flex-col justify-center auth-img">
+					<h1 className="text-3xl font-bold mb-4 text-white">Welcome Back</h1>
+					<p className="text-white">Sign in to access your Monidoublagambia account and continue your journey.</p>
 				</div>
 				<div className="lg:w-2/3 card">
 					<div className="text-center mb-8">

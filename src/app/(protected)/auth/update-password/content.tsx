@@ -165,7 +165,7 @@ export default function UpdatePasswordPageContent() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center p-4 sm:p-8">
 			<div className="container flex flex-col lg:flex-row gap-8">
-				<div className="lg:w-1/3 bg-neutral-dark text-white p-8 rounded-lg shadow-xl flex flex-col justify-center">
+				<div className="lg:w-1/3 bg-neutral-dark text-white p-8 rounded-lg shadow-xl flex flex-col justify-center auth-img">
 					<h1 className="text-3xl font-bold mb-4">Update Your Password</h1>
 					<p className="text-neutral-light">Set a new password to secure your Monidoublagambia account.</p>
 				</div>

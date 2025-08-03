@@ -16,6 +16,7 @@ const navigationItems = [
 	{ name: 'Transactions', href: '/admin/transactions', icon: 'ri-exchange-line', subText: '' },
 	{ name: 'Settings', href: '/admin/settings', icon: 'ri-settings-line', subText: '' },
 	{ name: 'Marketplace Settings', href: '/admin/marketplace', icon: 'ri-store-line', subText: '' },
+	{ name: 'Testimony Settings', href: '/admin/testimony-settings', icon: 'ri-chat-quote-line', subText: '' },
 	{ name: 'Log Out', href: '#', icon: 'ri-logout-box-line', subText: '' },
 ];
 

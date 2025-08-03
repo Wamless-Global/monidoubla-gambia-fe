@@ -201,7 +201,7 @@ export default function AdminDashboard() {
 								Send Broadcast
 							</Button>
 						</CustomLink>
-						<CustomLink href="/admin/gh-requests/multiple-match">
+						<CustomLink href="/admin/ph-requests/multiple-match">
 							<Button variant="outline" size="sm" className="whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
 								<i className="ri-group-line w-4 h-4 flex items-center justify-center mr-2"></i>
 								Multiple Match

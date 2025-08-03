@@ -183,3 +183,22 @@
 		scrollbar-color: #6366f1 #18181b;
 	}
 }
+
+.auth-img {
+	/* @apply hidden lg:block w-1/2 h-screen bg-cover bg-center; */
+	position: relative;
+	background-image: url('/images/hero.png');
+	background-size: cover;
+	background-position: center;
+}
+.auth-img::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.75); /* semi-transparent black overlay */
+	pointer-events: none;
+}
+
+.auth-img > * {
+	z-index: 2;
+}

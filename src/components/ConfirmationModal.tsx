@@ -12,6 +12,7 @@ interface ConfirmationModalProps {
 	cancelText?: string;
 	confirmVariant?: 'default' | 'destructive';
 	loading?: boolean;
+	actionText?: string;
 }
 
 export function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirmText = 'Confirm', cancelText = 'Cancel', confirmVariant = 'default', loading = false }: ConfirmationModalProps) {
@@ -31,7 +32,7 @@ export function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, 
 							{loading ? (
 								<div className="flex items-center gap-2">
 									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-									<span>Deleting...</span>
+									<span>Processing...</span>
 								</div>
 							) : (
 								confirmText
