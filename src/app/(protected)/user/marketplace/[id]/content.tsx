@@ -19,6 +19,7 @@ interface Product {
 	location: string;
 	category: string;
 	specifications: { [key: string]: string };
+	contactInfo: { [key: string]: string };
 	vendor: {
 		name: string;
 		avatar: string;
@@ -52,6 +53,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 					id: item.id,
 					name: item.name,
 					price: item.price,
+					contactInfo: JSON.parse(item.contactDetails),
 					images: images,
 					description: item.description,
 					fullDescription: item.fullDescription || item.description || '',
@@ -65,6 +67,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 						totalSales: item.user?.totalSales || 0,
 					},
 				});
+				logger.log(product);
 			} catch (error) {
 				setProduct(null);
 			} finally {
@@ -127,7 +130,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 			</div>
 		);
 	}
-
+	logger.log(product);
 	return (
 		<div className="flex min-h-screen bg-gray-50">
 			<div className="flex-1 flex flex-col min-w-0">
@@ -234,8 +237,18 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 												<div className="flex items-center gap-3 mb-3">
 													{product.vendor.avatar && <Image width={400} height={400} src={product.vendor.avatar} alt={product.vendor.name} className="w-12 h-12 rounded-full object-cover" />}
 													<div>
-														<div className="font-medium text-gray-900">{product.vendor.name}</div>
-														{/* Email and phone not available in vendor type */}
+														{
+															<>
+																<div className="flex items-center gap-2">
+																	<i className="ri-phone-line w-4 h-4 flex items-center justify-center text-gray-500"></i>
+																	<span className="text-gray-900 dark:text-white">{product.contactInfo.phone}</span>
+																</div>
+																<div className="flex items-center gap-2">
+																	<i className="ri-mail-line w-4 h-4 flex items-center justify-center text-gray-500"></i>
+																	<span className="text-gray-900 dark:text-white">{product.contactInfo.email}</span>
+																</div>
+															</>
+														}
 													</div>
 												</div>
 											</CardContent>

@@ -43,7 +43,7 @@ const initialFormData: FormData = {
 	},
 };
 
-const locations = ['Banjul', 'Brikama', 'Bakau', 'Serekunda', 'Farafenni', 'Lamin', 'Soma', 'Basse', 'Gunjur', 'Barra'];
+const locations = ['Monrovia', 'Gbarnga', 'Buchanan', 'Kakata', 'Zwedru', 'Harper', 'Voinjama', 'Robertsport', 'Sanniquellie', 'Greenville'];
 
 const categories = ['Electronics', 'Clothing', 'Vehicles', 'Houses', 'Furniture', 'Books', 'Sports', 'Tools', 'Jewelry', 'Other'];
 
@@ -259,22 +259,28 @@ export function ProductForm() {
 	if (isSubmitted) {
 		return (
 			<div className="max-w-2xl mx-auto">
-				<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-emerald-100 dark:border-emerald-900 text-center">
-					<CardContent className="p-10 lg:p-16">
-						<div className="mb-8">
-							<div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-tr from-emerald-200 via-green-200 to-indigo-200 dark:from-emerald-900 dark:via-green-900 dark:to-indigo-900 rounded-full flex items-center justify-center shadow-lg">
-								<i className="ri-checkbox-circle-fill text-emerald-600 dark:text-emerald-300 text-5xl"></i>
+				<Card className="text-center">
+					<CardContent className="p-8 lg:p-12">
+						<div className="mb-6">
+							<div className="w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+								<img
+									src="https://readdy.ai/api/search-image?query=green%20checkmark%20success%20icon%20with%20white%20background%2C%20circular%20design%2C%20modern%20flat%20style%20illustration%2C%20positive%20confirmation%20symbol%2C%20professional%20business%20graphics%2C%20clean%20minimal%20design&width=80&height=80&seq=success-icon&orientation=squarish"
+									alt="Success"
+									className="w-10 h-10 lg:w-12 lg:h-12 object-cover"
+								/>
 							</div>
-							<h2 className="text-2xl lg:text-3xl font-extrabold text-emerald-700 dark:text-emerald-300 mb-2 drop-shadow">Upload Successful</h2>
-							<p className="text-emerald-800 dark:text-emerald-200 text-base lg:text-lg max-w-md mx-auto">You have successfully uploaded your product. It is currently under review. Once approved, it will be visible to other users.</p>
+							<h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">Upload Successful</h2>
+							<p className="text-gray-600 text-sm lg:text-base max-w-md mx-auto">You have successfully uploaded your product, it is currently under review. Once it is approved, it will be visible to other users</p>
 						</div>
-						<div className="space-y-4">
+
+						<div className="space-y-3">
 							<CustomLink href="/user/my-listings">
-								<Button className="w-full bg-gradient-to-tr from-indigo-600 via-purple-600 to-emerald-500 hover:from-indigo-700 hover:to-emerald-600 text-white font-bold rounded-xl py-3 shadow-lg">Return to my listings</Button>
+								<Button className="w-full bg-blue-900 hover:bg-blue-800 text-white py-3 whitespace-nowrap">Return to my listings</Button>
 							</CustomLink>
+
 							<Button
 								variant="outline"
-								className="w-full py-3 rounded-xl border-2 border-emerald-200 dark:border-emerald-800"
+								className="w-full py-3 whitespace-nowrap"
 								onClick={() => {
 									setIsSubmitted(false);
 									setCurrentStep(1);
@@ -293,21 +299,21 @@ export function ProductForm() {
 
 	return (
 		<div className="max-w-2xl mx-auto">
-			<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
-				<CardHeader className="bg-gradient-to-tr from-indigo-100 via-purple-100 to-emerald-100 dark:from-indigo-900 dark:via-purple-900 dark:to-emerald-900 rounded-t-3xl p-8">
-					<CardTitle className="text-2xl font-extrabold text-indigo-900 dark:text-indigo-100 drop-shadow mb-2">Add New Product</CardTitle>
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-xl font-semibold text-gray-900">Add New Product</CardTitle>
 					<div className="flex items-center mt-4">
-						<span className="text-base text-indigo-700 dark:text-indigo-200 font-bold mr-4">Step {currentStep} of 2</span>
+						<span className="text-sm text-gray-600 mr-4">{currentStep} of 2</span>
 						<div className="flex-1 flex gap-2">
-							<div className={`h-2 rounded-full flex-1 transition-all duration-300 ${currentStep >= 1 ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500' : 'bg-gray-200 dark:bg-gray-800'}`} />
-							<div className={`h-2 rounded-full flex-1 transition-all duration-300 ${currentStep >= 2 ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500' : 'bg-gray-200 dark:bg-gray-800'}`} />
+							<div className={`h-2 rounded-full flex-1 ${currentStep >= 1 ? 'bg-blue-900' : 'bg-gray-200'}`} />
+							<div className={`h-2 rounded-full flex-1 ${currentStep >= 2 ? 'bg-blue-900' : 'bg-gray-200'}`} />
 						</div>
 					</div>
 				</CardHeader>
 
-				<CardContent className="p-8">
+				<CardContent>
 					{currentStep === 1 && (
-						<div className="space-y-8">
+						<div className="space-y-6">
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
 								<div className="relative">

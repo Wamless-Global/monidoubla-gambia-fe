@@ -57,7 +57,7 @@ export default function MarketplacePage() {
 		const fetchProducts = async () => {
 			setIsLoading(true);
 			try {
-				const res = await fetchWithAuth('/api/marketplace');
+				const res = await fetchWithAuth('/api/marketplace?status=active');
 				if (!res.ok) throw new Error('Failed to fetch products');
 				const data = await res.json();
 				// Map API data to Product interface, as in the main marketplace page
@@ -144,43 +144,41 @@ export default function MarketplacePage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0">
-			<div className="max-w-6xl mx-auto py-10 px-4 space-y-10">
+		<div className="p-4 lg:p-6">
+			<div className="max-w-6xl mx-auto space-y-6">
 				{/* Search and Filter */}
-				<div className="flex flex-col md:flex-row gap-6 md:items-center md:justify-between mb-6">
-					<div className="flex-1 flex flex-col gap-2">
-						<h1 className="text-3xl md:text-4xl font-extrabold text-indigo-900 dark:text-indigo-100 drop-shadow-lg mb-1">Marketplace</h1>
-						<p className="text-lg text-indigo-700 dark:text-indigo-200 font-medium">Discover, buy, and sell products in your community</p>
-					</div>
-					<div className="flex flex-col md:flex-row gap-3 md:items-center">
-						<div className="relative flex-1 md:w-72">
-							<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-400 w-5 h-5 flex items-center justify-center"></i>
+				<div className="flex flex-col lg:flex-row gap-4">
+					<div className="flex-1">
+						<div className="relative">
+							<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex items-center justify-center"></i>
 							<input
 								type="text"
 								placeholder="Search products, categories, or locations..."
 								value={searchQuery}
 								onChange={(e) => handleSearch(e.target.value)}
-								className="w-full pl-10 pr-4 py-2.5 border-2 border-indigo-100 dark:border-indigo-900 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 text-base bg-white/80 dark:bg-gray-900/80 text-indigo-900 dark:text-indigo-100 shadow"
+								className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
 							/>
 						</div>
-						<Button variant="outline" onClick={() => setIsFilterModalOpen(true)} className="whitespace-nowrap border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-100 font-bold rounded-xl px-6 py-2 shadow-lg">
-							<i className="ri-filter-line w-5 h-5 flex items-center justify-center mr-2"></i>
+					</div>
+					<div className="flex gap-2">
+						<Button variant="outline" onClick={() => setIsFilterModalOpen(true)} className="whitespace-nowrap">
+							<i className="ri-filter-line w-4 h-4 flex items-center justify-center mr-2"></i>
 							Filters
 						</Button>
-						<Button variant="outline" onClick={handleFilterReset} className="whitespace-nowrap border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-100 font-bold rounded-xl px-6 py-2 shadow-lg">
-							<i className="ri-refresh-line w-5 h-5 flex items-center justify-center mr-2"></i>
+						<Button variant="outline" onClick={handleFilterReset} className="whitespace-nowrap">
+							<i className="ri-refresh-line w-4 h-4 flex items-center justify-center mr-2"></i>
 							Reset
 						</Button>
 					</div>
 				</div>
 
 				{/* Results count */}
-				<div className="flex items-center justify-between mb-4">
-					<p className="text-base text-indigo-700 dark:text-indigo-200 font-semibold">
+				<div className="flex items-center justify-between">
+					<p className="text-sm text-gray-600">
 						Showing {filteredProducts.length} of {products.length} products
 					</p>
 					{(searchQuery || selectedCategory) && (
-						<p className="text-base text-indigo-400 dark:text-indigo-200">
+						<p className="text-sm text-gray-500">
 							{searchQuery && `Search: "${searchQuery}"`}
 							{searchQuery && selectedCategory && ' • '}
 							{selectedCategory && `Category: ${selectedCategory}`}
@@ -189,31 +187,36 @@ export default function MarketplacePage() {
 				</div>
 
 				{/* Products Grid */}
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+				<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
 					{filteredProducts.map((product) => (
 						<CustomLink key={product.id} href={`/user/marketplace/${product.id}`}>
-							<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900 h-full group hover:scale-105 hover:shadow-2xl transition-all duration-300 cursor-pointer">
+							<Card className="group hover:shadow-lg transition-shadow h-full cursor-pointer">
 								<CardContent className="p-4">
-									<div className="aspect-square mb-4 bg-gradient-to-tr from-indigo-100 via-purple-100 to-emerald-100 dark:from-indigo-900 dark:via-purple-900 dark:to-emerald-900 rounded-2xl overflow-hidden flex items-center justify-center">
-										<Image src={product.image} alt={product.name} width={400} height={400} className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-300" />
+									<div className="aspect-square mb-4 bg-gray-100 rounded-lg overflow-hidden">
+										<Image src={product.image} alt={product.name} width={400} height={400} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300" />
+										import Image from 'next/image';
 									</div>
+
 									<div className="space-y-2">
-										<h3 className="font-extrabold text-indigo-900 dark:text-indigo-100 line-clamp-1 text-lg">{product.name}</h3>
-										<p className="text-2xl font-black text-emerald-700 dark:text-emerald-300">
+										<h3 className="font-semibold text-gray-900 line-clamp-1">{product.name}</h3>
+										<p className="text-2xl font-bold text-blue-900">
 											{product.price} {getCurrencyFromLocalStorage()?.code}
 										</p>
-										<p className="text-sm text-indigo-700 dark:text-indigo-200 line-clamp-2">{product.description}</p>
-										<div className="flex items-center gap-2 text-sm text-indigo-400 dark:text-indigo-200">
-											<i className="ri-map-pin-line w-4 h-4 flex items-center justify-center"></i>
+										<p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+
+										<div className="flex items-center gap-1 text-sm text-gray-500">
+											<i className="ri-map-pin-line w-3 h-3 flex items-center justify-center"></i>
 											<span className="line-clamp-1">{product.location}</span>
 										</div>
-										<div className="flex items-center gap-2 text-sm text-indigo-400 dark:text-indigo-200">
-											<i className="ri-user-line w-4 h-4 flex items-center justify-center"></i>
+
+										<div className="flex items-center gap-1 text-sm text-gray-500">
+											<i className="ri-user-line w-3 h-3 flex items-center justify-center"></i>
 											<span className="line-clamp-1">{product.seller}</span>
 										</div>
+
 										<div className="flex items-center justify-between pt-2">
-											<span className="text-xs text-indigo-400 dark:text-indigo-200">{product.datePosted}</span>
-											<div className="flex items-center gap-1 text-xs text-indigo-400 dark:text-indigo-200">
+											<span className="text-xs text-gray-500">{product.datePosted}</span>
+											<div className="flex items-center gap-1 text-xs text-gray-500">
 												<i className="ri-eye-line w-3 h-3 flex items-center justify-center"></i>
 												<span>{product.views}</span>
 											</div>
@@ -227,18 +230,18 @@ export default function MarketplacePage() {
 
 				{/* No results */}
 				{filteredProducts.length === 0 && !isLoading && (
-					<div className="flex flex-col items-center justify-center py-24 text-center">
-						<i className="ri-search-line w-20 h-20 flex items-center justify-center text-indigo-200 dark:text-indigo-900 mb-6"></i>
-						<h3 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 mb-2">No products found</h3>
-						<p className="text-indigo-700 dark:text-indigo-200 mb-6 text-lg">Try adjusting your search terms or filters</p>
-						<Button onClick={handleFilterReset} variant="outline" className="whitespace-nowrap border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-100 font-bold rounded-xl px-6 py-2 shadow-lg">
+					<div className="flex flex-col items-center justify-center py-16 text-center">
+						<i className="ri-search-line w-16 h-16 flex items-center justify-center text-gray-400 mb-4"></i>
+						<h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+						<p className="text-gray-500 mb-4">Try adjusting your search terms or filters</p>
+						<Button onClick={handleFilterReset} variant="outline" className="whitespace-nowrap">
 							Clear filters
 						</Button>
 					</div>
 				)}
-
-				<FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} onApplyFilters={handleFilterApply} currentFilters={currentFilters} />
 			</div>
+
+			<FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} onApplyFilters={handleFilterApply} currentFilters={currentFilters} />
 		</div>
 	);
 }

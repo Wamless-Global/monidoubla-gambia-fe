@@ -62,7 +62,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
 			</div>
 
 			{/* Notification Panel */}
-			{isNotificationOpen && <NotificationPanel isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} userId={getCurrentUser()?.id || ''} handleUnread={setUnreadNotifications} />}
+			<NotificationPanel isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} userId={getCurrentUser()?.id || ''} handleUnread={setUnreadNotifications} />
 		</div>
 	);
 }

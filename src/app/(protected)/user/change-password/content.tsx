@@ -136,99 +136,100 @@ export default function ChangePasswordPage() {
 	const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0 flex items-center justify-center">
-			<div className="w-full max-w-lg mx-auto py-10 px-2 sm:px-6">
-				<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
-					<CardHeader className="bg-gradient-to-tr from-indigo-100 via-purple-100 to-emerald-100 dark:from-indigo-900 dark:via-purple-900 dark:to-emerald-900 rounded-t-3xl p-8">
-						<CardTitle className="text-2xl font-extrabold text-indigo-900 dark:text-indigo-100 drop-shadow mb-2">Change Login Password</CardTitle>
+		<div className="p-4 lg:p-6 min-h-screen bg-background">
+			<div className="max-w-md mx-auto">
+				<Card className="shadow-sm bg-card">
+					<CardHeader>
+						<CardTitle className="text-xl font-semibold text-card-foreground">Change Login Password</CardTitle>
 					</CardHeader>
-					<CardContent className="space-y-8 p-8">
+
+					<CardContent className="space-y-6">
 						{isSuccess && (
-							<div className="p-4 bg-gradient-to-tr from-emerald-100 via-green-100 to-indigo-100 dark:from-emerald-900 dark:via-green-900 dark:to-indigo-900 border border-emerald-200 dark:border-emerald-800 rounded-lg shadow">
+							<div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
 								<div className="flex items-center gap-2">
-									<i className="ri-check-circle-fill text-emerald-600 dark:text-emerald-300 w-5 h-5 flex items-center justify-center"></i>
-									<p className="text-emerald-800 dark:text-emerald-200 text-sm font-bold">Password changed successfully!</p>
+									<i className="ri-check-circle-fill text-green-600 dark:text-green-400 w-5 h-5 flex items-center justify-center"></i>
+									<p className="text-green-800 dark:text-green-200 text-sm">Password changed successfully!</p>
 								</div>
 							</div>
 						)}
-						<form onSubmit={handleSubmit} className="space-y-6">
+
+						<form onSubmit={handleSubmit} className="space-y-4">
 							<div>
-								<label htmlFor="currentPassword" className="block text-sm font-bold text-indigo-900 dark:text-indigo-100 mb-2">
+								<label htmlFor="currentPassword" className="block text-sm font-medium text-foreground mb-2">
 									Current password
 								</label>
 								<div className="relative">
-									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-300 dark:text-indigo-700 w-4 h-4 flex items-center justify-center"></i>
+									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
 									<input
 										id="currentPassword"
 										type={showPasswords.current ? 'text' : 'password'}
 										value={formData.currentPassword}
 										onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-colors bg-white/80 dark:bg-gray-900/80 text-indigo-900 dark:text-indigo-100 placeholder:text-indigo-300 dark:placeholder:text-indigo-700 ${
-											errors.currentPassword ? 'border-red-500' : 'border-indigo-200 dark:border-indigo-800'
-										}`}
+										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground placeholder:text-muted-foreground ${errors.currentPassword ? 'border-destructive' : 'border-border'}`}
 										placeholder="Enter your current password"
 									/>
-									<button type="button" onClick={() => togglePasswordVisibility('current')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-indigo-300 dark:text-indigo-700 hover:text-indigo-500 dark:hover:text-indigo-300">
+									<button type="button" onClick={() => togglePasswordVisibility('current')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground">
 										<i className={`${showPasswords.current ? 'ri-eye-off-line' : 'ri-eye-line'} w-4 h-4 flex items-center justify-center`}></i>
 									</button>
 								</div>
-								{errors.currentPassword && <p className="mt-1 text-sm text-red-500 font-bold">{errors.currentPassword}</p>}
+								{errors.currentPassword && <p className="mt-1 text-sm text-destructive">{errors.currentPassword}</p>}
 							</div>
+
 							<div>
-								<label htmlFor="newPassword" className="block text-sm font-bold text-indigo-900 dark:text-indigo-100 mb-2">
+								<label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-2">
 									New Password
 								</label>
 								<div className="relative">
-									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-300 dark:text-indigo-700 w-4 h-4 flex items-center justify-center"></i>
+									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
 									<input
 										id="newPassword"
 										type={showPasswords.new ? 'text' : 'password'}
 										value={formData.newPassword}
 										onChange={(e) => handleInputChange('newPassword', e.target.value)}
-										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-colors bg-white/80 dark:bg-gray-900/80 text-indigo-900 dark:text-indigo-100 placeholder:text-indigo-300 dark:placeholder:text-indigo-700 ${
-											errors.newPassword ? 'border-red-500' : 'border-indigo-200 dark:border-indigo-800'
-										}`}
+										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground placeholder:text-muted-foreground ${errors.newPassword ? 'border-destructive' : 'border-border'}`}
 										placeholder="Enter your new password"
 									/>
-									<button type="button" onClick={() => togglePasswordVisibility('new')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-indigo-300 dark:text-indigo-700 hover:text-indigo-500 dark:hover:text-indigo-300">
+									<button type="button" onClick={() => togglePasswordVisibility('new')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground">
 										<i className={`${showPasswords.new ? 'ri-eye-off-line' : 'ri-eye-line'} w-4 h-4 flex items-center justify-center`}></i>
 									</button>
 								</div>
+
 								{formData.newPassword && (
 									<div className="mt-2">
 										<div className="flex gap-1 mb-1">
 											{[...Array(5)].map((_, i) => (
-												<div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-indigo-100 dark:bg-indigo-800'}`} />
+												<div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-muted'}`} />
 											))}
 										</div>
-										<p className="text-xs text-indigo-700 dark:text-indigo-200 font-bold">Password strength: {passwordStrength > 0 ? strengthLabels[passwordStrength - 1] : 'Too weak'}</p>
+										<p className="text-xs text-muted-foreground">Password strength: {passwordStrength > 0 ? strengthLabels[passwordStrength - 1] : 'Too weak'}</p>
 									</div>
 								)}
-								{errors.newPassword && <p className="mt-1 text-sm text-red-500 font-bold">{errors.newPassword}</p>}
+
+								{errors.newPassword && <p className="mt-1 text-sm text-destructive">{errors.newPassword}</p>}
 							</div>
+
 							<div>
-								<label htmlFor="confirmPassword" className="block text-sm font-bold text-indigo-900 dark:text-indigo-100 mb-2">
+								<label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
 									Confirm Password
 								</label>
 								<div className="relative">
-									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-300 dark:text-indigo-700 w-4 h-4 flex items-center justify-center"></i>
+									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
 									<input
 										id="confirmPassword"
 										type={showPasswords.confirm ? 'text' : 'password'}
 										value={formData.confirmPassword}
 										onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-colors bg-white/80 dark:bg-gray-900/80 text-indigo-900 dark:text-indigo-100 placeholder:text-indigo-300 dark:placeholder:text-indigo-700 ${
-											errors.confirmPassword ? 'border-red-500' : 'border-indigo-200 dark:border-indigo-800'
-										}`}
+										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground placeholder:text-muted-foreground ${errors.confirmPassword ? 'border-destructive' : 'border-border'}`}
 										placeholder="Enter your password again"
 									/>
-									<button type="button" onClick={() => togglePasswordVisibility('confirm')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-indigo-300 dark:text-indigo-700 hover:text-indigo-500 dark:hover:text-indigo-300">
+									<button type="button" onClick={() => togglePasswordVisibility('confirm')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground">
 										<i className={`${showPasswords.confirm ? 'ri-eye-off-line' : 'ri-eye-line'} w-4 h-4 flex items-center justify-center`}></i>
 									</button>
 								</div>
-								{errors.confirmPassword && <p className="mt-1 text-sm text-red-500 font-bold">{errors.confirmPassword}</p>}
+								{errors.confirmPassword && <p className="mt-1 text-sm text-destructive">{errors.confirmPassword}</p>}
 							</div>
-							<Button type="submit" className="w-full bg-gradient-to-tr from-indigo-600 via-purple-600 to-emerald-500 hover:from-indigo-700 hover:to-emerald-600 text-white font-bold rounded-xl py-3 shadow-lg" disabled={isSubmitting}>
+
+							<Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 whitespace-nowrap" disabled={isSubmitting}>
 								{isSubmitting ? (
 									<>
 										<i className="ri-loader-4-line animate-spin mr-2 w-4 h-4 flex items-center justify-center"></i>
@@ -239,8 +240,9 @@ export default function ChangePasswordPage() {
 								)}
 							</Button>
 						</form>
+
 						<div className="text-center">
-							<button className="text-indigo-700 dark:text-indigo-200 hover:text-indigo-900 dark:hover:text-indigo-100 text-sm font-bold">Forgot password?</button>
+							<button className="text-primary hover:text-primary/90 text-sm font-medium">Forgot password</button>
 						</div>
 					</CardContent>
 				</Card>

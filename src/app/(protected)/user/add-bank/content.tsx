@@ -67,29 +67,29 @@ export default function AddBankAccountPage() {
 		const newErrors: FormErrors = {};
 
 		// Account Number validation
-		if (!formData.accountNumber.trim()) {
-			newErrors.accountNumber = 'Account number is required';
-		} else if (formData.accountNumber.length < 10) {
-			newErrors.accountNumber = 'Account number must be at least 10 digits';
-		} else if (!/^\d+$/.test(formData.accountNumber)) {
-			newErrors.accountNumber = 'Account number must contain only digits';
-		}
+		// if (!formData.accountNumber.trim()) {
+		// 	newErrors.accountNumber = 'Account number is required';
+		// } else if (formData.accountNumber.length < 10) {
+		// 	newErrors.accountNumber = 'Account number must be at least 10 digits';
+		// } else if (!/^\d+$/.test(formData.accountNumber)) {
+		// 	newErrors.accountNumber = 'Account number must contain only digits';
+		// }
 
-		// Bank Name validation
-		if (!formData.bankName.trim()) {
-			newErrors.bankName = 'Bank name is required';
-		} else if (!ghanaianBanks.includes(formData.bankName)) {
-			newErrors.bankName = 'Please select a valid bank from the list';
-		}
+		// // Bank Name validation
+		// if (!formData.bankName.trim()) {
+		// 	newErrors.bankName = 'Bank name is required';
+		// } else if (!ghanaianBanks.includes(formData.bankName)) {
+		// 	newErrors.bankName = 'Please select a valid bank from the list';
+		// }
 
-		// Account Name validation
-		if (!formData.accountName.trim()) {
-			newErrors.accountName = 'Account name is required';
-		} else if (formData.accountName.length < 2) {
-			newErrors.accountName = 'Account name must be at least 2 characters';
-		} else if (!/^[a-zA-Z\s]+$/.test(formData.accountName)) {
-			newErrors.accountName = 'Account name must contain only letters and spaces';
-		}
+		// // Account Name validation
+		// if (!formData.accountName.trim()) {
+		// 	newErrors.accountName = 'Account name is required';
+		// } else if (formData.accountName.length < 2) {
+		// 	newErrors.accountName = 'Account name must be at least 2 characters';
+		// } else if (!/^[a-zA-Z\s]+$/.test(formData.accountName)) {
+		// 	newErrors.accountName = 'Account name must contain only letters and spaces';
+		// }
 
 		// Momo Number validation
 		if (formData.momoNumber && !/^\d{10,}$/.test(formData.momoNumber)) {
@@ -152,10 +152,10 @@ export default function AddBankAccountPage() {
 			});
 			const data = await res.json();
 			if (res.ok) {
-				toast.success('Bank account added successfully!');
+				toast.success('Account details added successfully!');
 				router.push('/user/profile');
 			} else {
-				toast.error(data.message || 'Failed to add bank account. Please try again.');
+				toast.error(data.message || 'Failed to add account details. Please try again.');
 			}
 		} catch (error) {
 			toast.error('An error occurred. Please try again.');
@@ -165,24 +165,24 @@ export default function AddBankAccountPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0 flex items-center justify-center">
-			<div className="w-full max-w-2xl mx-auto py-10 px-2 sm:px-6">
+		<div className="p-4 lg:p-6  min-h-screen">
+			<div className="max-w-2xl mx-auto">
 				{/* Header */}
-				<div className="mb-8">
-					<CustomLink href="/user/profile" className="inline-flex items-center gap-2 text-indigo-700 dark:text-indigo-200 hover:text-indigo-900 dark:hover:text-indigo-100 font-bold transition-colors mb-4">
-						<i className="ri-arrow-left-line w-5 h-5 flex items-center justify-center"></i>
+				<div className="mb-6">
+					<CustomLink href="/user/profile" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors mb-4">
+						<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center"></i>
 						Back to Profile
 					</CustomLink>
-					<h1 className="text-3xl font-extrabold text-indigo-900 dark:text-indigo-100 mb-2 drop-shadow">Add Bank Account</h1>
-					<p className="text-indigo-700 dark:text-indigo-200 text-lg">Add your bank account details to receive payments</p>
+					<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Add Bank Account</h1>
+					<p className="text-gray-600 dark:text-gray-400">Add your bank account details to receive payments</p>
 				</div>
 
 				{/* Form */}
-				<Card className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900">
-					<CardContent className="p-8">
-						<form onSubmit={handleSubmit} className="space-y-8">
+				<Card className="bg-white dark:bg-gray-800 border-0 shadow-sm">
+					<CardContent className="p-6">
+						<form onSubmit={handleSubmit} className="space-y-6">
 							{/* Account Number */}
-							<div>
+							{/* <div>
 								<label htmlFor="accountNumber" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
 									Account Number *
 								</label>
@@ -203,58 +203,12 @@ export default function AddBankAccountPage() {
 									/>
 								</div>
 								{errors.accountNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.accountNumber}</p>}
-							</div>
+							</div> */}
 
 							{/* Bank Name */}
-							<div>
-								<label htmlFor="bankName" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-									Bank Name *
-								</label>
-								<div className="relative">
-									<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-										<i className="ri-bank-line w-5 h-5 flex items-center justify-center text-gray-400"></i>
-									</div>
-									<input
-										id="bankName"
-										type="text"
-										value={formData.bankName}
-										onChange={(e) => handleBankInputChange(e.target.value)}
-										onFocus={() => setShowBankDropdown(true)}
-										onBlur={() => setTimeout(() => setShowBankDropdown(false), 200)}
-										placeholder="Select or search bank"
-										className={`w-full pl-10 pr-10 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-											errors.bankName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-										}`}
-									/>
-									<div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-										<i className={`ri-arrow-${showBankDropdown ? 'up' : 'down'}-s-line w-4 h-4 flex items-center justify-center text-gray-400`}></i>
-									</div>
-
-									{/* Bank Dropdown */}
-									{showBankDropdown && (
-										<div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto z-10">
-											{filteredBanks.length > 0 ? (
-												filteredBanks.map((bank, index) => (
-													<button
-														key={index}
-														type="button"
-														onClick={() => handleBankSelect(bank)}
-														className="w-full px-3 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600 focus:bg-gray-100 dark:focus:bg-gray-600 focus:outline-none text-sm text-gray-900 dark:text-white"
-													>
-														{bank}
-													</button>
-												))
-											) : (
-												<div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">No banks found</div>
-											)}
-										</div>
-									)}
-								</div>
-								{errors.bankName && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.bankName}</p>}
-							</div>
 
 							{/* Account Name */}
-							<div>
+							{/* <div>
 								<label htmlFor="accountName" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
 									Account Name *
 								</label>
@@ -275,7 +229,7 @@ export default function AddBankAccountPage() {
 									/>
 								</div>
 								{errors.accountName && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.accountName}</p>}
-							</div>
+							</div> */}
 
 							{/* MoMo Number */}
 							<div>
@@ -331,7 +285,7 @@ export default function AddBankAccountPage() {
 									<i className="ri-shield-check-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400 mt-0.5"></i>
 									<div>
 										<h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Security & Privacy</h4>
-										<p className="text-sm text-blue-800 dark:text-blue-200">Your bank account information is encrypted and securely stored. We never share your financial details with third parties.</p>
+										<p className="text-sm text-blue-800 dark:text-blue-200">Your Momo account information is encrypted and securely stored. We never share your financial details with third parties.</p>
 									</div>
 								</div>
 							</div>
@@ -341,12 +295,12 @@ export default function AddBankAccountPage() {
 								{isLoading ? (
 									<div className="flex items-center gap-2">
 										<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-										<span>Adding Bank Account...</span>
+										<span>Adding Account Details...</span>
 									</div>
 								) : (
 									<>
 										<i className="ri-bank-line w-4 h-4 flex items-center justify-center mr-2"></i>
-										Save Bank Account
+										Save Account Details
 									</>
 								)}
 							</Button>
@@ -357,19 +311,15 @@ export default function AddBankAccountPage() {
 				{/* Help Section */}
 				<div className="mt-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
 					<h3 className="font-medium text-gray-900 dark:text-white mb-2">Need Help?</h3>
-					<p className="text-sm text-gray-600 dark:text-gray-400 mb-3">If you're having trouble adding your bank account, please check:</p>
+					<p className="text-sm text-gray-600 dark:text-gray-400 mb-3">If you're having trouble adding your Momo details, please check:</p>
 					<ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
 						<li className="flex items-start gap-2">
 							<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-blue-600 dark:text-blue-400 mt-0.5"></i>
-							Ensure your account number is correct
+							Ensure your Momo number is correct
 						</li>
 						<li className="flex items-start gap-2">
 							<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-blue-600 dark:text-blue-400 mt-0.5"></i>
-							Select the correct bank from the dropdown
-						</li>
-						<li className="flex items-start gap-2">
-							<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-blue-600 dark:text-blue-400 mt-0.5"></i>
-							Account name matches your bank records
+							Input a correct provider
 						</li>
 					</ul>
 				</div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import TermsAndConditionsModal from './TermsAndConditionsModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PaymentProofModal } from '@/components/PaymentProofModal';
@@ -27,8 +28,8 @@ interface AssignedUser {
 	username: string;
 	phoneNumber: string;
 	amount: number;
-	bankName: string;
-	accountNumber: string;
+	momo_provider: string;
+	momo_number: string;
 	accountName: string;
 	timeAssigned: string;
 	status: 'pending' | 'proof-submitted' | 'confirmed' | 'declined' | 'cancelled';
@@ -49,7 +50,7 @@ interface PHRequest {
 
 type PageState = 'select-package' | 'enter-amount' | 'waiting' | 'view-requests';
 
-export default function ProvideHelpPage() {
+export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: boolean }) {
 	const [currentState, setCurrentState] = useState<PageState>('view-requests');
 	const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
 	const [amount, setAmount] = useState<string>('');
@@ -63,6 +64,10 @@ export default function ProvideHelpPage() {
 	const itemsPerPage = 2;
 	const [totalPages, setTotalPages] = useState(1);
 	const [packages, setPackages] = useState<Package[]>([]);
+	// Add a ticking state to force re-render every second for countdown
+	const [tick, setTick] = useState(0);
+	// Terms modal state
+	const [showTermsModal, setShowTermsModal] = useState(false);
 
 	const router = useRouter();
 
@@ -97,6 +102,18 @@ export default function ProvideHelpPage() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	// Show terms modal if user has PH requests and hasn't agreed
+	useEffect(() => {
+		const user = getCurrentUser();
+		if (phRequests.length > 0 && user && !user.agreed_to_ph_terms) {
+			setShowTermsModal(true);
+		} else {
+			setShowTermsModal(false);
+		}
+
+		logger.log('show modal requests', phRequests);
+	}, [phRequests]);
+
 	// Fetch PH requests for a given page
 	const fetchPHRequests = async (page: number) => {
 		setIsLoading(true);
@@ -109,6 +126,7 @@ export default function ProvideHelpPage() {
 			// Map API data to UI PHRequest
 			const requests: PHRequest[] = (json.data.requests || []).map((req: any) => {
 				// Calculate assignedUsers and matchingProgress
+				logger.log(req);
 				const assignedUsers: AssignedUser[] = Array.isArray(req.details)
 					? req.details.map((u: any) => ({
 							id: u.id,
@@ -117,8 +135,8 @@ export default function ProvideHelpPage() {
 							phoneNumber: u.phoneNumber,
 							amount: Number(u.amount),
 							bankName: u.bankName,
-							accountNumber: u.accountNumber,
-							accountName: u.accountName,
+							momo_number: u.momo_number,
+							momo_provider: u.momo_provider,
 							timeAssigned: u.timeAssigned || '',
 							status: u.status,
 					  }))
@@ -142,12 +160,22 @@ export default function ProvideHelpPage() {
 					packageName = pkg.name || '';
 				}
 
-				// Calculate expected maturity date
+				// Calculate expected maturity date (support minutes and days)
 				let expectedMaturity = '';
-				if (req.created_at && maturityPeriod > 0) {
-					const created = new Date(req.created_at);
-					created.setDate(created.getDate() + maturityPeriod);
-					expectedMaturity = created.toISOString().split('T')[0];
+				if ((req.confirmed_at || req.created_at) && maturityPeriod > 0) {
+					const base = new Date(req.confirmed_at || req.created_at);
+					logger.log(`Base date for maturity: ${base.toISOString()}`);
+					// If maturityPeriod < 1, treat as minutes (e.g. 0.1667 = 10 minutes)
+					if (maturityPeriod < 1) {
+						logger.log(`Maturity period is in minutes: ${maturityPeriod}`);
+						const minutes = Math.round(maturityPeriod * 24 * 60); // e.g. 0.1667 * 24 * 60 = 10
+						base.setMinutes(base.getMinutes() + minutes);
+					} else {
+						logger.log(`Maturity period is in days: ${maturityPeriod}`);
+						base.setDate(base.getDate() + maturityPeriod);
+					}
+					logger.log(`Expected maturity date: ${base.toISOString()}`);
+					expectedMaturity = base.toISOString(); // keep full ISO string for timer accuracy
 				}
 
 				// Map status
@@ -352,6 +380,7 @@ export default function ProvideHelpPage() {
 			case 'partial-match':
 				return 'Partially Matched';
 			case 'active':
+				return 'Waiting For Maturity';
 			case 'matched':
 				return 'Fully Matched';
 			case 'completed':
@@ -363,12 +392,23 @@ export default function ProvideHelpPage() {
 		}
 	};
 
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-		});
+	// Countdown timer for maturity
+	const getCountdown = (dateString: string) => {
+		if (!dateString) return 'N/A';
+		const now = new Date();
+		const target = new Date(dateString);
+		const diff = target.getTime() - now.getTime();
+		if (diff <= 0) return 'Matured';
+		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+		const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+		const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+		let result = '';
+		if (days > 0) result += `${days}d `;
+		if (hours > 0 || days > 0) result += `${hours}h `;
+		if (minutes > 0 || hours > 0 || days > 0) result += `${minutes}m `;
+		result += `${seconds}s`;
+		return result.trim();
 	};
 
 	// When currentPage changes, fetch that page
@@ -377,42 +417,26 @@ export default function ProvideHelpPage() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [currentPage]);
 
+	// Ticking effect for countdown timer
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setTick((t) => t + 1);
+		}, 1000);
+		return () => clearInterval(interval);
+	}, []);
+
 	const paginatedRequests = phRequests;
 
-	logger.log;
-
 	const renderSelectPackage = () => (
-		<div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 py-0 px-0">
-			<div className="max-w-6xl mx-auto px-4 pt-10 pb-0">
-				{/* Hero Section */}
-				<div className="rounded-3xl bg-gradient-to-tr from-indigo-500/80 via-purple-500/80 to-emerald-400/80 dark:from-indigo-900/80 dark:via-purple-900/80 dark:to-emerald-900/80 shadow-2xl p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 overflow-hidden mb-10">
-					<div className="flex-1 flex flex-col gap-2">
-						<h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg mb-2">
-							Select a <span className="bg-white/20 px-2 py-1 rounded-xl text-indigo-100 font-black tracking-tight">Donation Package</span>
-						</h1>
-						<p className="text-lg text-indigo-100/90 font-medium mb-2">Choose the package that best suits your donation goals and start helping others.</p>
-					</div>
-					<div className="flex-1 flex justify-center items-center relative">
-						<div className="w-64 h-40 bg-gradient-to-tr from-indigo-400 via-purple-400 to-emerald-300 rounded-3xl shadow-2xl transform rotate-[-8deg] scale-105 blur-[1px] absolute left-4 top-6 opacity-30" />
-						<div className="w-72 h-44 bg-gradient-to-tr from-indigo-500 via-purple-500 to-emerald-400 rounded-3xl shadow-2xl flex flex-col justify-between p-6 relative z-10 border-4 border-white/20">
-							<div className="flex items-center justify-between">
-								<span className="text-white/80 font-bold text-lg tracking-wider">Monidoublagambia</span>
-								<i className="ri-hand-heart-line text-2xl text-white/70"></i>
-							</div>
-							<div className="text-3xl font-black text-white tracking-widest mt-4 mb-2 drop-shadow-xl">Give &amp; Grow</div>
-							<div className="flex items-center justify-between">
-								<span className="text-white/70 text-xs">Peer-to-Peer</span>
-								<span className="text-white/70 text-xs">Secure</span>
-							</div>
-						</div>
-					</div>
-				</div>
-
+		<div className="p-4 lg:p-6 min-h-screen">
+			<div className="max-w-6xl mx-auto">
 				<div className="mb-6">
-					<Button onClick={() => setCurrentState('view-requests')} variant="ghost" className="mb-4 whitespace-nowrap text-indigo-700 dark:text-indigo-200 hover:text-indigo-900 dark:hover:text-indigo-100">
+					<Button onClick={() => setCurrentState('view-requests')} variant="ghost" className="mb-4 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
 						<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center mr-2"></i>
 						Back to Requests
 					</Button>
+					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Select a package</h2>
+					<p className="text-gray-600 dark:text-gray-400">Choose the package that best suits your donation goals</p>
 				</div>
 
 				{packages.length === 0 ? (
@@ -424,43 +448,36 @@ export default function ProvideHelpPage() {
 						<p className="text-gray-600 dark:text-gray-400 mb-6">There are currently no donation packages available. Please check back later.</p>
 					</div>
 				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
 						{packages.map((pkg) => (
-							<Card key={pkg.id} className="rounded-3xl shadow-2xl bg-white/90 dark:bg-gray-900/90 border-2 border-indigo-100 dark:border-indigo-900 p-6 min-h-[220px] flex flex-col justify-between hover:scale-105 hover:shadow-2xl transition-all duration-300">
+							<Card key={pkg.id} className="p-6 hover:shadow-lg transition-shadow bg-white dark:bg-gray-800 border-0">
 								<CardContent className="p-0">
-									<div className="mb-4 flex items-center gap-2">
-										<h3 className="font-extrabold text-indigo-900 dark:text-indigo-100 text-lg">{pkg.name}</h3>
-										<i className="ri-crown-line w-5 h-5 flex items-center justify-center text-yellow-400"></i>
+									<div className="mb-4">
+										<div className="flex items-center gap-2 mb-2">
+											<h3 className="font-semibold text-gray-900 dark:text-white">{pkg.name}</h3>
+											<i className="ri-crown-line w-4 h-4 flex items-center justify-center text-yellow-500"></i>
+										</div>
 									</div>
+
 									<div className="space-y-3 mb-6">
 										<div className="flex items-center gap-2 text-sm">
 											<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-green-500"></i>
-											<span className="text-indigo-700 dark:text-indigo-200">
-												Profit: <span className="font-bold">{pkg.profitPercentage}%</span>
-											</span>
+											<span className="text-gray-600 dark:text-gray-400">Percentage profit: {pkg.profitPercentage}%</span>
 										</div>
 										<div className="flex items-center gap-2 text-sm">
 											<i className="ri-time-line w-4 h-4 flex items-center justify-center text-blue-500"></i>
-											<span className="text-indigo-700 dark:text-indigo-200">
-												Maturity: <span className="font-bold">{pkg.maturityPeriod} days</span>
-											</span>
+											<span className="text-gray-600 dark:text-gray-400">Maturity period: {pkg.maturityPeriod} days</span>
 										</div>
 										<div className="flex items-center gap-2 text-sm">
 											<i className="ri-money-dollar-circle-line w-4 h-4 flex items-center justify-center text-purple-500"></i>
-											<span className="text-indigo-700 dark:text-indigo-200">
-												Amount:{' '}
-												<span className="font-bold">
-													{pkg.minAmount} - {pkg.maxAmount} {getCurrencyFromLocalStorage()?.code}
-												</span>
+											<span className="text-gray-600 dark:text-gray-400">
+												Amount: {pkg.minAmount} - {pkg.maxAmount} {getCurrencyFromLocalStorage()?.code}
 											</span>
 										</div>
 									</div>
-									<Button
-										onClick={() => handlePackageSelect(pkg)}
-										variant="outline"
-										className="w-full whitespace-nowrap bg-white/30 dark:bg-gray-700/30 border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-100 font-bold rounded-xl hover:bg-white/40 hover:scale-105 transition-all"
-									>
-										Select Package
+
+									<Button onClick={() => handlePackageSelect(pkg)} variant="outline" className="w-full whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+										Select package
 									</Button>
 								</CardContent>
 							</Card>
@@ -610,10 +627,13 @@ export default function ProvideHelpPage() {
 								<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">My PH Requests</h2>
 								<p className="text-gray-600 dark:text-gray-400">Manage all your provide help requests</p>
 							</div>
-							<Button onClick={() => setCurrentState('select-package')} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-								<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
-								Create New Request
-							</Button>
+
+							{!hideHeader && (
+								<Button onClick={() => setCurrentState('select-package')} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
+									<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
+									Create New Request
+								</Button>
+							)}
 						</div>
 						<div className="space-y-6">
 							{[...Array(2)].map((_, i) => (
@@ -656,10 +676,13 @@ export default function ProvideHelpPage() {
 							<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">My PH Requests</h2>
 							<p className="text-gray-600 dark:text-gray-400">Manage all your provide help requests</p>
 						</div>
-						<Button onClick={() => setCurrentState('select-package')} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-							<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
-							Create New Request
-						</Button>
+
+						{!hideHeader && (
+							<Button onClick={() => setCurrentState('select-package')} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
+								<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
+								Create New Request
+							</Button>
+						)}
 					</div>
 					{paginatedRequests.length === 0 ? (
 						<Card className="p-8 text-center bg-white dark:bg-gray-800 border-0">
@@ -678,170 +701,170 @@ export default function ProvideHelpPage() {
 					) : (
 						<>
 							<div className="space-y-6">
-								{paginatedRequests.map((request) => (
-									<Card key={request.id} className="p-6 bg-white dark:bg-gray-800 border-0">
-										<CardContent className="p-0">
-											<div className="flex items-center justify-between mb-4">
-												<div className="flex items-center gap-3">
-													<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-														<i className="ri-hand-heart-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+								{paginatedRequests.map((request) => {
+									return (
+										<Card key={request.id} className="p-6 bg-white dark:bg-gray-800 border-0">
+											<CardContent className="p-0">
+												<div className="flex items-center justify-between mb-4">
+													<div className="flex items-center gap-3">
+														<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+															<i className="ri-hand-heart-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+														</div>
+														<div>
+															<h3 className="font-semibold text-gray-900 dark:text-white">{request.id}</h3>
+															<p className="text-sm text-gray-600 dark:text-gray-400">{request.packageName}</p>
+														</div>
 													</div>
+
+													<div className="flex items-center gap-2">
+														<span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>{getStatusText(request.status)}</span>
+
+														{request.status === 'active' && new Date() > new Date(request.expectedMaturity) && (
+															<Button
+																size="sm"
+																className="ml-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs"
+																onClick={async () => {
+																	setIsRequestingGH(request.id);
+																	try {
+																		const user = getCurrentUser();
+																		if (!user) {
+																			toast.error('User not found. Please log in again.');
+																			return;
+																		}
+																		const gain = (request.amount * (request.profitPercentage || 0)) / 100;
+																		const totalAmount = request.amount + gain;
+																		const res = await fetchWithAuth('/api/gh-requests', {
+																			method: 'POST',
+																			headers: { 'Content-Type': 'application/json' },
+																			body: JSON.stringify({ user: user.id, amount: totalAmount, status: 'pending', requestId: request.id }),
+																		});
+																		const data = await res.json();
+																		if (!res.ok) {
+																			throw new Error(data?.message || 'Failed to request GH');
+																		} else {
+																			nProgress.start();
+																			router.push('/user/get-help');
+																		}
+																		toast.success('GH request submitted successfully!');
+																	} catch (err: any) {
+																		toast.error(err?.message || 'Failed to request GH');
+																	} finally {
+																		setIsRequestingGH(null);
+																	}
+																}}
+																disabled={isRequestingGH === request.id}
+															>
+																{isRequestingGH === request.id ? (
+																	<div className="flex items-center gap-2">
+																		<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+																		<span>Requesting...</span>
+																	</div>
+																) : (
+																	'Request GH'
+																)}
+															</Button>
+														)}
+													</div>
+												</div>
+												<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+													<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+														<div className="flex items-center gap-2 mb-1">
+															<i className="ri-money-dollar-circle-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+															<span className="text-sm text-gray-600 dark:text-gray-400">Amount</span>
+														</div>
+														<p className="font-semibold text-gray-900 dark:text-white">
+															{request.amount} {getCurrencyFromLocalStorage()?.code}
+														</p>
+													</div>
+													<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+														<div className="flex items-center gap-2 mb-1">
+															<i className="ri-calendar-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+															<span className="text-sm text-gray-600 dark:text-gray-400">Expected Maturity</span>
+														</div>
+														<p className="font-semibold text-gray-900 dark:text-white">{request.status === 'active' ? getCountdown(request.expectedMaturity) : 'N/A'}</p>
+													</div>
+													<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+														<div className="flex items-center gap-2 mb-1">
+															<i className="ri-team-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+															<span className="text-sm text-gray-600 dark:text-gray-400">Assigned Users</span>
+														</div>
+														<p className="font-semibold text-gray-900 dark:text-white">{request.assignedUsers.length}</p>
+													</div>
+													<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+														<div className="flex items-center gap-2 mb-1">
+															<i className="ri-bar-chart-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+															<span className="text-sm text-gray-600 dark:text-gray-400">Match Progress</span>
+														</div>
+														<p className="font-semibold text-gray-900 dark:text-white">{request.matchingProgress}%</p>
+													</div>
+												</div>
+
+												{(request.status === 'waiting-match' || request.status === 'pending') && (
+													<div className="text-center py-6">
+														<div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+															<i className="ri-search-line w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+														</div>
+														<h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Waiting for Match</h4>
+														<p className="text-gray-600 dark:text-gray-400">We're searching for users to match with your request. This process typically takes a few hours.</p>
+													</div>
+												)}
+
+												{request.assignedUsers.length > 0 && (
 													<div>
-														<h3 className="font-semibold text-gray-900 dark:text-white">{request.id}</h3>
-														<p className="text-sm text-gray-600 dark:text-gray-400">{request.packageName}</p>
-													</div>
-												</div>
+														<h4 className="font-medium text-gray-900 dark:text-white mb-3">Assigned Users</h4>
+														<div className="space-y-4">
+															{request.assignedUsers.map((user) => (
+																<div key={user.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+																	<div className="flex items-center justify-between mb-3">
+																		<div className="flex items-center gap-3">
+																			<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+																				<i className="ri-user-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+																			</div>
+																			<div>
+																				<h5 className="font-semibold text-gray-900 dark:text-white">{user.name}</h5>
+																				<p className="text-sm text-gray-600 dark:text-gray-400">@{user.username}</p>
+																			</div>
+																		</div>
+																		<span className={`px-2 py-1 rounded-full text-xs font-medium ${getUserStatusColor(user.status)}`}>{user.status === 'proof-submitted' ? 'Proof Submitted' : user.status}</span>
+																	</div>
 
-												<div className="flex items-center gap-2">
-													<span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>{getStatusText(request.status)}</span>
-
-													{request.status === 'active' && (
-														<Button
-															size="sm"
-															className="ml-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs"
-															onClick={async () => {
-																setIsRequestingGH(request.id);
-																try {
-																	const user = getCurrentUser();
-																	if (!user) {
-																		toast.error('User not found. Please log in again.');
-																		return;
-																	}
-																	const gain = (request.amount * (request.profitPercentage || 0)) / 100;
-																	const totalAmount = request.amount + gain;
-																	const res = await fetchWithAuth('/api/gh-requests', {
-																		method: 'POST',
-																		headers: { 'Content-Type': 'application/json' },
-																		body: JSON.stringify({ user: user.id, amount: totalAmount, status: 'pending', requestId: request.id }),
-																	});
-																	const data = await res.json();
-																	if (!res.ok) {
-																		throw new Error(data?.message || 'Failed to request GH');
-																	} else {
-																		nProgress.start();
-																		router.push('/user/get-help');
-																	}
-																	// Update the request status to 'active' in the UI
-
-																	toast.success('GH request submitted successfully!');
-																} catch (err: any) {
-																	toast.error(err?.message || 'Failed to request GH');
-																} finally {
-																	setIsRequestingGH(null);
-																}
-															}}
-															disabled={isRequestingGH === request.id}
-														>
-															{isRequestingGH === request.id ? (
-																<div className="flex items-center gap-2">
-																	<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-																	<span>Requesting...</span>
-																</div>
-															) : (
-																'Request GH'
-															)}
-														</Button>
-													)}
-												</div>
-											</div>
-											<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-												<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-													<div className="flex items-center gap-2 mb-1">
-														<i className="ri-money-dollar-circle-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
-														<span className="text-sm text-gray-600 dark:text-gray-400">Amount</span>
-													</div>
-													<p className="font-semibold text-gray-900 dark:text-white">
-														{request.amount} {getCurrencyFromLocalStorage()?.code}
-													</p>
-												</div>
-												<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-													<div className="flex items-center gap-2 mb-1">
-														<i className="ri-calendar-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
-														<span className="text-sm text-gray-600 dark:text-gray-400">Expected Maturity</span>
-													</div>
-													<p className="font-semibold text-gray-900 dark:text-white">{formatDate(request.expectedMaturity)}</p>
-												</div>
-												<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-													<div className="flex items-center gap-2 mb-1">
-														<i className="ri-team-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
-														<span className="text-sm text-gray-600 dark:text-gray-400">Assigned Users</span>
-													</div>
-													<p className="font-semibold text-gray-900 dark:text-white">{request.assignedUsers.length}</p>
-												</div>
-												<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-													<div className="flex items-center gap-2 mb-1">
-														<i className="ri-progress-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
-														<span className="text-sm text-gray-600 dark:text-gray-400">Progress</span>
-													</div>
-													<p className="font-semibold text-gray-900 dark:text-white">{request.matchingProgress}%</p>
-												</div>
-											</div>
-
-											{(request.status === 'waiting-match' || request.status === 'pending') && (
-												<div className="text-center py-6">
-													<div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-														<i className="ri-search-line w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
-													</div>
-													<h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Waiting for Match</h4>
-													<p className="text-gray-600 dark:text-gray-400">We're searching for users to match with your request. This process typically takes a few hours.</p>
-												</div>
-											)}
-
-											{request.assignedUsers.length > 0 && (
-												<div>
-													<h4 className="font-medium text-gray-900 dark:text-white mb-3">Assigned Users</h4>
-													<div className="space-y-4">
-														{request.assignedUsers.map((user) => (
-															<div key={user.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-																<div className="flex items-center justify-between mb-3">
-																	<div className="flex items-center gap-3">
-																		<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-																			<i className="ri-user-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+																	<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Phone: </span>
+																			<span className="text-sm text-gray-900 dark:text-white">{user.phoneNumber}</span>
 																		</div>
 																		<div>
-																			<h5 className="font-semibold text-gray-900 dark:text-white">{user.name}</h5>
-																			<p className="text-sm text-gray-600 dark:text-gray-400">@{user.username}</p>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Amount: </span>
+																			<span className="text-sm font-semibold text-gray-900 dark:text-white">
+																				{user.amount} {getCurrencyFromLocalStorage()?.code}
+																			</span>
+																		</div>
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Momo Provider: </span>
+																			<span className="text-sm text-gray-900 dark:text-white">{user.momo_provider}</span>
+																		</div>
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Momo Number: </span>
+																			<span className="text-sm text-gray-900 dark:text-white">{user.momo_number}</span>
 																		</div>
 																	</div>
-																	<span className={`px-2 py-1 rounded-full text-xs font-medium ${getUserStatusColor(user.status)}`}>{user.status === 'proof-submitted' ? 'Proof Submitted' : user.status}</span>
-																</div>
 
-																<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-																	<div>
-																		<span className="text-sm text-gray-600 dark:text-gray-400">Phone: </span>
-																		<span className="text-sm text-gray-900 dark:text-white">{user.phoneNumber}</span>
-																	</div>
-																	<div>
-																		<span className="text-sm text-gray-600 dark:text-gray-400">Amount: </span>
-																		<span className="text-sm font-semibold text-gray-900 dark:text-white">
-																			{user.amount} {getCurrencyFromLocalStorage()?.code}
-																		</span>
-																	</div>
-																	<div>
-																		<span className="text-sm text-gray-600 dark:text-gray-400">Bank: </span>
-																		<span className="text-sm text-gray-900 dark:text-white">{user.bankName}</span>
-																	</div>
-																	<div>
-																		<span className="text-sm text-gray-600 dark:text-gray-400">Account: </span>
-																		<span className="text-sm text-gray-900 dark:text-white">{user.accountNumber}</span>
+																	<div className="flex justify-between items-center">
+																		<span className="text-sm text-gray-600 dark:text-gray-400">Assigned {user.timeAssigned}</span>
+																		<Button size="sm" onClick={() => handleUploadPayment(user)} disabled={user.status === 'confirmed' || user.status === 'proof-submitted'} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
+																			<i className="ri-upload-line w-4 h-4 flex items-center justify-center mr-2"></i>
+																			{user.status === 'confirmed' ? 'Payment Confirmed' : user.status === 'proof-submitted' ? 'Proof Submitted' : 'I have made payment'}
+																		</Button>
 																	</div>
 																</div>
-
-																<div className="flex justify-between items-center">
-																	<span className="text-sm text-gray-600 dark:text-gray-400">Assigned {user.timeAssigned}</span>
-																	<Button size="sm" onClick={() => handleUploadPayment(user)} disabled={user.status === 'confirmed' || user.status === 'proof-submitted'} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-																		<i className="ri-upload-line w-4 h-4 flex items-center justify-center mr-2"></i>
-																		{user.status === 'confirmed' ? 'Payment Confirmed' : user.status === 'proof-submitted' ? 'Proof Submitted' : 'I have made payment'}
-																	</Button>
-																</div>
-															</div>
-														))}
+															))}
+														</div>
 													</div>
-												</div>
-											)}
-										</CardContent>
-									</Card>
-								))}
+												)}
+											</CardContent>
+										</Card>
+									);
+								})}
 							</div>
 
 							{totalPages > 1 && (
@@ -893,19 +916,28 @@ export default function ProvideHelpPage() {
 	};
 
 	const renderCurrentState = () => {
-		switch (currentState) {
-			case 'select-package':
-				return renderSelectPackage();
-			case 'enter-amount':
-				return renderEnterAmount();
-			case 'waiting':
-				return renderWaiting();
-			case 'view-requests':
-				return renderViewRequests();
-			default:
-				return renderViewRequests();
+		if (hideHeader) {
+			if (paginatedRequests.length > 0) return renderViewRequests();
+		} else {
+			switch (currentState) {
+				case 'select-package':
+					return renderSelectPackage();
+				case 'enter-amount':
+					return renderEnterAmount();
+				case 'waiting':
+					return renderWaiting();
+				case 'view-requests':
+					return renderViewRequests();
+				default:
+					return renderViewRequests();
+			}
 		}
 	};
 
-	return renderCurrentState();
+	return (
+		<>
+			<TermsAndConditionsModal isOpen={showTermsModal} onAgree={() => setShowTermsModal(false)} />
+			{!showTermsModal && renderCurrentState()}
+		</>
+	);
 }
