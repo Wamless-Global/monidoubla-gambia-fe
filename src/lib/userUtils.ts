@@ -142,6 +142,9 @@ export interface LocalUser {
 	fiat_code?: string;
 	fiat_symbol?: string;
 
+	agreed_to_ph_terms?: boolean;
+	agreed_to_gh_terms?: boolean;
+
 	bank_name?: string | null;
 	account_number?: string | null;
 	account_name?: string | null;
