@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -9,8 +9,9 @@ import { logger } from '@/lib/logger';
 import { CustomLink } from '@/components/CustomLink';
 import { PHRequest, GHRequest } from './types';
 import RequestCard from './RequestCard';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage } from '@/lib/helpers';
 
+// Format PH requests from API response
 export const formatRequests = (data: any[]): PHRequest[] =>
 	data.map((req: any) => {
 		const assignedUsers = Array.isArray(req.details)
@@ -114,15 +115,17 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 
 	const itemsPerPage = 10;
 
+	// Initial data load
 	useEffect(() => {
 		loadData();
 	}, []);
 
+	// Load PH and GH requests
 	const loadData = async () => {
 		setLoading(true);
 		try {
 			await Promise.all([fetchPHRequests(1), fetchGHRequests(1)]);
-		} catch (error) {
+		} catch (error: any) {
 			toast.error('Failed to load initial data');
 			logger.error('Failed to load initial data', error);
 		} finally {
@@ -130,18 +133,18 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 		}
 	};
 
+	// Fetch PH requests with pagination
 	const fetchPHRequests = async (page: number) => {
 		setPHLoading(true);
 		try {
-			const res = await fetchWithAuth(`/api/ph-requests/all?status=not-complete&page=${page}&limit=${itemsPerPage}`);
+			const res = await fetchWithAuth(`/api/ph-requests/all?status=not-complete&limit=${itemsPerPage}`);
 			const json = await res.json();
-
+			logger.log('PH Requests API Response:', json);
 			const requests: PHRequest[] = formatRequests(json.data.requests || []);
-
 			setAllPHRequests(requests);
-			setPHTotalPages(json.data.count);
+			setPHTotalPages(Math.ceil(json.data.count / itemsPerPage));
 			filterPHRequests(requests, phSearchTerm);
-		} catch (error) {
+		} catch (error: any) {
 			toast.error('Failed to load PH requests');
 			logger.error('Failed to load PH requests', error);
 			setAllPHRequests([]);
@@ -151,35 +154,33 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 		}
 	};
 
+	// Fetch GH requests with pagination
 	const fetchGHRequests = async (page: number) => {
 		setGHLoading(true);
 		try {
-			const res = await fetchWithAuth(`/api/gh-requests/all?page=${page}&limit=${itemsPerPage}`);
+			const res = await fetchWithAuth(`/api/gh-requests/all?status=not-complete&page=${page}&limit=${itemsPerPage}`);
 			const json = await res.json();
-			const requests: GHRequest[] = (json.data.requests || []).map((req: any) => {
-				const matchedAmount = req.matchedAmount || 0; // Adjust based on actual API response
-				return {
-					id: req.id,
-					user: {
-						id: req.user?.id || '',
-						name: req.user?.name || '',
-						username: req.user?.username || '',
-						email: req.user?.email || '',
-						phoneNumber: req.user?.phoneNumber || '',
-						location: req.user?.location || '',
-					},
-					amount: Number(req.amount),
-					remainingAmount: Number(req.amount) - matchedAmount,
-					dateCreated: req.created_at,
-					status: req.status || 'pending',
-					notes: req.notes || '',
-				};
-			});
-
+			logger.log('GH Requests API Response:', json);
+			const requests: GHRequest[] = (json.data.requests || []).map((req: any) => ({
+				id: req.id,
+				user: {
+					id: req.user?.id || '',
+					name: req.user?.name || '',
+					username: req.user?.username || '',
+					email: req.user?.email || '',
+					phoneNumber: req.user?.phoneNumber || '',
+					location: req.user?.location || '',
+				},
+				amount: Number(req.amount),
+				remainingAmount: req.remainingAmountToReceive ? Number(req.remainingAmountToReceive) : Number(req.amount) - (req.matchedAmount || 0),
+				dateCreated: req.created_at,
+				status: req.status || 'pending',
+				notes: req.notes || '',
+			}));
 			setAllGHRequests(requests);
-			setGHTotalPages(json.data.count);
+			setGHTotalPages(Math.ceil(json.data.count / itemsPerPage));
 			filterGHRequests(requests, ghSearchTerm);
-		} catch (error) {
+		} catch (error: any) {
 			toast.error('Failed to load GH requests');
 			logger.error('Failed to load GH requests', error);
 			setAllGHRequests([]);
@@ -189,21 +190,28 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 		}
 	};
 
+	// Filter PH requests based on search term
 	const filterPHRequests = (requests: PHRequest[], search: string) => {
-		logger.log(requests);
 		const filtered = requests.filter((request) => {
 			const matchesSearch = request.user.name.toLowerCase().includes(search.toLowerCase()) || request.user.email.toLowerCase().includes(search.toLowerCase());
-			return matchesSearch && (request.availableAmount || 0) > 0 && request.status === 'pending';
+			const isValid = (request.availableAmount || 0) > 0 && (request.status === 'pending' || request.status === 'partial-match');
+			logger.log('Filtering PH request:', { id: request.id, matchesSearch, isValid });
+			return matchesSearch && isValid;
 		});
 		setFilteredPHRequests(filtered);
+		logger.log('Filtered PH requests:', filtered);
 	};
 
+	// Filter GH requests based on search term
 	const filterGHRequests = (requests: GHRequest[], search: string) => {
 		const filtered = requests.filter((request) => {
 			const matchesSearch = request.user.name.toLowerCase().includes(search.toLowerCase()) || request.user.email.toLowerCase().includes(search.toLowerCase());
-			return matchesSearch && (request.remainingAmount || 0) > 0 && request.status === 'pending';
+			const isValid = (request.remainingAmount || 0) > 0 && (request.status === 'pending' || request.status === 'partial-match');
+			logger.log('Filtering GH request:', { id: request.id, matchesSearch, isValid });
+			return matchesSearch && isValid;
 		});
 		setFilteredGHRequests(filtered);
+		logger.log('Filtered GH requests:', filtered);
 	};
 
 	useEffect(() => {
@@ -226,55 +234,46 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 		}
 	};
 
+	// Check if matching is possible
 	const canMatch = () => {
 		if (selectedPHRequests.length === 0 || selectedGHRequests.length === 0) {
 			return false;
 		}
 		const totalPHAmount = selectedPHRequests.reduce((sum, r) => sum + (r.availableAmount || 0), 0);
 		const totalGHAmount = selectedGHRequests.reduce((sum, r) => sum + (r.remainingAmount || 0), 0);
-		return totalPHAmount >= totalGHAmount;
+		logger.log('canMatch check:', { selectedPHRequests, selectedGHRequests, totalPHAmount, totalGHAmount });
+		// return totalPHAmount >= totalGHAmount;
+		return true;
 	};
 
+	// Generate matches from selected requests
 	const generateMatches = () => {
-		const matches: { phRequestId: string; ghRequestId: string; amount: number }[] = [];
-		const phRequests = [...selectedPHRequests].sort((a, b) => (b.availableAmount || 0) - (a.availableAmount || 0));
-		const ghRequests = [...selectedGHRequests].sort((a, b) => (b.remainingAmount || 0) - (a.remainingAmount || 0));
+		const matches: { ph_request: string; gh_request: string; user: string; gh_user: string; amount: number }[] = [];
+		let remainingGHRequests = [...selectedGHRequests];
 
-		let phIndex = 0;
-		let ghIndex = 0;
-
-		while (phIndex < phRequests.length && ghIndex < ghRequests.length) {
-			const ph = phRequests[phIndex];
-			const gh = ghRequests[ghIndex];
-			const phAvailable = ph.availableAmount || 0;
-			const ghNeeded = gh.remainingAmount || 0;
-
-			if (phAvailable <= 0) {
-				phIndex++;
-				continue;
+		for (const ph of selectedPHRequests) {
+			let phAvailable = ph.availableAmount || 0;
+			for (let i = 0; i < remainingGHRequests.length && phAvailable > 0; i++) {
+				const gh = remainingGHRequests[i];
+				const ghNeeded = gh.remainingAmount || 0;
+				if (ghNeeded <= 0) continue;
+				const matchAmount = Math.min(phAvailable, ghNeeded);
+				matches.push({
+					ph_request: ph.id,
+					gh_request: gh.id,
+					user: ph.user.id,
+					gh_user: gh.user.id,
+					amount: matchAmount,
+				});
+				phAvailable -= matchAmount;
+				remainingGHRequests[i] = { ...gh, remainingAmount: ghNeeded - matchAmount };
 			}
-			if (ghNeeded <= 0) {
-				ghIndex++;
-				continue;
-			}
-
-			const matchAmount = Math.min(phAvailable, ghNeeded);
-			matches.push({
-				phRequestId: ph.id,
-				ghRequestId: gh.id,
-				amount: matchAmount,
-			});
-
-			phRequests[phIndex] = { ...ph, availableAmount: phAvailable - matchAmount };
-			ghRequests[ghIndex] = { ...gh, remainingAmount: ghNeeded - matchAmount };
-
-			if (phRequests[phIndex].availableAmount === 0) phIndex++;
-			if (ghRequests[ghIndex].remainingAmount === 0) ghIndex++;
 		}
-
+		logger.log('Generated matches:', matches);
 		return matches;
 	};
 
+	// Handle match confirmation
 	const handleConfirmMatch = async () => {
 		if (!canMatch()) {
 			toast.error('Cannot match: insufficient PH amount or no selections');
@@ -284,63 +283,40 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 		setMatching(true);
 		try {
 			const matches = generateMatches();
-			const res = await fetchWithAuth('/api/match-users', {
+			if (matches.length === 0) {
+				throw new Error('No valid matches generated');
+			}
+
+			const res = await fetchWithAuth('/api/matches', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ matches }),
 			});
-
+			const data = await res.json();
 			if (!res.ok) {
-				const data = await res.json();
-				throw new Error(data?.message || 'Failed to create matches');
+				throw new Error(handleFetchMessage(data?.message || 'Failed to create matches'));
 			}
-
-			// Update local state
-			const updatedPHRequests = allPHRequests.map((req) => {
-				const match = matches.find((m) => m.phRequestId === req.id);
-				if (match) {
-					const newAvailableAmount = (req.availableAmount || 0) - match.amount;
-					return {
-						...req,
-						availableAmount: newAvailableAmount,
-						status: newAvailableAmount > 0 ? 'partial-match' : ('matched' as PHRequest['status']),
-					};
-				}
-				return req;
-			});
-
-			const updatedGHRequests = allGHRequests.map((req) => {
-				const match = matches.find((m) => m.ghRequestId === req.id);
-				if (match) {
-					const newRemainingAmount = (req.remainingAmount || 0) - match.amount;
-					return {
-						...req,
-						remainingAmount: newRemainingAmount,
-						status: newRemainingAmount > 0 ? 'pending' : 'matched',
-					} as GHRequest;
-				}
-				return req;
-			});
-
-			setAllPHRequests(updatedPHRequests);
-			setAllGHRequests(updatedGHRequests);
+			logger.log('Match created successfully:', data);
+			await Promise.all([fetchPHRequests(phCurrentPage), fetchGHRequests(ghCurrentPage)]);
 			setSelectedPHRequests([]);
 			setSelectedGHRequests([]);
 			toast.success(`Successfully matched ${matches.length} pairs!`);
 		} catch (error: any) {
-			toast.error(error?.message || 'Failed to match users');
+			toast.error(error.message || 'Failed to match users');
 			logger.error('Failed to match users', error);
 		} finally {
 			setMatching(false);
 		}
 	};
 
+	// Handle PH page change
 	const handlePHPageChange = async (page: number) => {
 		if (page < 1 || page > phTotalPages) return;
 		await fetchPHRequests(page);
 		setPHCurrentPage(page);
 	};
 
+	// Handle GH page change
 	const handleGHPageChange = async (page: number) => {
 		if (page < 1 || page > ghTotalPages) return;
 		await fetchGHRequests(page);

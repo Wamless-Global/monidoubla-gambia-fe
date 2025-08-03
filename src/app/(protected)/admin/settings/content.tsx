@@ -68,7 +68,7 @@ export default function SettingsPage() {
 	const [saving, setSaving] = useState<string | null>(null);
 	const [isMounted, setIsMounted] = useState(false);
 
-	const [generalSettings, setGeneralSettings] = useState<GeneralSettings>({
+	const [generalSettings, setGeneralSettings] = useState<GeneralSettings & { referralGeneration?: number }>({
 		platformName: '',
 		platformCurrency: '',
 		country: '',
@@ -76,6 +76,7 @@ export default function SettingsPage() {
 		commissionRate: 0,
 		maintenanceMode: false,
 		maintenanceMessage: '',
+		referralGeneration: 1,
 	});
 
 	const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
@@ -173,6 +174,10 @@ export default function SettingsPage() {
 
 		if (generalSettings.commissionRate < 0 || generalSettings.commissionRate > 100) {
 			newErrors.commissionRate = 'Commission rate must be between 0-100';
+		}
+
+		if (generalSettings.referralGeneration !== undefined && (generalSettings.referralGeneration < 1 || generalSettings.referralGeneration > 10)) {
+			newErrors.referralGeneration = 'Referral generation must be between 1 and 10';
 		}
 
 		if (generalSettings.maintenanceMode && !generalSettings.maintenanceMessage.trim()) {
@@ -444,6 +449,7 @@ export default function SettingsPage() {
 			<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
 
 			{/* General Settings */}
+
 			<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm">
 				<div className="space-y-6">
 					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">General Settings</h2>
@@ -463,23 +469,24 @@ export default function SettingsPage() {
 						{errors.platformName && <p className="text-sm text-red-600 dark:text-red-400">{errors.platformName}</p>}
 					</div>
 
-					{/* Platform Currency */}
-					{/* <div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Platform Currency</label>
-						<select
-							value={generalSettings.platformCurrency}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, platformCurrency: e.target.value }))}
-							className={`w-full px-3 py-2 pr-8 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
-								errors.platformCurrency ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
+					{/* Referral Generation */}
+					<div className="space-y-2">
+						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Referral Generation</label>
+						<input
+							type="number"
+							min="1"
+							max="10"
+							step="1"
+							value={generalSettings.referralGeneration ?? 1}
+							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, referralGeneration: parseInt(e.target.value) || 1 }))}
+							placeholder="Enter number of generations for referral bonus"
+							className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
+								errors.referralGeneration ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
 							}`}
-						>
-							<option value={getCurrencyFromLocalStorage().code}>{getCurrencyFromLocalStorage().code} (Ghana Cedis)</option>
-							<option value="USD">USD (US Dollar)</option>
-							<option value="EUR">EUR (Euro)</option>
-							<option value="NGN">NGN (Nigerian Naira)</option>
-						</select>
-						{errors.platformCurrency && <p className="text-sm text-red-600 dark:text-red-400">{errors.platformCurrency}</p>}
-					</div> */}
+						/>
+						{errors.referralGeneration && <p className="text-sm text-red-600 dark:text-red-400">{errors.referralGeneration}</p>}
+						<p className="text-sm text-gray-500 dark:text-gray-400">Number of generations a referral bonus applies (e.g. 1 = direct, 2 = direct + 1 level, etc.)</p>
+					</div>
 
 					{/* Auto Matching */}
 					<div className="space-y-2">

@@ -50,11 +50,11 @@ export default function PHRequestsFilters({ searchTerm, setSearchTerm, statusFil
 						onChange={(e) => setLocationFilter(e.target.value)}
 					>
 						<option value="All">All Locations</option>
-						<option value="Banjul">Banjul</option>
-						<option value="Brikama">Brikama</option>
-						<option value="Bakau">Bakau</option>
-						<option value="Serekunda">Serekunda</option>
-						<option value="Farafenni">Farafenni</option>
+						<option value="Monrovia">Monrovia</option>
+						<option value="Gbarnga">Gbarnga</option>
+						<option value="Buchanan">Buchanan</option>
+						<option value="Kakata">Kakata</option>
+						<option value="Zwedru">Zwedru</option>
 					</select>
 					<select className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm pr-8" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
 						<option value="dateCreated">Sort by Date</option>

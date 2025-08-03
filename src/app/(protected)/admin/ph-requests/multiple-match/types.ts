@@ -48,7 +48,7 @@ export interface GHRequest {
 	amount: number;
 	remainingAmount?: number;
 	dateCreated: string;
-	status: 'pending' | 'matched' | 'completed';
+	status: 'pending' | 'waiting-match' | 'partial-match' | 'matched' | 'active' | 'completed' | 'expired' | 'cancelled';
 	notes?: string;
 }
 

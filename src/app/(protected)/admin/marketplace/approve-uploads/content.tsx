@@ -10,6 +10,11 @@ import { CustomLink } from '@/components/CustomLink';
 import Image from 'next/image';
 import { getCurrencyFromLocalStorage } from '@/lib/helpers';
 
+interface ContactDetails {
+	phone: string;
+	email: string;
+}
+
 interface PendingItem {
 	id: string;
 	title: string;
@@ -56,37 +61,39 @@ function ItemDetailModal({ isOpen, onClose, item, onApprove, onDisapprove }: Ite
 		setApproveLoading(true);
 
 		try {
-			await new Promise((resolve) => setTimeout(resolve, 1500));
-			<Image src={item.image} alt={item.title} width={400} height={400} className="w-full h-full object-cover" />;
-			onApprove(item);
+			await onApprove(item);
 			toast.success('Item approved successfully');
-			setApproveLoading(false);
 			onClose();
 		} catch (error) {
-			<Image src={item.image} alt={`${item.title}`} width={400} height={400} className="w-full h-full object-cover opacity-60" />;
+			toast.error('Failed to approve item');
+		} finally {
 			setApproveLoading(false);
 		}
 	};
 
 	const handleDisapprove = async () => {
 		if (!item) return;
-		<Image src={item.image} alt={item.title} width={400} height={192} className="w-full h-48 object-cover" />;
 		setDisapproveLoading(true);
 
 		try {
-			await new Promise((resolve) => setTimeout(resolve, 1500));
-
-			onDisapprove(item);
+			await onDisapprove(item);
 			toast.success('Item disapproved successfully');
-			setDisapproveLoading(false);
 			onClose();
 		} catch (error) {
 			toast.error('Failed to disapprove item');
+		} finally {
 			setDisapproveLoading(false);
 		}
 	};
 
 	if (!isOpen || !item) return null;
+
+	let contactInfo: ContactDetails | null = null;
+	try {
+		contactInfo = JSON.parse(item.contactDetails);
+	} catch (error) {
+		console.error('Failed to parse contact details:', error);
+	}
 
 	return (
 		<>
@@ -174,9 +181,21 @@ function ItemDetailModal({ isOpen, onClose, item, onApprove, onDisapprove }: Ite
 
 								<div>
 									<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Contact Details</label>
-									<div className="flex items-center gap-2">
-										<i className="ri-phone-line w-4 h-4 flex items-center justify-center text-gray-500"></i>
-										<span className="text-gray-900 dark:text-white">{item.contactDetails}</span>
+									<div className="space-y-2">
+										{contactInfo ? (
+											<>
+												<div className="flex items-center gap-2">
+													<i className="ri-phone-line w-4 h-4 flex items-center justify-center text-gray-500"></i>
+													<span className="text-gray-900 dark:text-white">{contactInfo.phone}</span>
+												</div>
+												<div className="flex items-center gap-2">
+													<i className="ri-mail-line w-4 h-4 flex items-center justify-center text-gray-500"></i>
+													<span className="text-gray-900 dark:text-white">{contactInfo.email}</span>
+												</div>
+											</>
+										) : (
+											<span className="text-gray-500 dark:text-gray-400">No contact information available</span>
+										)}
 									</div>
 								</div>
 
@@ -248,13 +267,9 @@ export default function ApproveUploadsPage() {
 		isOpen: false,
 		item: null,
 	});
-	const [approveLoading, setApproveLoading] = useState(false);
-	const [disapproveLoading, setDisapproveLoading] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
 
 	const itemsPerPage = 12;
-
-	const mockItems: PendingItem[] = [];
 
 	useEffect(() => {
 		setIsMounted(true);
@@ -273,7 +288,6 @@ export default function ApproveUploadsPage() {
 			const res = await fetchWithAuth('/api/marketplace?status=pending');
 			if (!res.ok) throw new Error('Failed to fetch pending items');
 			const data = await res.json();
-			// Map API data to PendingItem interface
 			const items: PendingItem[] = (Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : data.products || []).map((item: any) => ({
 				id: item.id,
 				title: item.name || item.title,
@@ -285,13 +299,20 @@ export default function ApproveUploadsPage() {
 				image: typeof item.Images === 'string' ? JSON.parse(item.Images)?.[0] || '' : item.Images?.[0] || '',
 				description: item.description,
 				condition: item.condition || '',
-				tags: item.tags || [],
+				tags:
+					typeof item.tags === 'string'
+						? item.tags
+								.split(',')
+								.map((tag: string) => tag.trim())
+								.filter(Boolean)
+						: Array.isArray(item.tags)
+						? item.tags
+						: [],
 				contactDetails: item.contactDetails || '',
 				previewDescription: item.previewDescription || '',
 			}));
 			setItems(items);
 		} catch (error) {
-			setItems([]);
 			toast.error('Failed to fetch pending items');
 		} finally {
 			setLoading(false);
@@ -354,6 +375,7 @@ export default function ApproveUploadsPage() {
 			setItems(items.filter((i) => i.id !== item.id));
 			setDetailModalOpen(false);
 			setSelectedItem(null);
+			setApproveModal({ isOpen: false, item: null });
 			toast.success('Item approved successfully');
 		} catch (error) {
 			toast.error('Failed to approve item');
@@ -377,43 +399,10 @@ export default function ApproveUploadsPage() {
 			setItems(items.filter((i) => i.id !== item.id));
 			setDetailModalOpen(false);
 			setSelectedItem(null);
-			toast.success('Item disapproved successfully');
-		} catch (error) {
-			toast.error('Failed to disapprove item');
-		}
-	};
-
-	const handleBulkApprove = async () => {
-		if (!approveModal.item) return;
-
-		setApproveLoading(true);
-
-		try {
-			await new Promise((resolve) => setTimeout(resolve, 1500));
-			setItems(items.filter((i) => i.id !== approveModal.item!.id));
-			setApproveModal({ isOpen: false, item: null });
-			toast.success('Item approved successfully');
-		} catch (error) {
-			toast.error('Failed to approve item');
-		} finally {
-			setApproveLoading(false);
-		}
-	};
-
-	const handleBulkDisapprove = async () => {
-		if (!disapproveModal.item) return;
-
-		setDisapproveLoading(true);
-
-		try {
-			await new Promise((resolve) => setTimeout(resolve, 1500));
-			setItems(items.filter((i) => i.id !== disapproveModal.item!.id));
 			setDisapproveModal({ isOpen: false, item: null });
 			toast.success('Item disapproved successfully');
 		} catch (error) {
 			toast.error('Failed to disapprove item');
-		} finally {
-			setDisapproveLoading(false);
 		}
 	};
 
@@ -630,25 +619,23 @@ export default function ApproveUploadsPage() {
 			<ConfirmationModal
 				isOpen={approveModal.isOpen}
 				onClose={() => setApproveModal({ isOpen: false, item: null })}
-				onConfirm={handleBulkApprove}
+				onConfirm={() => handleApprove(approveModal.item!)}
 				title="Approve Item"
 				message={`Are you sure you want to approve "${approveModal.item?.title}"? This will make it available in the marketplace.`}
 				confirmText="Approve"
 				cancelText="Cancel"
 				confirmVariant="default"
-				loading={approveLoading}
 			/>
 
 			<ConfirmationModal
 				isOpen={disapproveModal.isOpen}
 				onClose={() => setDisapproveModal({ isOpen: false, item: null })}
-				onConfirm={handleBulkDisapprove}
+				onConfirm={() => handleDisapprove(disapproveModal.item!)}
 				title="Disapprove Item"
 				message={`Are you sure you want to disapprove "${disapproveModal.item?.title}"? This action cannot be undone.`}
 				confirmText="Disapprove"
 				cancelText="Cancel"
 				confirmVariant="destructive"
-				loading={disapproveLoading}
 			/>
 		</div>
 	);

@@ -320,7 +320,7 @@ export default function AdminMarketplace() {
 	const loadItems = async () => {
 		setLoading(true);
 		try {
-			const res = await fetchWithAuth('/api/marketplace');
+			const res = await fetchWithAuth('/api/marketplace?status=active');
 			if (!res.ok) throw new Error('Failed to fetch marketplace items');
 			const data = await res.json();
 			// Map API data to MarketplaceItem interface

@@ -119,6 +119,9 @@ export default function PHRequestsPage() {
 					case 'pending':
 						status = 'pending';
 						break;
+					case 'matched':
+						status = 'matched';
+						break;
 					case 'completed':
 						status = 'completed';
 						break;

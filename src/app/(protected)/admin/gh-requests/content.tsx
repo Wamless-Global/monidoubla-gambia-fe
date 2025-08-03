@@ -192,17 +192,17 @@ export default function GHRequestsPage() {
 		try {
 			const res = await fetchWithAuth(`/api/matches/all?ghId=${request.id}`);
 			const json = await res.json();
-			console.log(json);
 
+			logger.warn('Existing matches for GH request:', json);
 			const existingMatches: PHRequest[] = (json.data?.matches || []).map((match: any) => ({
 				id: match.phRequest.id,
 				user: {
-					id: match.phRequest.userInfo?.id || '',
-					name: match.phRequest.userInfo?.name || '',
-					username: match.phRequest.userInfo?.username || '',
-					email: match.phRequest.userInfo?.email || '',
-					phoneNumber: match.phRequest.userInfo?.phoneNumber || '',
-					location: match.phRequest.userInfo?.location || '',
+					id: match.userInfo?.id || '',
+					name: match.userInfo?.name || '',
+					username: match.userInfo?.username || '',
+					email: match.userInfo?.email || '',
+					phoneNumber: match.userInfo?.phoneNumber || '',
+					location: match.userInfo?.location || '',
 				},
 				amount: Number(match.amount),
 				availableAmount: Number(match.phRequest.availableAmount || match.amount),
