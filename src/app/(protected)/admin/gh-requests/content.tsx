@@ -16,7 +16,7 @@ import { CustomLink } from '@/components/CustomLink';
 import { Package } from '../../user/provide-help/content';
 import AddGHRequestModal from '@/components/AddGHRequestModal';
 import { PHRequest } from '../ph-requests/multiple-match/types';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 
 export default function GHRequestsPage() {
 	const [requests, setRequests] = useState<GHRequest[]>([]);
@@ -64,6 +64,9 @@ export default function GHRequestsPage() {
 		try {
 			const pkgRes = await fetchWithAuth('/api/packages');
 			const pkgJson = await pkgRes.json();
+			if (!pkgRes.ok) {
+				throw new Error(handleFetchMessage(pkgJson));
+			}
 			const apiPackages = (pkgJson.data || []).map((pkg: any) => ({
 				id: pkg.id,
 				name: pkg.name,
@@ -75,7 +78,7 @@ export default function GHRequestsPage() {
 			}));
 			setPackages(apiPackages);
 		} catch (e) {
-			toast.error('Failed to load packages');
+			toast.error(handleFetchMessage(e, 'Failed to load packages'));
 			logger.error('Failed to load packages', e);
 		}
 	};
@@ -85,6 +88,9 @@ export default function GHRequestsPage() {
 		try {
 			const res = await fetchWithAuth(`/api/gh-requests/all?page=${page}&limit=${itemsPerPage}`);
 			const json = await res.json();
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to create matches'));
+			}
 			const requests: GHRequest[] = (json.data.requests || []).map((req: any) => ({
 				id: req.id,
 				user: {
@@ -105,7 +111,7 @@ export default function GHRequestsPage() {
 			setRequests(requests);
 			setTotalPages(Math.max(1, Math.ceil((json.data.count || 0) / itemsPerPage)));
 		} catch (error) {
-			toast.error('Failed to load GH requests');
+			toast.error(handleFetchMessage(error, 'Failed to load GH requests'));
 			logger.error('Failed to load GH requests', error);
 			setRequests([]);
 		} finally {
@@ -164,14 +170,14 @@ export default function GHRequestsPage() {
 
 			if (!res.ok) {
 				const data = await res.json();
-				throw new Error(data?.message || 'Failed to delete GH request');
+				throw new Error(handleFetchMessage(data, 'Failed to delete GH request'));
 			}
 
 			setRequests(requests.filter((request) => request.id !== deleteModal.request!.id));
 			toast.success('GH request deleted successfully');
 			setDeleteModal({ isOpen: false, request: null });
 		} catch (error: any) {
-			toast.error(error?.message || 'Failed to delete request');
+			toast.error(handleFetchMessage(error, 'Failed to delete request'));
 			logger.error('Failed to delete GH request', error);
 		} finally {
 			setDeleteLoading(false);
@@ -192,7 +198,9 @@ export default function GHRequestsPage() {
 		try {
 			const res = await fetchWithAuth(`/api/matches/all?ghId=${request.id}`);
 			const json = await res.json();
-
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(json, 'Failed to fetch matches'));
+			}
 			logger.warn('Existing matches for GH request:', json);
 			const existingMatches: PHRequest[] = (json.data?.matches || []).map((match: any) => ({
 				id: match.phRequest.id,
@@ -223,7 +231,7 @@ export default function GHRequestsPage() {
 				existingMatches,
 			});
 		} catch (error) {
-			toast.error('Failed to load existing matches');
+			toast.error(handleFetchMessage(error, 'Failed to load existing matches'));
 			logger.error('Failed to load matches for GH request', error);
 		} finally {
 			setMatchLoading((prev) => ({ ...prev, [request.id]: false }));
@@ -244,7 +252,7 @@ export default function GHRequestsPage() {
 				}),
 			});
 			if (!res.ok) {
-				throw new Error('Failed to create matches');
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to create matches'));
 			}
 			setRequests(
 				requests.map((r) =>
@@ -259,7 +267,7 @@ export default function GHRequestsPage() {
 			setMatchModal({ isOpen: false, request: null, existingMatches: [] });
 			toast.success('Successfully matched users');
 		} catch (error) {
-			toast.error('Failed to match users');
+			toast.error(handleFetchMessage(error, 'Failed to match users'));
 			logger.error('Failed to match users', error);
 		}
 	};
@@ -314,7 +322,7 @@ export default function GHRequestsPage() {
 				onClose={() => setDeleteModal({ isOpen: false, request: null })}
 				onConfirm={confirmDelete}
 				title="Delete GH Request"
-				message={`Are you sure you want to delete ${deleteModal.request?.user.name}'s request for ${deleteModal.request?.remainingAmount} ${getCurrencyFromLocalStorage()?.code}? This action cannot be undone.`}
+				message={`Are you sure you want to delete ${deleteModal.request?.user.name}'s request for ${deleteModal.request?.remainingAmount} ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}? This action cannot be undone.`}
 				confirmText="Delete"
 				cancelText="Cancel"
 				confirmVariant="destructive"

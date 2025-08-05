@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { logger } from '@/lib/logger';
 import { PHRequest } from './multiple-match/types';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 interface PHRequestsTableProps {
 	requests: PHRequest[];
@@ -83,7 +83,7 @@ export default function PHRequestsTable({ requests, currentPage, itemsPerPage, p
 								</td>
 								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
 									<span className="font-medium">
-										{request.amount} {getCurrencyFromLocalStorage()?.code}
+										{request.amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 									</span>
 								</td>
 								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">

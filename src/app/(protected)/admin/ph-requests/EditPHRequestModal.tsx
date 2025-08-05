@@ -6,7 +6,7 @@ import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { PHRequest } from './multiple-match/types';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 
 interface EditPHRequestModalProps {
 	isOpen: boolean;
@@ -53,7 +53,7 @@ export default function EditPHRequestModal({ isOpen, onClose, request, onSave }:
 
 			if (!res.ok) {
 				const data = await res.json();
-				throw new Error(data?.message || 'Failed to update PH request');
+				throw new Error(handleFetchMessage(data, 'Failed to update PH request'));
 			}
 
 			onSave(formData);
@@ -61,7 +61,7 @@ export default function EditPHRequestModal({ isOpen, onClose, request, onSave }:
 			setLoading(false);
 			onClose();
 		} catch (error: any) {
-			toast.error(error?.message || 'Failed to update request');
+			toast.error(handleFetchMessage(error, 'Failed to update request'));
 			logger.error('Failed to update PH request', error);
 			setLoading(false);
 		}
@@ -83,7 +83,7 @@ export default function EditPHRequestModal({ isOpen, onClose, request, onSave }:
 						</div>
 						<form onSubmit={handleSubmit} className="space-y-4">
 							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ({getCurrencyFromLocalStorage()?.code})</label>
+								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
 								<input
 									type="number"
 									min="1"

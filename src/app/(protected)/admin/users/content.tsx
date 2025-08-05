@@ -12,6 +12,7 @@ import { deleteUser as deleteUserUtil } from '@/lib/userUtils';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
 import { Country, UserStatus } from '@/types';
+import { handleFetchMessage } from '@/lib/helpers';
 
 export interface User {
 	id: string;
@@ -69,8 +70,8 @@ export default function UserManagement({ countries }: { countries: { status: str
 				headers: { 'Content-Type': 'application/json' },
 			});
 			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response' }));
-				throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorData?.message || 'Unknown error'}`);
+				const errorData = handleFetchMessage(await response.json(), 'Failed to parse error response');
+				throw new Error(errorData);
 			}
 			const result = await response.json();
 			if (result.status !== 'success') {
@@ -97,8 +98,8 @@ export default function UserManagement({ countries }: { countries: { status: str
 		} catch (err: any) {
 			setUsers([]);
 			setTotalCount(0);
-			setError(err.message || 'Failed to fetch users');
-			toast.error(err.message || 'Failed to fetch users');
+			setError(handleFetchMessage(err, 'Failed to fetch users'));
+			toast.error(handleFetchMessage(err, 'Failed to fetch users'));
 		} finally {
 			setLoading(false);
 		}
@@ -215,7 +216,7 @@ export default function UserManagement({ countries }: { countries: { status: str
 	const totalPages = Math.ceil((totalCount || filteredUsers.length) / usersPerPage);
 	const startIndex = (currentPage - 1) * usersPerPage;
 	const endIndex = startIndex + usersPerPage;
-	const currentUsers = filteredUsers.slice(startIndex, endIndex);
+	const currentUsers = filteredUsers;
 
 	const generatePageNumbers = () => {
 		const pages = [];
@@ -253,6 +254,9 @@ export default function UserManagement({ countries }: { countries: { status: str
 
 		return pages;
 	};
+
+	logger.log('Current users:', currentUsers);
+	logger.log('Filtered users:', filteredUsers);
 
 	if (loading) {
 		return (
@@ -364,7 +368,7 @@ export default function UserManagement({ countries }: { countries: { status: str
 							<option value="User">User</option>
 							<option value="Admin">Admin</option>
 						</select>
-						<select
+						{/* <select
 							className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm pr-8"
 							value={locationFilter}
 							onChange={(e) => setLocationFilter(e.target.value)}
@@ -374,7 +378,7 @@ export default function UserManagement({ countries }: { countries: { status: str
 							<option value="Buchanan">Buchanan</option>
 							<option value="Kakata">Kakata</option>
 							<option value="Zwedru">Zwedru</option>
-						</select>
+						</select> */}
 						<Button variant="outline" onClick={resetFilters} className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap">
 							Reset Filters
 						</Button>

@@ -1,56 +1,84 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { getCurrentUser } from '@/lib/userUtils';
+import { handleFetchMessage } from '@/lib/helpers';
+import { logger } from '@/lib/logger';
 
 interface Testimony {
 	id: string;
-	userId: string;
+	user: string;
 	content: string;
-	video_url?: string;
-	createdAt: string;
+	video_url?: string | null;
+	created_at: string;
+	approved: boolean;
+	user_name?: string;
+	avatar_url?: string;
 }
 
 export default function UserTestimonialsPage() {
 	const [testimonies, setTestimonies] = useState<Testimony[]>([]);
-	const [content, setContent] = useState('');
+	const [content, setContent] = useState<string>('');
 	const [video, setVideo] = useState<File | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [pageLoading, setPageLoading] = useState<boolean>(false);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [totalCount, setTotalCount] = useState(0);
 	const [editingId, setEditingId] = useState<string | null>(null);
-	const [editContent, setEditContent] = useState('');
+	const [editContent, setEditContent] = useState<string>('');
 	const [editVideo, setEditVideo] = useState<File | null>(null);
 	const [videoPreview, setVideoPreview] = useState<string | null>(null);
 	const [editVideoPreview, setEditVideoPreview] = useState<string | null>(null);
-	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+	const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 	const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-	const [deleteLoading, setDeleteLoading] = useState(false);
+	const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+
+	const testimoniesPerPage = 10;
+
+	const fetchTestimonies = useCallback(async (page = 1) => {
+		if (page > 1) setPageLoading(true);
+		else setIsLoading(true);
+		try {
+			const user = getCurrentUser();
+			if (!user) throw new Error('User not found');
+			const params = new URLSearchParams();
+			params.append('userId', user.id);
+			params.append('page', page.toString());
+			params.append('pageSize', testimoniesPerPage.toString());
+			const res = await fetchWithAuth(`/api/testimonies?${params.toString()}`);
+			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch testimonies'));
+
+			const data = await res.json();
+			setTestimonies(data.data || []);
+			setTotalCount(data.total || data.data?.length || 0);
+			logger.log('Total Count:', data.count, 'Total Pages:', Math.ceil((data.count || data.data?.length || 0) / testimoniesPerPage));
+		} catch (e) {
+			toast.error(handleFetchMessage(e, 'Failed to load testimonies'));
+			setTestimonies([]);
+			setTotalCount(0);
+		} finally {
+			setIsLoading(false);
+			setPageLoading(false);
+		}
+	}, []);
 
 	useEffect(() => {
-		fetchTestimonies();
-		// Cleanup object URLs on component unmount
+		fetchTestimonies(1);
 		return () => {
 			if (videoPreview) URL.revokeObjectURL(videoPreview);
 			if (editVideoPreview) URL.revokeObjectURL(editVideoPreview);
 		};
-	}, []);
+	}, [fetchTestimonies]);
 
-	const fetchTestimonies = async () => {
-		setIsLoading(true);
-		try {
-			const user = getCurrentUser();
-			if (!user) throw new Error('User not found');
-			const res = await fetchWithAuth(`/api/testimonies?userId=${user.id}`);
-			const data = await res.json();
-			setTestimonies(data.data || []);
-		} catch (e) {
-			toast.error('Failed to load testimonies');
-		} finally {
-			setIsLoading(false);
+	const handlePageChange = (page: number) => {
+		if (page >= 1 && page <= totalPages) {
+			setCurrentPage(page);
+			fetchTestimonies(page);
 		}
 	};
 
@@ -70,17 +98,17 @@ export default function UserTestimonialsPage() {
 				method: 'POST',
 				body: formData,
 			});
-			if (!res.ok) throw new Error('Failed to upload testimony');
+			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to upload testimony'));
 			toast.success('Testimony uploaded successfully');
 			setContent('');
 			setVideo(null);
 			if (videoPreview) {
-				URL.revokeObjectURL(videoPreview); // Revoke previous URL
+				URL.revokeObjectURL(videoPreview);
 				setVideoPreview(null);
 			}
-			fetchTestimonies();
+			fetchTestimonies(1); // Reset to page 1 after upload
 		} catch (e) {
-			toast.error('Failed to upload testimony');
+			toast.error(handleFetchMessage(e, 'Failed to upload testimony'));
 		}
 	};
 
@@ -94,11 +122,15 @@ export default function UserTestimonialsPage() {
 		setDeleteLoading(true);
 		try {
 			const res = await fetchWithAuth(`/api/testimonies/${deleteTargetId}`, { method: 'DELETE' });
-			if (!res.ok) throw new Error();
+			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to delete testimony'));
 			toast.success('Testimony deleted');
-			fetchTestimonies();
-		} catch {
-			toast.error('Failed to delete testimony');
+			fetchTestimonies(currentPage); // Stay on current page, or go to previous if needed
+			if (testimonies.length === 1 && currentPage > 1) {
+				setCurrentPage(currentPage - 1);
+				fetchTestimonies(currentPage - 1);
+			}
+		} catch (e) {
+			toast.error(handleFetchMessage(e, 'Failed to delete testimony'));
 		} finally {
 			setDeleteLoading(false);
 			setDeleteModalOpen(false);
@@ -111,50 +143,101 @@ export default function UserTestimonialsPage() {
 		setEditContent(testimony.content);
 		setEditVideo(null);
 		if (editVideoPreview) {
-			URL.revokeObjectURL(editVideoPreview); // Revoke previous URL
-			setEditVideoPreview(null);
+			URL.revokeObjectURL(editVideoPreview);
 		}
+		setEditVideoPreview(testimony.video_url ?? null);
 	};
 
 	const handleEditSave = async (id: string) => {
 		try {
 			const formData = new FormData();
 			formData.append('content', editContent);
+			formData.append('id', id);
 			if (editVideo) formData.append('video', editVideo);
 			const res = await fetchWithAuth(`/api/testimonies/${id}`, {
 				method: 'PUT',
 				body: formData,
 			});
-			if (!res.ok) throw new Error();
+			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to update testimony'));
 			toast.success('Testimony updated');
 			setEditingId(null);
 			setEditContent('');
 			setEditVideo(null);
 			if (editVideoPreview) {
-				URL.revokeObjectURL(editVideoPreview); // Revoke previous URL
+				URL.revokeObjectURL(editVideoPreview);
 				setEditVideoPreview(null);
 			}
-			fetchTestimonies();
-		} catch {
-			toast.error('Failed to update testimony');
+			fetchTestimonies(currentPage);
+		} catch (e) {
+			toast.error(handleFetchMessage(e, 'Failed to update testimony'));
 		}
 	};
 
 	const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
 		const file = e.target.files?.[0] || null;
+		logger.log('Selected file:', file);
 		if (isEdit) {
-			setEditVideo(file);
 			if (editVideoPreview) {
-				URL.revokeObjectURL(editVideoPreview); // Revoke previous URL
+				URL.revokeObjectURL(editVideoPreview);
 			}
+			setEditVideo(file);
 			setEditVideoPreview(file ? URL.createObjectURL(file) : null);
 		} else {
+			if (videoPreview) {
+				URL.revokeObjectURL(videoPreview);
+			}
 			setVideo(file);
 			if (videoPreview) {
-				URL.revokeObjectURL(videoPreview); // Revoke previous URL
+				setVideoPreview(null);
+				setTimeout(() => {
+					setVideoPreview(file ? URL.createObjectURL(file) : null);
+				}, 10);
+			} else {
+				setVideoPreview(file ? URL.createObjectURL(file) : null);
 			}
-			setVideoPreview(file ? URL.createObjectURL(file) : null);
 		}
+		if (e.target) {
+			e.target.value = '';
+		}
+	};
+
+	const totalPages = Math.ceil(totalCount / testimoniesPerPage);
+
+	const generatePageNumbers = () => {
+		const pages: (number | string)[] = [];
+		const showPages = 5;
+
+		if (totalPages <= showPages) {
+			for (let i = 1; i <= totalPages; i++) {
+				pages.push(i);
+			}
+		} else {
+			if (currentPage <= 3) {
+				for (let i = 1; i <= 4; i++) {
+					pages.push(i);
+				}
+				pages.push('...');
+				pages.push(totalPages - 1);
+				pages.push(totalPages);
+			} else if (currentPage >= totalPages - 2) {
+				pages.push(1);
+				pages.push(2);
+				pages.push('...');
+				for (let i = totalPages - 3; i <= totalPages; i++) {
+					pages.push(i);
+				}
+			} else {
+				pages.push(1);
+				pages.push('...');
+				for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+					pages.push(i);
+				}
+				pages.push('...');
+				pages.push(totalPages);
+			}
+		}
+
+		return pages;
 	};
 
 	return (
@@ -174,67 +257,68 @@ export default function UserTestimonialsPage() {
 			/>
 			<div className="p-4 lg:p-6 min-h-screen">
 				<div className="max-w-3xl mx-auto">
-					<h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-6">My Testimonials</h2>
-					<Card className="mb-10 border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-blue-50/40 dark:from-blue-900/30 dark:to-blue-950/10">
-						<CardContent className="p-8">
-							<h3 className="font-semibold text-lg text-foreground mb-3">Share Your Testimony</h3>
+					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">My Testimonials</h2>
+					<Card className="mb-8 p-6 bg-white dark:bg-gray-800 border-0">
+						<CardContent className="p-0">
+							<h3 className="font-semibold text-gray-900 dark:text-white mb-2">Share Your Testimony</h3>
 							<textarea
 								value={content}
 								onChange={(e) => setContent(e.target.value)}
 								placeholder="Write your testimony..."
 								rows={3}
-								className="w-full px-4 py-3 border-0 rounded-xl shadow bg-gradient-to-r from-white/80 to-blue-50/40 dark:from-blue-900/20 dark:to-blue-950/5 text-base focus:ring-2 focus:ring-blue-400 focus:outline-none mb-3"
+								className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
 							/>
-							<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, false)} className="mb-3" />
+							<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, false)} className="mb-2" />
 							{videoPreview && (
-								<video controls className="w-full max-w-md mb-3 rounded-xl shadow">
+								<video controls className="w-full max-w-md mb-2 rounded">
 									<source src={videoPreview} type="video/mp4" />
 									Your browser does not support the video tag.
 								</video>
 							)}
-							<Button onClick={handleUpload} className="bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white py-3 rounded-xl shadow-lg text-lg font-semibold">
+							<Button onClick={handleUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
 								Upload
 							</Button>
 						</CardContent>
 					</Card>
-					<div className="space-y-8">
+					<div className="space-y-6">
 						{isLoading ? (
-							<div className="text-center text-muted-foreground text-lg">Loading...</div>
+							<div className="flex items-center justify-center py-10">
+								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+							</div>
 						) : testimonies.length === 0 ? (
-							<div className="text-center text-muted-foreground text-lg">No testimonies yet.</div>
+							<div className="text-center text-gray-500 dark:text-gray-400">No testimonies yet.</div>
 						) : (
 							testimonies.map((testimony) => (
-								<Card key={testimony.id} className="border-0 shadow-2xl rounded-2xl bg-gradient-to-br from-white/80 to-green-50/40 dark:from-green-900/30 dark:to-green-950/10">
-									<CardContent className="p-8">
+								<Card key={testimony.id} className="p-4 bg-white dark:bg-gray-800 border-0">
+									<CardContent className="p-0">
 										{editingId === testimony.id ? (
 											<>
 												<textarea
 													value={editContent}
 													onChange={(e) => setEditContent(e.target.value)}
 													rows={3}
-													className="w-full px-4 py-3 border-0 rounded-xl shadow bg-gradient-to-r from-white/80 to-green-50/40 dark:from-green-900/20 dark:to-green-950/5 text-base focus:ring-2 focus:ring-green-400 focus:outline-none mb-3"
+													className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
 												/>
-												<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, true)} className="mb-3" />
+												<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, true)} className="mb-2" />
 												{editVideoPreview && (
-													<video controls className="w-full max-w-md mb-3 rounded-xl shadow">
+													<video controls className="w-full max-w-md mb-2 rounded">
 														<source src={editVideoPreview} type="video/mp4" />
 														Your browser does not support the video tag.
 													</video>
 												)}
-												<div className="flex gap-3">
-													<Button onClick={() => handleEditSave(testimony.id)} className="bg-gradient-to-r from-green-600 to-green-400 hover:from-green-700 hover:to-green-500 text-white py-3 rounded-xl shadow-lg text-lg font-semibold">
+												<div className="flex gap-2">
+													<Button onClick={() => handleEditSave(testimony.id)} className="bg-green-600 hover:bg-green-700 text-white">
 														Save
 													</Button>
 													<Button
 														onClick={() => {
 															setEditingId(null);
-															if (editVideoPreview) {
+															if (editVideoPreview && editVideoPreview !== testimony.video_url) {
 																URL.revokeObjectURL(editVideoPreview);
 																setEditVideoPreview(null);
 															}
 														}}
 														variant="outline"
-														className="py-3 rounded-xl text-lg font-semibold"
 													>
 														Cancel
 													</Button>
@@ -242,20 +326,26 @@ export default function UserTestimonialsPage() {
 											</>
 										) : (
 											<>
-												<div className="mb-3 text-foreground whitespace-pre-line break-words overflow-auto text-lg" style={{ maxHeight: '12rem', wordBreak: 'break-word' }}>
-													{testimony.content}
+												<div className="flex items-center mb-2 gap-2">
+													{testimony.avatar_url && <img src={testimony.avatar_url} alt={testimony.user_name || 'User'} className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700" />}
+													<span className="text-gray-900 dark:text-white whitespace-pre-line break-words overflow-auto" style={{ maxHeight: '12rem', wordBreak: 'break-word' }}>
+														{testimony.content}
+													</span>
+													<span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${testimony.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`} title={testimony.approved ? 'Published' : 'Unpublished Approval'}>
+														{testimony.approved ? 'Published' : 'Unpublished'}
+													</span>
 												</div>
 												{testimony.video_url && (
-													<video controls className="w-full max-w-md mb-3 rounded-xl shadow">
+													<video controls className="w-full max-w-md mb-2 rounded">
 														<source src={testimony.video_url} type="video/mp4" />
 														Your browser does not support the video tag.
 													</video>
 												)}
-												<div className="flex gap-3">
-													<Button onClick={() => handleEdit(testimony)} variant="outline" className="py-3 rounded-xl text-lg font-semibold">
+												<div className="flex gap-2">
+													<Button onClick={() => handleEdit(testimony)} variant="outline">
 														Edit
 													</Button>
-													<Button onClick={() => handleDelete(testimony.id)} variant="outline" className="py-3 rounded-xl text-lg font-semibold text-red-600 border-red-600">
+													<Button onClick={() => handleDelete(testimony.id)} variant="outline" className="text-red-600 border-red-600">
 														Delete
 													</Button>
 												</div>
@@ -266,6 +356,41 @@ export default function UserTestimonialsPage() {
 							))
 						)}
 					</div>
+					{pageLoading && (
+						<div className="flex items-center justify-center py-10">
+							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+						</div>
+					)}
+					{totalPages > 1 && !pageLoading && (
+						<div className="flex justify-center items-center gap-2 mt-6">
+							<button
+								onClick={() => handlePageChange(currentPage - 1)}
+								disabled={currentPage === 1}
+								className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+							>
+								<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center"></i>
+							</button>
+							{generatePageNumbers().map((page, index) => (
+								<button
+									key={index}
+									onClick={() => typeof page === 'number' && handlePageChange(page)}
+									disabled={page === '...' || page === currentPage}
+									className={`px-3 py-2 rounded-lg border cursor-pointer ${page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'} ${
+										page === '...' ? 'cursor-default' : ''
+									}`}
+								>
+									{page}
+								</button>
+							))}
+							<button
+								onClick={() => handlePageChange(currentPage + 1)}
+								disabled={currentPage === totalPages}
+								className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+							>
+								<i className="ri-arrow-right-line w-4 h-4 flex items-center justify-center"></i>
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		</>

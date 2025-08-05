@@ -13,7 +13,7 @@ import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { Button } from '@/components/ui/button';
 import { CustomLink } from '@/components/CustomLink';
 import { Package } from '../../user/provide-help/content';
-import { getCurrencyFromLocalStorage, parseMaturityDays } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, parseMaturityDays, getSettings } from '@/lib/helpers';
 import { PHRequest } from './multiple-match/types';
 
 export default function PHRequestsPage() {
@@ -57,6 +57,9 @@ export default function PHRequestsPage() {
 			// Fetch packages
 			const pkgRes = await fetchWithAuth('/api/packages');
 			const pkgJson = await pkgRes.json();
+			if (!pkgRes.ok) {
+				throw new Error(handleFetchMessage(pkgJson, 'Failed to create matches'));
+			}
 			const apiPackages = (pkgJson.data || []).map((pkg: any) => ({
 				id: pkg.id,
 				name: pkg.name,
@@ -68,7 +71,7 @@ export default function PHRequestsPage() {
 			}));
 			setPackages(apiPackages);
 		} catch (e) {
-			toast.error('Failed to load data');
+			toast.error(handleFetchMessage(e, 'Failed to load data'));
 		}
 	};
 
@@ -77,7 +80,9 @@ export default function PHRequestsPage() {
 		try {
 			const res = await fetchWithAuth(`/api/ph-requests/all?page=${page}&limit=${itemsPerPage}`);
 			const json = await res.json();
-			logger.log(json);
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to get PH requests'));
+			}
 			const requests: PHRequest[] = (json.data.requests || []).map((req: any) => {
 				const assignedUsers = Array.isArray(req.details)
 					? req.details.map((u: any) => ({
@@ -163,7 +168,7 @@ export default function PHRequestsPage() {
 			setRequests(requests);
 			setTotalPages(Math.max(1, Math.ceil((json.data.count || 0) / itemsPerPage)));
 		} catch (error) {
-			toast.error('Failed to load PH requests');
+			toast.error(handleFetchMessage(error, 'Failed to load PH requests'));
 			logger.error('Failed to load PH requests', error);
 			setRequests([]);
 		} finally {
@@ -191,6 +196,9 @@ export default function PHRequestsPage() {
 					return a.user.name.localeCompare(b.user.name);
 				case 'dateCreated':
 				default:
+					if (!a.dateCreated && !b.dateCreated) return 0;
+					if (!a.dateCreated) return 1;
+					if (!b.dateCreated) return -1;
 					return new Date(b.dateCreated.split('-').reverse().join('-')).getTime() - new Date(a.dateCreated.split('-').reverse().join('-')).getTime();
 			}
 		});
@@ -218,14 +226,14 @@ export default function PHRequestsPage() {
 
 			if (!res.ok) {
 				const data = await res.json();
-				throw new Error(data?.message || 'Failed to delete PH request');
+				throw new Error(handleFetchMessage(data, 'Failed to delete PH request'));
 			}
 
 			setRequests(requests.filter((request) => request.id !== deleteModal.request!.id));
 			toast.success('PH request deleted successfully');
 			setDeleteModal({ isOpen: false, request: null });
 		} catch (error: any) {
-			toast.error(error?.message || 'Failed to delete request');
+			toast.error(handleFetchMessage(error, 'Failed to delete request'));
 			logger.error('Failed to delete PH request', error);
 		} finally {
 			setDeleteLoading(false);
@@ -296,7 +304,7 @@ export default function PHRequestsPage() {
 				onClose={() => setDeleteModal({ isOpen: false, request: null })}
 				onConfirm={confirmDelete}
 				title="Delete PH Request"
-				message={`Are you sure you want to delete ${deleteModal.request?.user.name}'s request for ${deleteModal.request?.amount} ${getCurrencyFromLocalStorage()?.code}? This action cannot be undone.`}
+				message={`Are you sure you want to delete ${deleteModal.request?.user.name}'s request for ${deleteModal.request?.amount} ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}? This action cannot be undone.`}
 				confirmText="Delete"
 				cancelText="Cancel"
 				confirmVariant="destructive"

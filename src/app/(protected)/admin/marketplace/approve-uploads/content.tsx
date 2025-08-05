@@ -8,7 +8,7 @@ import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { toast } from 'sonner';
 import { CustomLink } from '@/components/CustomLink';
 import Image from 'next/image';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 
 interface ContactDetails {
 	phone: string;
@@ -130,7 +130,7 @@ function ItemDetailModal({ isOpen, onClose, item, onApprove, onDisapprove }: Ite
 								<div>
 									<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{item.title}</h1>
 									<p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-										{getCurrencyFromLocalStorage()?.code} {item.price}
+										{getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code} {item.price}
 									</p>
 								</div>
 
@@ -286,7 +286,9 @@ export default function ApproveUploadsPage() {
 		setLoading(true);
 		try {
 			const res = await fetchWithAuth('/api/marketplace?status=pending');
-			if (!res.ok) throw new Error('Failed to fetch pending items');
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch pending items'));
+			}
 			const data = await res.json();
 			const items: PendingItem[] = (Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : data.products || []).map((item: any) => ({
 				id: item.id,
@@ -313,7 +315,7 @@ export default function ApproveUploadsPage() {
 			}));
 			setItems(items);
 		} catch (error) {
-			toast.error('Failed to fetch pending items');
+			toast.error(handleFetchMessage(error, 'Failed to fetch pending items'));
 		} finally {
 			setLoading(false);
 		}
@@ -368,7 +370,7 @@ export default function ApproveUploadsPage() {
 				body: formData,
 			});
 			if (!res.ok) {
-				const errMsg = (await res.json())?.message || 'Failed to approve item.';
+				const errMsg = handleFetchMessage(await res.json(), 'Failed to approve item.');
 				toast.error(errMsg);
 				return;
 			}
@@ -378,7 +380,7 @@ export default function ApproveUploadsPage() {
 			setApproveModal({ isOpen: false, item: null });
 			toast.success('Item approved successfully');
 		} catch (error) {
-			toast.error('Failed to approve item');
+			toast.error(handleFetchMessage(error, 'Failed to approve item'));
 		}
 	};
 
@@ -392,7 +394,7 @@ export default function ApproveUploadsPage() {
 				body: formData,
 			});
 			if (!res.ok) {
-				const errMsg = (await res.json())?.message || 'Failed to disapprove item.';
+				const errMsg = handleFetchMessage(await res.json(), 'Failed to disapprove item.');
 				toast.error(errMsg);
 				return;
 			}
@@ -402,7 +404,7 @@ export default function ApproveUploadsPage() {
 			setDisapproveModal({ isOpen: false, item: null });
 			toast.success('Item disapproved successfully');
 		} catch (error) {
-			toast.error('Failed to disapprove item');
+			toast.error(handleFetchMessage(error, 'Failed to disapprove item'));
 		}
 	};
 
@@ -534,7 +536,7 @@ export default function ApproveUploadsPage() {
 								<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
 									<i className="ri-price-tag-3-line w-4 h-4 flex items-center justify-center"></i>
 									<span className="font-medium text-blue-600 dark:text-blue-400">
-										{getCurrencyFromLocalStorage()?.code} {item.price}
+										{getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code} {item.price}
 									</span>
 								</div>
 								<div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">

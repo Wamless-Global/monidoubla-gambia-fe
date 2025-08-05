@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { logger } from '@/lib/logger';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 interface Package {
 	id: string;
@@ -161,7 +160,7 @@ export function PackageModal({ isOpen, onClose, onSave, package: packageData }: 
 
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Min Amount ({getCurrencyFromLocalStorage()?.code})</label>
+							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Min Amount ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
 							<input
 								type="number"
 								value={formData.minAmount}
@@ -175,7 +174,7 @@ export function PackageModal({ isOpen, onClose, onSave, package: packageData }: 
 							{errors.minAmount && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.minAmount}</p>}
 						</div>
 						<div>
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Amount ({getCurrencyFromLocalStorage()?.code})</label>
+							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Max Amount ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
 							<input
 								type="number"
 								value={formData.maxAmount}

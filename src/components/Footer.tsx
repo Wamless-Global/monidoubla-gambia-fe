@@ -50,7 +50,7 @@ export default function Footer() {
 						</div>
 					</div>
 					<div className="border-t border-neutral-light/20 mt-8 sm:mt-12 pt-6 sm:pt-8 flex flex-col items-center gap-4 sm:gap-6">
-						<div className="flex flex-row gap-4 sm:gap-6">
+						{/* <div className="flex flex-row gap-4 sm:gap-6">
 							{[
 								{ icon: 'ri-facebook-fill', href: '#' },
 								{ icon: 'ri-twitter-fill', href: '#' },
@@ -61,7 +61,7 @@ export default function Footer() {
 									<i className={`${social.icon} text-white text-lg`}></i>
 								</CustomLink>
 							))}
-						</div>
+						</div> */}
 						<p className="text-gray-300 text-xs sm:text-sm font-montserrat text-center">Copyright {new Date().getFullYear()} Monidoublagambia, All Rights Reserved</p>
 						<div className="flex gap-4 sm:gap-6">
 							{['Privacy Policy', 'Terms & Conditions'].map((link, index) => (

@@ -23,6 +23,7 @@ export interface PHRequest {
 	};
 	amount: number;
 	availableAmount: number; // Added for multiple-match.tsx
+	remainingAmountToPay?: number; // Added for multiple-match.tsx
 	dateCreated: string;
 	status: 'pending' | 'waiting-match' | 'partial-match' | 'matched' | 'active' | 'completed' | 'expired' | 'cancelled';
 	packageName: string;

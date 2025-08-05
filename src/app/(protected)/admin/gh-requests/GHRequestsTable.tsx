@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { GHRequest } from './types';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 interface GHRequestsTableProps {
 	requests: GHRequest[];
@@ -77,7 +77,7 @@ export default function GHRequestsTable({ requests, currentPage, itemsPerPage, p
 								</td>
 								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
 									<span className="font-medium">
-										{request.remainingAmount} {getCurrencyFromLocalStorage()?.code}
+										{request.remainingAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 									</span>
 								</td>
 								<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">

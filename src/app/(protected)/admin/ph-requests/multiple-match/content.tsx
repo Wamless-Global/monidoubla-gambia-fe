@@ -9,7 +9,7 @@ import { logger } from '@/lib/logger';
 import { CustomLink } from '@/components/CustomLink';
 import { PHRequest, GHRequest } from './types';
 import RequestCard from './RequestCard';
-import { getCurrencyFromLocalStorage, handleFetchMessage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 
 // Format PH requests from API response
 export const formatRequests = (data: any[]): PHRequest[] =>
@@ -113,7 +113,7 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 	const [ghLoading, setGHLoading] = useState(false);
 	const [loading, setLoading] = useState(true);
 
-	const itemsPerPage = 10;
+	const itemsPerPage = 20;
 
 	// Initial data load
 	useEffect(() => {
@@ -194,7 +194,7 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 	const filterPHRequests = (requests: PHRequest[], search: string) => {
 		const filtered = requests.filter((request) => {
 			const matchesSearch = request.user.name.toLowerCase().includes(search.toLowerCase()) || request.user.email.toLowerCase().includes(search.toLowerCase());
-			const isValid = (request.availableAmount || 0) > 0 && (request.status === 'pending' || request.status === 'partial-match');
+			const isValid = (request.availableAmount || request.remainingAmountToPay || 0) > 0 && (request.status === 'pending' || request.status === 'partial-match');
 			logger.log('Filtering PH request:', { id: request.id, matchesSearch, isValid });
 			return matchesSearch && isValid;
 		});
@@ -398,10 +398,10 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 					<div className="flex items-center justify-between text-sm">
 						<div className="flex items-center gap-4">
 							<span className="text-blue-700 dark:text-blue-300">
-								PH Selected: {selectedPHRequests.length} ({totalPHAmount} {getCurrencyFromLocalStorage()?.code})
+								PH Selected: {selectedPHRequests.length} ({totalPHAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})
 							</span>
 							<span className="text-blue-700 dark:text-blue-300">
-								GH Selected: {selectedGHRequests.length} ({totalGHAmount} {getCurrencyFromLocalStorage()?.code})
+								GH Selected: {selectedGHRequests.length} ({totalGHAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})
 							</span>
 						</div>
 						<div className={`font-medium ${canMatch() ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>{canMatch() ? 'Ready to match' : 'Cannot match'}</div>

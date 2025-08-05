@@ -6,6 +6,7 @@ import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
+import { handleFetchMessage } from '@/lib/helpers';
 
 interface Testimony {
 	id: string;
@@ -15,6 +16,7 @@ interface Testimony {
 	created_at: string;
 	user_name?: string;
 	approved?: boolean;
+	avatar_url?: string | null;
 }
 
 export default function TestimonySettingsPage() {
@@ -38,7 +40,7 @@ export default function TestimonySettingsPage() {
 			setLoading(true);
 			try {
 				const res = await fetchWithAuth('/api/testimonies/all');
-				if (!res.ok) throw new Error('Failed to fetch testimonies');
+				if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch testimonies'));
 				const data = await res.json();
 				logger.log(data);
 				const txs: Testimony[] = (data.data || []).map((item: any) => ({
@@ -49,13 +51,14 @@ export default function TestimonySettingsPage() {
 					created_at: item.created_at,
 					user_name: item.user_name || '',
 					approved: item.approved ?? false,
+					avatar_url: item.avatar_url || null,
 				}));
 				setTestimonies(txs);
 				setFilteredTestimonies(txs);
 			} catch (error) {
 				setTestimonies([]);
 				setFilteredTestimonies([]);
-				toast.error('Failed to fetch testimonies');
+				toast.error(handleFetchMessage(error, 'Failed to fetch testimonies'));
 			} finally {
 				setLoading(false);
 			}
@@ -100,7 +103,7 @@ export default function TestimonySettingsPage() {
 				body: formData,
 			});
 			if (!res.ok) {
-				const errMsg = (await res.json())?.message || 'Failed to update testimony.';
+				const errMsg = handleFetchMessage(await res.json(), 'Failed to update testimony.');
 				toast.error(errMsg);
 			} else {
 				setTestimonies((prev) => prev.map((t) => (t.id === actionModal.testimony!.id ? { ...t, approved: actionModal.action === 'publish' } : t)));
@@ -108,7 +111,7 @@ export default function TestimonySettingsPage() {
 				toast.success(`Testimony ${actionModal.action === 'publish' ? 'published' : 'unpublished'} successfully`);
 			}
 		} catch (error) {
-			toast.error('Failed to update testimony');
+			toast.error(handleFetchMessage(error, 'Failed to update testimony'));
 		} finally {
 			setActionLoading(false);
 		}
@@ -241,7 +244,16 @@ export default function TestimonySettingsPage() {
 								{currentTestimonies.map((testimony, index) => (
 									<tr key={testimony.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{startIndex + index + 1}</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{testimony.user_name || testimony.user}</td>
+										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+											<div className="flex items-center gap-2">
+												{testimony.avatar_url ? (
+													<img src={testimony.avatar_url} alt={testimony.user_name || testimony.user} className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
+												) : (
+													<span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-semibold text-sm">{(testimony.user_name || testimony.user || '').charAt(0).toUpperCase()}</span>
+												)}
+												<span>{testimony.user_name || testimony.user}</span>
+											</div>
+										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white max-w-xs truncate" title={testimony.content}>
 											{testimony.content}
 										</td>

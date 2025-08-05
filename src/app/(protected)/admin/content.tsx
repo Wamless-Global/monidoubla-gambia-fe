@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { CustomLink } from '@/components/CustomLink';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 export default function AdminDashboard() {
 	const [stats, setStats] = useState<any>(null);
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
 								</div>
 								<div className="text-3xl font-bold mb-1">
 									{stat.value}&nbsp;
-									{stat.title.includes('Requests') ? getCurrencyFromLocalStorage()?.code : ''}
+									{stat.title.includes('Requests') ? (getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code) : ''}
 								</div>
 								{/* <div className="text-sm opacity-80">{stat.changeText}</div> */}
 							</div>

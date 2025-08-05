@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import Image from 'next/image';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
+import { handleFetchMessage } from '@/lib/helpers';
 
 interface Transaction {
 	id: string;
@@ -157,7 +158,7 @@ export default function TransactionsPage() {
 				body: formData,
 			});
 			if (!res.ok) {
-				const errMsg = (await res.json())?.message || 'Failed to update transaction.';
+				const errMsg = handleFetchMessage(await res.json(), 'Failed to update transaction.');
 				toast.error(errMsg);
 				return;
 			}
@@ -165,7 +166,7 @@ export default function TransactionsPage() {
 			setEditModal({ isOpen: false, transaction: null });
 			toast.success('Transaction updated successfully');
 		} catch (error) {
-			toast.error('Failed to update transaction');
+			toast.error(handleFetchMessage(error, 'Failed to update transaction'));
 		}
 	};
 

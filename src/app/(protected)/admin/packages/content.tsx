@@ -8,7 +8,7 @@ import PackagesLoading from './loading';
 import { toast } from '@/components/Sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 
 interface Package {
 	id: string;
@@ -55,7 +55,9 @@ export default function PackagesPage() {
 		setIsLoading(true);
 		try {
 			const res = await fetchWithAuth('/api/packages');
-			if (!res.ok) throw new Error('Failed to fetch packages');
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch packages'));
+			}
 			const json = await res.json();
 			logger.log(json);
 			if (json.status !== 'success' || !Array.isArray(json.data)) throw new Error('Invalid response');
@@ -136,14 +138,17 @@ export default function PackagesPage() {
 		setDeleteLoading(true);
 		try {
 			const res = await fetchWithAuth(`/api/packages/${packageToDelete.id}`, { method: 'DELETE' });
-			if (!res.ok) throw new Error('Failed to delete package');
+
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to delete package'));
+			}
 			setPackages(packages.filter((p) => p.id !== packageToDelete.id));
 			setFilteredPackages(filteredPackages.filter((p) => p.id !== packageToDelete.id));
 			setPackageToDelete(null);
 			setDeleteModalOpen(false);
 			toast.success('Package deleted successfully');
 		} catch (err: any) {
-			toast.error('Failed to delete package');
+			toast.error(handleFetchMessage(err, 'Failed to delete package'));
 			console.error('Error deleting package:', err.message || err);
 		}
 		setDeleteLoading(false);
@@ -178,7 +183,10 @@ export default function PackagesPage() {
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(apiData),
 				});
-				if (!res.ok) throw new Error('Failed to update package');
+
+				if (!res.ok) {
+					throw new Error(handleFetchMessage(await res.json(), 'Failed to update package'));
+				}
 				await loadPackages();
 				toast.success('Package updated successfully');
 			} else {
@@ -188,7 +196,10 @@ export default function PackagesPage() {
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify(apiData),
 				});
-				if (!res.ok) throw new Error('Failed to add package');
+
+				if (!res.ok) {
+					throw new Error(handleFetchMessage(await res.json(), 'Failed to add package'));
+				}
 				await loadPackages();
 				toast.success('Package added successfully');
 			}
@@ -196,7 +207,7 @@ export default function PackagesPage() {
 			setEditingPackage(null);
 		} catch (err: any) {
 			toast.error(editingPackage ? 'Failed to update package' : 'Failed to add package');
-			console.error('Error saving package:', err.message || err);
+			logger.error('Error saving package:', err.message || err);
 		}
 	};
 
@@ -270,8 +281,8 @@ export default function PackagesPage() {
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Package name</th>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">% Gain</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Min amount ({getCurrencyFromLocalStorage()?.code})</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Max amount ({getCurrencyFromLocalStorage()?.code})</th>
+								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Min amount ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</th>
+								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Max amount ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</th>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Maturity</th>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>

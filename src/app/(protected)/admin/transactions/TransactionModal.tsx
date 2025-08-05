@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 interface Transaction {
 	id: string;
@@ -64,7 +64,7 @@ export function TransactionModal({ isOpen, onClose, transaction, onSave }: Trans
 			newErrors.amount = 'Amount is required';
 		} else if (!/^\d+(\.\d{1,2})?(\s*(GHC|USD|EUR))?$/.test(formData.amount.trim())) {
 			logger.error('Invalid amount format', formData.amount);
-			newErrors.amount = `Invalid amount format (e.g., 100.50 ${getCurrencyFromLocalStorage()?.code})`;
+			newErrors.amount = `Invalid amount format (e.g., 100.50 ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})`;
 		}
 
 		if (!formData.status) {
@@ -135,7 +135,7 @@ export function TransactionModal({ isOpen, onClose, transaction, onSave }: Trans
 							value={formData.amount}
 							onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
 							className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${errors.amount ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
-							placeholder={`e.g., 300 ${getCurrencyFromLocalStorage()?.code}`}
+							placeholder={`e.g., 300 ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}`}
 							disabled={loading}
 						/>
 						{errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}

@@ -1,5 +1,5 @@
 import { GHRequest } from './types';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 interface GHRequestCardProps {
 	requests: GHRequest[];
@@ -134,7 +134,7 @@ export default function GHRequestCard({ requests, currentPage, totalPages, searc
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
 												<span className="font-medium">
-													{request.remainingAmount} {getCurrencyFromLocalStorage()?.code}
+													{request.remainingAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 												</span>
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{request.dateCreated}</td>

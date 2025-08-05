@@ -6,13 +6,14 @@ import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
+import { handleFetchMessage, getSettings } from '@/lib/helpers';
 
 interface GeneralSettings {
 	platformName: string;
 	platformCurrency: string;
 	country: string;
 	autoMatching: boolean;
-	commissionRate: number;
+	commissionRate: string;
 	maintenanceMode: boolean;
 	maintenanceMessage: string;
 }
@@ -68,15 +69,25 @@ export default function SettingsPage() {
 	const [saving, setSaving] = useState<string | null>(null);
 	const [isMounted, setIsMounted] = useState(false);
 
-	const [generalSettings, setGeneralSettings] = useState<GeneralSettings & { referralGeneration?: number }>({
+	const [generalSettings, setGeneralSettings] = useState<
+		GeneralSettings & {
+			referralGeneration?: string;
+			referralBonusWithdrawableAmount?: number;
+			referralBonusReleaseType?: 'completed' | 'matured';
+			platform_base_currency?: string;
+		}
+	>({
 		platformName: '',
 		platformCurrency: '',
+		platform_base_currency: '',
 		country: '',
 		autoMatching: false,
-		commissionRate: 0,
+		commissionRate: '',
 		maintenanceMode: false,
 		maintenanceMessage: '',
-		referralGeneration: 1,
+		referralGeneration: '',
+		referralBonusWithdrawableAmount: 0,
+		referralBonusReleaseType: 'completed',
 	});
 
 	const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
@@ -122,7 +133,10 @@ export default function SettingsPage() {
 		setIsLoading(true);
 		try {
 			const res = await fetchWithAuth('/api/admin/settings');
-			if (!res.ok) throw new Error('Failed to fetch settings');
+
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch settings'));
+			}
 			const data = await res.json();
 
 			if (data?.data?.settings) {
@@ -144,7 +158,7 @@ export default function SettingsPage() {
 				}));
 			}
 		} catch (error) {
-			toast.error('Failed to load settings.');
+			toast.error(handleFetchMessage(error, 'Failed to load settings.'));
 		} finally {
 			setIsLoading(false);
 		}
@@ -170,14 +184,6 @@ export default function SettingsPage() {
 
 		if (!generalSettings.platformCurrency.trim()) {
 			newErrors.platformCurrency = 'Platform currency is required';
-		}
-
-		if (generalSettings.commissionRate < 0 || generalSettings.commissionRate > 100) {
-			newErrors.commissionRate = 'Commission rate must be between 0-100';
-		}
-
-		if (generalSettings.referralGeneration !== undefined && (generalSettings.referralGeneration < 1 || generalSettings.referralGeneration > 10)) {
-			newErrors.referralGeneration = 'Referral generation must be between 1 and 10';
 		}
 
 		if (generalSettings.maintenanceMode && !generalSettings.maintenanceMessage.trim()) {
@@ -249,7 +255,10 @@ export default function SettingsPage() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ updates }),
 			});
-			if (!res.ok) throw new Error('Failed to save settings');
+
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
+			}
 			toast.success('General settings saved successfully');
 			setErrors((prev) => {
 				const newErrors = { ...prev };
@@ -261,7 +270,7 @@ export default function SettingsPage() {
 				return newErrors;
 			});
 		} catch (error) {
-			toast.error('Failed to save settings. Please try again.');
+			toast.error(handleFetchMessage(error, 'Failed to save settings. Please try again.'));
 		} finally {
 			setSaving(null);
 		}
@@ -277,7 +286,10 @@ export default function SettingsPage() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ updates }),
 			});
-			if (!res.ok) throw new Error('Failed to save settings');
+
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
+			}
 			toast.success('Notification settings saved successfully');
 			setErrors((prev) => {
 				const newErrors = { ...prev };
@@ -287,7 +299,7 @@ export default function SettingsPage() {
 				return newErrors;
 			});
 		} catch (error) {
-			toast.error('Failed to save settings. Please try again.');
+			toast.error(handleFetchMessage(error, 'Failed to save settings. Please try again.'));
 		} finally {
 			setSaving(null);
 		}
@@ -303,7 +315,10 @@ export default function SettingsPage() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ updates }),
 			});
-			if (!res.ok) throw new Error('Failed to save settings');
+
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
+			}
 			toast.success('System settings saved successfully');
 			setErrors((prev) => {
 				const newErrors = { ...prev };
@@ -314,7 +329,7 @@ export default function SettingsPage() {
 				return newErrors;
 			});
 		} catch (error) {
-			toast.error('Failed to save settings. Please try again.');
+			toast.error(handleFetchMessage(error, 'Failed to save settings. Please try again.'));
 		} finally {
 			setSaving(null);
 		}
@@ -329,10 +344,13 @@ export default function SettingsPage() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ updates }),
 			});
-			if (!res.ok) throw new Error('Failed to save settings');
+
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
+			}
 			toast.success('Security settings saved successfully');
 		} catch (error) {
-			toast.error('Failed to save settings. Please try again.');
+			toast.error(handleFetchMessage(error, 'Failed to save settings. Please try again.'));
 		} finally {
 			setSaving(null);
 		}
@@ -473,19 +491,16 @@ export default function SettingsPage() {
 					<div className="space-y-2">
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Referral Generation</label>
 						<input
-							type="number"
-							min="1"
-							max="10"
-							step="1"
+							type="text"
 							value={generalSettings.referralGeneration ?? 1}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, referralGeneration: parseInt(e.target.value) || 1 }))}
+							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, referralGeneration: e.target.value }))}
 							placeholder="Enter number of generations for referral bonus"
 							className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
 								errors.referralGeneration ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
 							}`}
 						/>
 						{errors.referralGeneration && <p className="text-sm text-red-600 dark:text-red-400">{errors.referralGeneration}</p>}
-						<p className="text-sm text-gray-500 dark:text-gray-400">Number of generations a referral bonus applies (e.g. 1 = direct, 2 = direct + 1 level, etc.)</p>
+						<p className="text-sm text-gray-500 dark:text-gray-400">Number of generations a referral bonus applies (e.g. 1, 2, 3, 4 etc.)</p>
 					</div>
 
 					{/* Auto Matching */}
@@ -504,18 +519,57 @@ export default function SettingsPage() {
 					<div className="space-y-2">
 						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Commission Rate (%)</label>
 						<input
-							type="number"
-							min="0"
-							max="100"
-							step="0.1"
+							type="text"
 							value={generalSettings.commissionRate}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, commissionRate: parseFloat(e.target.value) || 0 }))}
+							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, commissionRate: e.target.value }))}
 							placeholder="Enter commission rate"
 							className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
 								errors.commissionRate ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
 							}`}
 						/>
 						{errors.commissionRate && <p className="text-sm text-red-600 dark:text-red-400">{errors.commissionRate}</p>}
+						<p className="text-sm text-gray-500 dark:text-gray-400">Percentage of bonus applied to each generation (e.g. 10, 5, 2.5, 1.25 etc.)</p>
+					</div>
+
+					{/* Platform Base Currency */}
+					<div className="space-y-2">
+						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Platform Base Currency</label>
+						<input
+							type="text"
+							value={generalSettings.platform_base_currency ?? ''}
+							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, platform_base_currency: e.target.value }))}
+							placeholder="Enter base currency (e.g. USD, NGN)"
+							className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+						/>
+						<p className="text-sm text-gray-500 dark:text-gray-400">The base currency for all platform transactions (e.g. USD, NGN).</p>
+					</div>
+
+					{/* Referral Bonus Withdrawable Amount */}
+					<div className="space-y-2">
+						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Referral Bonus Withdrawable Amount</label>
+						<input
+							type="number"
+							min={0}
+							value={generalSettings.referralBonusWithdrawableAmount ?? 0}
+							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, referralBonusWithdrawableAmount: Number(e.target.value) }))}
+							placeholder="Enter minimum bonus amount for withdrawal"
+							className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+						/>
+						<p className="text-sm text-gray-500 dark:text-gray-400">Minimum referral bonus amount required before a user can withdraw their bonus.</p>
+					</div>
+
+					{/* Referral Bonus Release Type */}
+					<div className="space-y-2">
+						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Referral Bonus Release Condition</label>
+						<select
+							value={generalSettings.referralBonusReleaseType ?? 'completed'}
+							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, referralBonusReleaseType: e.target.value as 'completed' | 'matured' }))}
+							className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+						>
+							<option value="completed">When user's PH is completed</option>
+							<option value="matured">When user's PH is matured</option>
+						</select>
+						<p className="text-sm text-gray-500 dark:text-gray-400">Choose when the referral bonus should be released: after the user's Provide Help (PH) is completed or after it is matured.</p>
 					</div>
 
 					{/* Maintenance Mode */}

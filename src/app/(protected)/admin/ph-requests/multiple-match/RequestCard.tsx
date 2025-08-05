@@ -1,8 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { PHRequest, GHRequest } from './types';
-import { logger } from '@/lib/logger';
 import { useEffect, useRef, useState } from 'react';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 interface RequestCardProps {
 	type: 'PH' | 'GH';
@@ -45,7 +44,7 @@ export default function RequestCard({ type, requests, selectedRequests, searchTe
 				<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
 					Total: {totalPages} Requests | Selected: {selectedRequests.length} | Amount:{' '}
 					<span className="font-medium text-gray-900 dark:text-white">
-						{totalAmount} {getCurrencyFromLocalStorage()?.code}
+						{totalAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 					</span>
 				</p>
 				<div className="relative">
@@ -98,7 +97,7 @@ export default function RequestCard({ type, requests, selectedRequests, searchTe
 										</div>
 										<div className="text-right">
 											<div className="font-medium text-gray-900 dark:text-white text-sm">
-												{amount} {getCurrencyFromLocalStorage()?.code}
+												{amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 											</div>
 											<div className="text-xs text-gray-500 dark:text-gray-400">{date}</div>
 										</div>

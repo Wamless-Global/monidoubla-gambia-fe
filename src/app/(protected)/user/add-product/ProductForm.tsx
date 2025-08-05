@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
-import { getCurrencyFromLocalStorage, handleFetchMessage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 import { getCurrentUser } from '@/lib/userUtils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -180,7 +180,7 @@ export function ProductForm() {
 				toast.success('Product uploaded successfully!');
 				setIsSubmitted(true);
 			} else {
-				toast.error(data.message || 'Failed to upload product.');
+				toast.error(handleFetchMessage(data, 'Failed to upload product.'));
 			}
 		} catch (err) {
 			const errorMessage = handleFetchMessage(err, 'An error occurred while uploading product.');
@@ -330,7 +330,7 @@ export function ProductForm() {
 							</div>
 
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">Price ({getCurrencyFromLocalStorage()?.code})</label>
+								<label className="block text-sm font-medium text-gray-700 mb-2">Price ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
 								<div className="relative">
 									<i className="ri-money-dollar-circle-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex items-center justify-center"></i>
 									<input

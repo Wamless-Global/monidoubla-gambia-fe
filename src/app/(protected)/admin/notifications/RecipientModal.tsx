@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { handleFetchMessage } from '@/lib/helpers';
 
 interface User {
 	id: string;
@@ -38,14 +39,16 @@ export function RecipientModal({ isOpen, onClose, onSelect, currentSelection }: 
 		setUsersError(null);
 		fetchWithAuth(`/api/users/all?searchTerm=${encodeURIComponent(searchTerm)}`)
 			.then(async (res) => {
-				if (!res.ok) throw new Error('Failed to fetch users');
+				if (!res.ok) {
+					throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch users'));
+				}
 				const data = await res.json();
 				setUsers(Array.isArray(data?.data?.users) ? data.data.users : []);
 			})
 			.catch((err) => {
 				setUsers([]);
 				setUsersError('Failed to load users');
-				toast.error('Failed to load users');
+				toast.error(handleFetchMessage(err, 'Failed to load users'));
 				logger.error('Failed to load users', err);
 			})
 			.finally(() => setUsersLoading(false));

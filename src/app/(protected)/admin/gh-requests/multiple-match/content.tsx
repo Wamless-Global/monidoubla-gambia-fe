@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { CustomLink } from '@/components/CustomLink';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 interface GHRequest {
 	id: string;
@@ -311,10 +311,10 @@ export default function MultipleMatchPage() {
 					<div className="flex items-center justify-between text-sm">
 						<div className="flex items-center gap-4">
 							<span className="text-blue-700 dark:text-blue-300">
-								GH Selected: {selectedGHRequests.length} ({totalGHAmount} {getCurrencyFromLocalStorage()?.code})
+								GH Selected: {selectedGHRequests.length} ({totalGHAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})
 							</span>
 							<span className="text-blue-700 dark:text-blue-300">
-								PH Selected: {selectedPHRequests.length} ({totalPHAmount} {getCurrencyFromLocalStorage()?.code})
+								PH Selected: {selectedPHRequests.length} ({totalPHAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})
 							</span>
 						</div>
 						<div className={`font-medium ${canMatch() ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>{canMatch() ? 'Ready to match' : 'Cannot match'}</div>
@@ -331,7 +331,7 @@ export default function MultipleMatchPage() {
 						<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
 							Total: {filteredGHRequests.length} users | Selected: {selectedGHRequests.length} | Amount:{' '}
 							<span className="font-medium text-gray-900 dark:text-white">
-								{totalGHAmount} {getCurrencyFromLocalStorage()?.code}
+								{totalGHAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 							</span>
 						</p>
 						<div className="relative">
@@ -377,7 +377,7 @@ export default function MultipleMatchPage() {
 												</div>
 												<div className="text-right">
 													<div className="font-medium text-gray-900 dark:text-white text-sm">
-														{request.remainingAmount} {getCurrencyFromLocalStorage()?.code}
+														{request.remainingAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 													</div>
 													<div className="text-xs text-gray-500 dark:text-gray-400">{request.date}</div>
 												</div>
@@ -423,7 +423,7 @@ export default function MultipleMatchPage() {
 						<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
 							Total: {filteredPHRequests.length} users | Selected: {selectedPHRequests.length} | Amount:{' '}
 							<span className="font-medium text-gray-900 dark:text-white">
-								{totalPHAmount} {getCurrencyFromLocalStorage()?.code}
+								{totalPHAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 							</span>
 						</p>
 						<div className="relative">
@@ -469,7 +469,7 @@ export default function MultipleMatchPage() {
 												</div>
 												<div className="text-right">
 													<div className="font-medium text-gray-900 dark:text-white text-sm">
-														{request.availableAmount} {getCurrencyFromLocalStorage()?.code}
+														{request.availableAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 													</div>
 													<div className="text-xs text-gray-500 dark:text-gray-400">{request.date}</div>
 												</div>

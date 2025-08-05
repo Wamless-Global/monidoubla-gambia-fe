@@ -131,7 +131,7 @@ export default function Content() {
 	const handleCopyReferralLink = () => {
 		if (referralCode) {
 			navigator.clipboard.writeText(referralCode);
-			alert('Referral link copied to clipboard!');
+			toast.success('Referral link copied to clipboard!');
 		}
 	};
 
@@ -152,121 +152,124 @@ export default function Content() {
 	}
 
 	return (
-		<div className="relative min-h-screen bg-gradient-to-br from-[#e0e7ff] via-[#f8fafc] to-[#f0fdfa] dark:from-[#232946] dark:via-[#181823] dark:to-[#232946] py-10 px-2">
-			{/* Profile Hero Section */}
-			<div className="relative w-full max-w-4xl mx-auto px-4 pt-10 pb-8 lg:pt-16 lg:pb-12">
-				<div className="rounded-3xl bg-white/90 dark:bg-[#232946]/90 shadow-2xl border-0 px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-8 backdrop-blur-xl">
+		<div className="p-4 lg:p-6 bg-background min-h-screen">
+			<div className="max-w-4xl mx-auto">
+				<div className="mb-8 flex flex-col items-center lg:items-start lg:flex-row lg:gap-8">
 					<div className="mb-6 lg:mb-0">
 						<ProfileImageUpload currentImage={currentUser?.avatar_url} onImageChange={handleImageChange} />
 					</div>
+
 					<div className="text-center lg:text-left lg:flex-1">
-						<h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2 font-sans drop-shadow">{profileData.name}</h2>
-						<p className="text-lg lg:text-xl text-gray-500 dark:text-slate-300 font-medium mb-4">@{profileData.username}</p>
-						<div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-							<Button onClick={() => setShowEditModal(true)} className="rounded-xl px-7 py-3 font-semibold text-blue-600 border-blue-600 bg-white/70 hover:bg-blue-50/80 dark:bg-[#232946]/70 dark:hover:bg-blue-900/20 transition-all shadow-md">
-								<i className="ri-edit-line mr-2 text-lg"></i> Edit Profile
+						<h2 className="text-2xl font-semibold text-foreground mb-2">{profileData.name}</h2>
+						<p className="text-muted-foreground mb-4">@{profileData.username}</p>
+						<div className="flex flex-col sm:flex-row gap-3">
+							<Button onClick={() => setShowEditModal(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+								<i className="ri-edit-line mr-2 w-4 h-4 flex items-center justify-center"></i>
+								Edit Profile
 							</Button>
 							<CustomLink href="/user/change-password">
-								<Button variant="outline" className="rounded-xl px-7 py-3 font-semibold text-gray-900 dark:text-white bg-blue-100/80 hover:bg-blue-200/80 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 transition-all shadow-md">
-									<i className="ri-lock-line mr-2 text-lg"></i> Change Password
+								<Button variant="outline" className="w-full">
+									<i className="ri-lock-line mr-2 w-4 h-4 flex items-center justify-center"></i>
+									Change Password
 								</Button>
 							</CustomLink>
 						</div>
 					</div>
 				</div>
-				{/* Floating elements for depth */}
-				<div className="absolute left-0 top-0 w-40 h-40 bg-gradient-to-br from-blue-400/10 to-blue-200/10 rounded-full blur-2xl -z-10" />
-				<div className="absolute right-0 bottom-0 w-32 h-32 bg-gradient-to-tr from-blue-200/10 to-blue-400/10 rounded-full blur-2xl -z-10" />
-			</div>
 
-			{/* Profile Info Cards */}
-			<div className="max-w-4xl mx-auto px-4 mt-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-				{/* Basic Information */}
-				<Card className="bg-white/95 dark:bg-[#181c24]/95 border-0 shadow-xl rounded-2xl">
-					<CardContent className="p-7">
-						<div className="flex items-center justify-between mb-5">
-							<h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Basic Information</h3>
-							<button onClick={() => setShowEditModal(true)} className="text-blue-600 hover:text-blue-400 p-1 rounded-lg hover:bg-blue-100/40 dark:hover:bg-blue-900/20 transition-colors">
-								<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
-							</button>
-						</div>
-						<div className="space-y-5">
-							<div>
-								<label className="block text-xs font-semibold text-gray-400 mb-1">Name</label>
-								<div className="flex items-center gap-2">
-									<i className="ri-user-line text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-									<span className="text-gray-900 dark:text-white font-medium">{profileData.name}</span>
-								</div>
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<Card className="bg-card shadow-sm">
+						<CardContent className="p-6">
+							<div className="flex items-center justify-between mb-4">
+								<h3 className="text-lg font-semibold text-card-foreground">Basic Information</h3>
+								<button onClick={() => setShowEditModal(true)} className="text-primary hover:text-primary/90 p-1 rounded-lg hover:bg-accent transition-colors">
+									<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
+								</button>
 							</div>
-							<div>
-								<label className="block text-xs font-semibold text-gray-400 mb-1">Username</label>
-								<div className="flex items-center gap-2">
-									<i className="ri-at-line text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-									<span className="text-gray-900 dark:text-white font-medium">{profileData.username}</span>
-								</div>
-							</div>
-							<div>
-								<label className="block text-xs font-semibold text-gray-400 mb-1">Email Address</label>
-								<div className="flex items-center gap-2">
-									<i className="ri-mail-line text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-									<span className="text-gray-900 dark:text-white font-medium">{profileData.email}</span>
-								</div>
-							</div>
-							<div>
-								<label className="block text-xs font-semibold text-gray-400 mb-1">Phone Number</label>
-								<div className="flex items-center gap-2">
-									<i className="ri-phone-line text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-									<span className="text-gray-900 dark:text-white font-medium">{profileData.phone}</span>
-								</div>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
 
-				{/* Wallet Information */}
-				<Card className="bg-white/95 dark:bg-[#181c24]/95 border-0 shadow-xl rounded-2xl">
-					<CardContent className="p-7">
-						<div className="flex items-center justify-between mb-5">
-							<h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Wallet Information</h3>
-							<CustomLink href="/user/add-bank" className="text-blue-600 hover:text-blue-400 p-1 rounded-lg hover:bg-blue-100/40 dark:hover:bg-blue-900/20 transition-colors">
-								<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
-							</CustomLink>
-						</div>
-						<div className="space-y-5">
-							<div>
-								<label className="block text-xs font-semibold text-gray-400 mb-1">Momo Number</label>
-								<div className="flex items-center gap-2">
-									<i className="ri-bank-card-line text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-									<span className="text-gray-900 dark:text-white font-medium">{profileData.momo_number}</span>
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-muted-foreground mb-1">Name</label>
+									<div className="flex items-center gap-2">
+										<i className="ri-user-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
+										<span className="text-card-foreground">{profileData.name}</span>
+									</div>
 								</div>
-							</div>
-							<div>
-								<label className="block text-xs font-semibold text-gray-400 mb-1">Momo Provider</label>
-								<div className="flex items-center gap-2">
-									<i className="ri-bank-line text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-									<span className="text-gray-900 dark:text-white font-medium">{profileData.momo_provider}</span>
-								</div>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
 
-				{/* Referral Information */}
-				<Card className="bg-white/95 dark:bg-[#181c24]/95 border-0 shadow-xl rounded-2xl">
-					<CardContent className="p-7">
-						<h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight mb-5">Referral Information</h3>
-						<div>
-							<label className="block text-xs font-semibold text-gray-400 mb-1">Referral Link</label>
-							<div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-								<i className="ri-link text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-								<span className="text-gray-900 dark:text-white text-sm flex-1 truncate">{referralCode}</span>
+								<div>
+									<label className="block text-sm font-medium text-muted-foreground mb-1">Username</label>
+									<div className="flex items-center gap-2">
+										<i className="ri-at-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
+										<span className="text-card-foreground">{profileData.username}</span>
+									</div>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium text-muted-foreground mb-1">Email Address</label>
+									<div className="flex items-center gap-2">
+										<i className="ri-mail-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
+										<span className="text-card-foreground">{profileData.email}</span>
+									</div>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium text-muted-foreground mb-1">Phone Number</label>
+									<div className="flex items-center gap-2">
+										<i className="ri-phone-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
+										<span className="text-card-foreground">{profileData.phone}</span>
+									</div>
+								</div>
 							</div>
-							<Button onClick={handleCopyReferralLink} variant="outline" size="sm" className="mt-2 w-full rounded-xl">
-								<i className="ri-file-copy-line mr-2 text-lg"></i> Copy
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
+						</CardContent>
+					</Card>
+
+					<Card className="bg-card shadow-sm">
+						<CardContent className="p-6">
+							<div className="flex items-center justify-between mb-4">
+								<h3 className="text-lg font-semibold text-card-foreground">Wallet Information</h3>
+								<CustomLink href="/user/add-bank" className="text-primary hover:text-primary/90 p-1 rounded-lg hover:bg-accent transition-colors">
+									<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
+								</CustomLink>
+							</div>
+
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-muted-foreground mb-1">Momo Number</label>
+									<div className="flex items-center gap-2">
+										<i className="ri-bank-card-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
+										<span className="text-card-foreground">{profileData.momo_number}</span>
+									</div>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium text-muted-foreground mb-1">Momo Provider</label>
+									<div className="flex items-center gap-2">
+										<i className="ri-bank-line text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
+										<span className="text-card-foreground">{profileData.momo_provider}</span>
+									</div>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+
+					<Card className="bg-card shadow-sm">
+						<CardContent className="p-6">
+							<h3 className="text-lg font-semibold text-card-foreground mb-4">Referral Information</h3>
+
+							<div>
+								<label className="block text-sm font-medium text-muted-foreground mb-1">Referral Link</label>
+								<div className="flex items-center gap-2 p-3 bg-secondary rounded-lg">
+									<i className="ri-link text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
+									<span className="text-card-foreground text-sm flex-1 truncate">{referralCode}</span>
+								</div>
+								<Button onClick={handleCopyReferralLink} variant="outline" size="sm" className="mt-2 w-full">
+									<i className="ri-file-copy-line mr-2 w-4 h-4 flex items-center justify-center"></i>
+									Copy
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
 			</div>
 
 			<ProfileEditModal

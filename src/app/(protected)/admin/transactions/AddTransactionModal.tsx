@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 
 interface Transaction {
 	id: string;
@@ -76,7 +76,7 @@ export function AddTransactionModal({ isOpen, onClose, onAdd }: AddTransactionMo
 		} else if (isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
 			newErrors.amount = 'Please enter a valid amount';
 		} else if (Number(formData.amount) > 10000) {
-			newErrors.amount = 'Amount cannot exceed 10,000 ${getCurrencyFromLocalStorage()?.code}';
+			newErrors.amount = 'Amount cannot exceed 10,000 ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}';
 		}
 
 		if (formData.status === 'Confirmed' && !formData.paymentProof) {
@@ -127,7 +127,7 @@ export function AddTransactionModal({ isOpen, onClose, onAdd }: AddTransactionMo
 				id: Date.now().toString(),
 				phUser: formData.phUser,
 				ghUser: formData.ghUser,
-				amount: `${formData.amount} ${getCurrencyFromLocalStorage()?.code}`,
+				amount: `${formData.amount} ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}`,
 				dateMatched: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
 				status: formData.status,
 				paymentProof: paymentProofUrl,
@@ -225,7 +225,7 @@ export function AddTransactionModal({ isOpen, onClose, onAdd }: AddTransactionMo
 							</div>
 
 							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ({getCurrencyFromLocalStorage()?.code})</label>
+								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
 								<input
 									type="number"
 									min="1"

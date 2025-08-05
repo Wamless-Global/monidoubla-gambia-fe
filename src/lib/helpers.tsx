@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import nProgress from 'nprogress';
 import { NextRequest } from 'next/server';
+import { logger } from './logger';
 
 export const generateSlug = (name: string) => (name ? name.toLowerCase().replace(/\s+/g, '-') : '');
 
@@ -40,7 +41,7 @@ export const currencyFormatter = (value: number | string, units = 2, currency = 
  * @returns The formatted currency string, symbol, or code.
  */
 export const formatCurrency = (amount: number | null | undefined, currency: string = '', options?: { symbol?: boolean; code?: boolean; symbolPosition?: 'before' | 'after' }): string => {
-	const fallbackCurrency = getCurrencyFromLocalStorage()?.code || 'NGN';
+	const fallbackCurrency = getSettings()?.baseCurrency || getCurrencyFromLocalStorage()?.code || 'NGN';
 
 	const validCurrency = (() => {
 		try {
@@ -227,6 +228,7 @@ export function handleFetchMessage(err: { message?: string; detail?: unknown; er
 			errorMessage = 'An internal error occurred, please contact support.';
 		} else if (err instanceof SyntaxError || lowerMessage.includes('json') || lowerMessage.includes('token')) {
 			errorMessage = JSONErr || 'Server unavailable. Please try again later.';
+			logger.log(lowerMessage);
 		} else if (!errors || errors.length === 0) {
 			errorMessage = message;
 		}
@@ -348,6 +350,26 @@ export function getPlatformName(): string {
 		}
 	}
 	return process.env.NEXT_PUBLIC_NAME || '';
+}
+
+export function getSettings(): { baseCurrency: string; name: string; bonusThreshold: string } | null {
+	if (typeof window !== 'undefined') {
+		try {
+			const raw = localStorage.getItem('settings');
+			if (raw) {
+				let parsed;
+				try {
+					parsed = JSON.parse(raw);
+				} catch (e) {
+					throw new Error('Invalid JSON in settings');
+				}
+				return parsed as { baseCurrency: string; name: string; bonusThreshold: string };
+			}
+		} catch (e) {
+			return null;
+		}
+	}
+	return null;
 }
 
 /**
@@ -484,8 +506,16 @@ export const convertCurrency = (amount: number): string => formatCurrency(amount
 
 export const convertToBaseCurrency = (amount: number) => formatBaseurrency(amount / getBaseCurrencyRate());
 
-// Helper to parse maturity string like '2 days' to number of days
+// Helper to parse maturity string like '2 days', '10 minutes', '3 hours' to number of days (float)
 export function parseMaturityDays(maturity: string): number {
-	const match = maturity.match(/(\d+)/);
-	return match ? parseInt(match[1], 10) : 0;
+	if (!maturity) return 0;
+	const regex = /([\d.]+)\s*(day|days|hour|hours|minute|minutes)/i;
+	const match = maturity.match(regex);
+	if (!match) return 0;
+	const value = parseFloat(match[1]);
+	const unit = match[2].toLowerCase();
+	if (unit.startsWith('day')) return value;
+	if (unit.startsWith('hour')) return value / 24;
+	if (unit.startsWith('minute')) return value / 1440;
+	return 0;
 }

@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { Package } from '../../user/provide-help/content';
 import { PHRequest } from './multiple-match/types';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 
 interface AddPHRequestModalProps {
 	isOpen: boolean;
@@ -41,9 +41,12 @@ export default function AddPHRequestModal({ isOpen, onClose, onAdd, packages }: 
 			const url = search ? `/api/users/all?searchTerm=${encodeURIComponent(search)}` : '/api/users/all';
 			const res = await fetchWithAuth(url);
 			const json = await res.json();
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to  load users'));
+			}
 			setUsers(json.data.users || []);
 		} catch (error) {
-			toast.error('Failed to load users');
+			toast.error(handleFetchMessage(error, 'Failed to load users'));
 			logger.error('Failed to load users', error);
 			setUsers([]);
 		} finally {
@@ -109,7 +112,7 @@ export default function AddPHRequestModal({ isOpen, onClose, onAdd, packages }: 
 
 					const data = await res.json();
 					if (!res.ok) {
-						throw new Error(data?.message || 'Failed to create PH request');
+						throw new Error(handleFetchMessage(data, 'Failed to create PH request'));
 					}
 
 					return {
@@ -145,7 +148,7 @@ export default function AddPHRequestModal({ isOpen, onClose, onAdd, packages }: 
 			setLoading(false);
 			onClose();
 		} catch (error: any) {
-			toast.error(error?.message || 'Failed to create requests');
+			toast.error(handleFetchMessage(error, 'Failed to create requests'));
 			logger.error('Failed to create PH requests', error);
 			setLoading(false);
 		}
@@ -215,13 +218,13 @@ export default function AddPHRequestModal({ isOpen, onClose, onAdd, packages }: 
 									<option value="">Select Package</option>
 									{packages.map((pkg) => (
 										<option key={pkg.id} value={pkg.id}>
-											{pkg.name} ({pkg.minAmount} - {pkg.maxAmount}) {getCurrencyFromLocalStorage()?.code}
+											{pkg.name} ({pkg.minAmount} - {pkg.maxAmount}) {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 										</option>
 									))}
 								</select>
 							</div>
 							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ({getCurrencyFromLocalStorage()?.code})</label>
+								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
 								<input
 									type="number"
 									min="1"

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { toast } from 'sonner';
 import { CustomLink } from '@/components/CustomLink';
-import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 
 interface MarketplaceItem {
 	id: string;
@@ -166,7 +166,7 @@ function EditItemModal({ isOpen, onClose, item, onSave }: EditModalProps) {
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div>
-									<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price ({getCurrencyFromLocalStorage()?.code})</label>
+									<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
 									<input
 										type="number"
 										min="0"
@@ -321,7 +321,9 @@ export default function AdminMarketplace() {
 		setLoading(true);
 		try {
 			const res = await fetchWithAuth('/api/marketplace?status=active');
-			if (!res.ok) throw new Error('Failed to fetch marketplace items');
+			if (!res.ok) {
+				throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch marketplace items'));
+			}
 			const data = await res.json();
 			// Map API data to MarketplaceItem interface
 			const items: MarketplaceItem[] = (Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : data.products || []).map((item: any) => ({
@@ -338,6 +340,7 @@ export default function AdminMarketplace() {
 			}));
 			setItems(items);
 		} catch (error) {
+			toast.error(handleFetchMessage(error));
 			setItems([]);
 		} finally {
 			setLoading(false);
@@ -392,7 +395,7 @@ export default function AdminMarketplace() {
 				method: 'DELETE',
 			});
 			if (!res.ok) {
-				const errMsg = (await res.json())?.message || 'Failed to delete item.';
+				const errMsg = handleFetchMessage(await res.json(), 'Failed to delete item.');
 				toast.error(errMsg);
 			} else {
 				toast.success('Item deleted successfully');
@@ -401,7 +404,7 @@ export default function AdminMarketplace() {
 				setDeleteModalOpen(false);
 			}
 		} catch (error) {
-			toast.error('Failed to delete item');
+			toast.error(handleFetchMessage(error, 'Failed to delete item'));
 		} finally {
 			setDeleteLoading(false);
 		}
@@ -428,7 +431,7 @@ export default function AdminMarketplace() {
 				body: formData,
 			});
 			if (!res.ok) {
-				const errMsg = (await res.json())?.message || 'Failed to update item.';
+				const errMsg = handleFetchMessage(await res.json(), 'Failed to update item.');
 				toast.error(errMsg);
 				return;
 			}
@@ -439,7 +442,7 @@ export default function AdminMarketplace() {
 			setEditModalOpen(false);
 			setSelectedItem(null);
 		} catch (error) {
-			toast.error('Failed to update item');
+			toast.error(handleFetchMessage(error, 'Failed to update item'));
 		}
 	};
 

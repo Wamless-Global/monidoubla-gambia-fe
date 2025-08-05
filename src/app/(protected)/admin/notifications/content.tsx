@@ -7,6 +7,7 @@ import { TopUpModal } from './TopUpModal';
 import { logger } from '@/lib/logger';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { toast } from 'sonner';
+import { handleFetchMessage } from '@/lib/helpers';
 
 interface User {
 	id: string;
@@ -107,7 +108,7 @@ export default function NotificationsPage() {
 			});
 			const data = await res.json();
 			if (!res.ok || data.status === 'error') {
-				const errorMsg = data?.message || 'Failed to send message.';
+				const errorMsg = handleFetchMessage(data, 'Failed to send message.');
 				toast.error(errorMsg);
 				return;
 			}
@@ -118,7 +119,7 @@ export default function NotificationsPage() {
 			setSendOptions({ sms: false, email: false, inApp: false });
 			toast.success('Message sent successfully!');
 		} catch (err: any) {
-			toast.error(err?.message || 'Failed to send message.');
+			toast.error(handleFetchMessage(err, 'Failed to send message.'));
 		} finally {
 			setIsSending(false);
 		}
