@@ -166,82 +166,31 @@ export default function AddBankAccountPage() {
 			setIsLoading(false);
 		}
 	};
-
 	return (
-		<div className="p-4 lg:p-6  min-h-screen">
+		<div className="p-4 lg:p-6 min-h-screen bg-gradient-to-br from-[#e0e7ff] via-[#f3f4f6] to-[#c7d2fe] dark:from-[#232e48] dark:via-[#232e48] dark:to-[#373f5b]">
 			<div className="max-w-2xl mx-auto">
 				{/* Header */}
 				<div className="mb-6">
-					<CustomLink href="/user/profile" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors mb-4">
+					<CustomLink href="/user/profile" className="inline-flex items-center gap-2 text-indigo-700 dark:text-indigo-200 hover:text-indigo-900 dark:hover:text-white transition-colors mb-4">
 						<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center"></i>
 						Back to Profile
 					</CustomLink>
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Add Bank Account</h1>
-					<p className="text-gray-600 dark:text-gray-400">Add your bank account details to receive payments</p>
+					<h1 className="text-2xl font-bold text-indigo-900 dark:text-white mb-2">Add Bank Account</h1>
+					<p className="text-indigo-700 dark:text-indigo-200">Add your bank account details to receive payments</p>
 				</div>
 
 				{/* Form */}
-				<Card className="bg-white dark:bg-gray-800 border-0 shadow-sm">
-					<CardContent className="p-6">
+				<Card className="bg-gradient-to-br from-[#4F46E5] to-[#6366F1] dark:from-[#232e48] dark:to-[#373f5b] border-0 shadow-lg">
+					<CardContent className="p-8">
 						<form onSubmit={handleSubmit} className="space-y-6">
-							{/* Account Number */}
-							{/* <div>
-								<label htmlFor="accountNumber" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-									Account Number *
-								</label>
-								<div className="relative">
-									<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-										<i className="ri-bank-card-line w-5 h-5 flex items-center justify-center text-gray-400"></i>
-									</div>
-									<input
-										id="accountNumber"
-										type="text"
-										value={formData.accountNumber}
-										onChange={(e) => handleInputChange('accountNumber', e.target.value)}
-										placeholder="Enter account number"
-										className={`w-full pl-10 pr-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-											errors.accountNumber ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-										}`}
-										maxLength={20}
-									/>
-								</div>
-								{errors.accountNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.accountNumber}</p>}
-							</div> */}
-
-							{/* Bank Name */}
-
-							{/* Account Name */}
-							{/* <div>
-								<label htmlFor="accountName" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-									Account Name *
-								</label>
-								<div className="relative">
-									<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-										<i className="ri-user-line w-5 h-5 flex items-center justify-center text-gray-400"></i>
-									</div>
-									<input
-										id="accountName"
-										type="text"
-										value={formData.accountName}
-										onChange={(e) => handleInputChange('accountName', e.target.value)}
-										placeholder="Enter account name"
-										className={`w-full pl-10 pr-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-											errors.accountName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
-										}`}
-										maxLength={50}
-									/>
-								</div>
-								{errors.accountName && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.accountName}</p>}
-							</div> */}
-
 							{/* MoMo Number */}
 							<div>
-								<label htmlFor="momoNumber" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+								<label htmlFor="momoNumber" className="block text-sm font-medium text-indigo-100 mb-2">
 									MoMo Number
 								</label>
 								<div className="relative">
 									<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-										<i className="ri-smartphone-line w-5 h-5 flex items-center justify-center text-gray-400"></i>
+										<i className="ri-smartphone-line w-5 h-5 flex items-center justify-center text-indigo-200"></i>
 									</div>
 									<input
 										id="momoNumber"
@@ -249,23 +198,23 @@ export default function AddBankAccountPage() {
 										value={formData.momoNumber}
 										onChange={(e) => handleInputChange('momoNumber', e.target.value)}
 										placeholder="Enter MoMo number"
-										className={`w-full pl-10 pr-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-											errors.momoNumber ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
+										className={`w-full pl-10 pr-3 py-3 border rounded-lg bg-white/80 dark:bg-gray-800 text-indigo-900 dark:text-white placeholder:text-indigo-400 dark:placeholder:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent ${
+											errors.momoNumber ? 'border-red-500 focus:ring-red-500' : 'border-indigo-200 dark:border-indigo-700'
 										}`}
 										maxLength={20}
 									/>
 								</div>
-								{errors.momoNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.momoNumber}</p>}
+								{errors.momoNumber && <p className="mt-1 text-sm text-yellow-200">{errors.momoNumber}</p>}
 							</div>
 
 							{/* MoMo Provider */}
 							<div>
-								<label htmlFor="momoProvider" className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+								<label htmlFor="momoProvider" className="block text-sm font-medium text-indigo-100 mb-2">
 									MoMo Provider
 								</label>
 								<div className="relative">
 									<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-										<i className="ri-wallet-3-line w-5 h-5 flex items-center justify-center text-gray-400"></i>
+										<i className="ri-wallet-3-line w-5 h-5 flex items-center justify-center text-indigo-200"></i>
 									</div>
 									<input
 										id="momoProvider"
@@ -273,28 +222,28 @@ export default function AddBankAccountPage() {
 										value={formData.momoProvider}
 										onChange={(e) => handleInputChange('momoProvider', e.target.value)}
 										placeholder="Enter MoMo provider (e.g. MTN, Vodafone)"
-										className={`w-full pl-10 pr-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-											errors.momoProvider ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'
+										className={`w-full pl-10 pr-3 py-3 border rounded-lg bg-white/80 dark:bg-gray-800 text-indigo-900 dark:text-white placeholder:text-indigo-400 dark:placeholder:text-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent ${
+											errors.momoProvider ? 'border-red-500 focus:ring-red-500' : 'border-indigo-200 dark:border-indigo-700'
 										}`}
 										maxLength={30}
 									/>
 								</div>
-								{errors.momoProvider && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.momoProvider}</p>}
+								{errors.momoProvider && <p className="mt-1 text-sm text-yellow-200">{errors.momoProvider}</p>}
 							</div>
 
 							{/* Security Notice */}
-							<div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+							<div className="bg-indigo-100/60 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
 								<div className="flex items-start gap-3">
-									<i className="ri-shield-check-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400 mt-0.5"></i>
+									<i className="ri-shield-check-line w-5 h-5 flex items-center justify-center text-indigo-700 dark:text-indigo-300 mt-0.5"></i>
 									<div>
-										<h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Security & Privacy</h4>
-										<p className="text-sm text-blue-800 dark:text-blue-200">Your Momo account information is encrypted and securely stored. We never share your financial details with third parties.</p>
+										<h4 className="text-sm font-medium text-indigo-900 dark:text-indigo-100 mb-1">Security & Privacy</h4>
+										<p className="text-sm text-indigo-800 dark:text-indigo-200">Your Momo account information is encrypted and securely stored. We never share your financial details with third parties.</p>
 									</div>
 								</div>
 							</div>
 
 							{/* Submit Button */}
-							<Button type="submit" disabled={isLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
+							<Button type="submit" disabled={isLoading} className="w-full bg-indigo-700 hover:bg-indigo-800 text-white whitespace-nowrap font-semibold text-base py-3">
 								{isLoading ? (
 									<div className="flex items-center gap-2">
 										<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -312,16 +261,16 @@ export default function AddBankAccountPage() {
 				</Card>
 
 				{/* Help Section */}
-				<div className="mt-6 bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-					<h3 className="font-medium text-gray-900 dark:text-white mb-2">Need Help?</h3>
-					<p className="text-sm text-gray-600 dark:text-gray-400 mb-3">If you're having trouble adding your Momo details, please check:</p>
-					<ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+				<div className="mt-8 bg-gradient-to-br from-indigo-50 via-white to-indigo-100 dark:from-[#232e48] dark:via-[#232e48] dark:to-[#373f5b] rounded-lg p-6 border border-indigo-100 dark:border-indigo-800">
+					<h3 className="font-semibold text-indigo-900 dark:text-white mb-2">Need Help?</h3>
+					<p className="text-sm text-indigo-800 dark:text-indigo-200 mb-3">If you're having trouble adding your Momo details, please check:</p>
+					<ul className="text-sm text-indigo-800 dark:text-indigo-200 space-y-1">
 						<li className="flex items-start gap-2">
-							<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-blue-600 dark:text-blue-400 mt-0.5"></i>
+							<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mt-0.5"></i>
 							Ensure your Momo number is correct
 						</li>
 						<li className="flex items-start gap-2">
-							<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-blue-600 dark:text-blue-400 mt-0.5"></i>
+							<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mt-0.5"></i>
 							Input a correct provider
 						</li>
 					</ul>

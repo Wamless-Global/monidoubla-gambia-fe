@@ -78,23 +78,6 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 		fetchProduct();
 	}, [productId]);
 
-	const handleQuantityChange = (change: number) => {
-		const newQuantity = quantity + change;
-		if (newQuantity >= 1) {
-			setQuantity(newQuantity);
-		}
-	};
-
-	const handleBuyNow = () => {
-		// Handle buy now action
-		logger.log('Buy now clicked for product:', productId, 'quantity:', quantity);
-	};
-
-	const handleAddToCart = () => {
-		// Handle add to cart action
-		logger.log('Add to cart clicked for product:', productId, 'quantity:', quantity);
-	};
-
 	if (loading) {
 		return (
 			<div className="flex h-screen bg-gray-50">
@@ -131,146 +114,132 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 			</div>
 		);
 	}
-	logger.log(product);
+
 	return (
-		<div className="flex min-h-screen bg-gray-50">
-			<div className="flex-1 flex flex-col min-w-0">
-				<header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
-					<div className="flex items-center gap-4">
-						<button
-							onClick={() => {
-								nProgress.start();
-								router.push('/user/marketplace');
-							}}
-							className="p-2 hover:bg-gray-100 rounded-lg"
-						>
-							<i className="ri-arrow-left-line w-5 h-5 flex items-center justify-center"></i>
-						</button>
-						<h1 className="text-xl lg:text-2xl font-bold text-gray-900">{product.name}</h1>
+		<div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 dark:from-[#181f2e] dark:via-[#232e48] dark:to-[#232e48]">
+			<div className="max-w-7xl mx-auto py-10 px-4 lg:px-0">
+				{/* Header */}
+				<div className="flex items-center gap-4 mb-8">
+					<Button
+						variant="outline"
+						onClick={() => {
+							nProgress.start();
+							router.push('/user/marketplace');
+						}}
+						className="p-2 rounded-lg border-blue-200 dark:border-indigo-700 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-indigo-900/30"
+					>
+						<i className="ri-arrow-left-line w-5 h-5 flex items-center justify-center"></i>
+					</Button>
+					<h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 dark:text-white">{product.name}</h1>
+				</div>
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+					{/* Product Images */}
+					<div className="flex flex-col gap-6">
+						<div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden shadow-lg">
+							{product.images && product.images.length > 0 && <Image width={600} height={600} src={product.images[selectedImageIndex]} alt={product.name} className="w-full h-full object-cover object-center" />}
+						</div>
+						{product.images && product.images.length > 1 && (
+							<div className="flex gap-3">
+								{product.images.map((image, index) => (
+									<button key={index} onClick={() => setSelectedImageIndex(index)} className={`aspect-square w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors ${selectedImageIndex === index ? 'border-blue-900' : 'border-transparent hover:border-blue-300'}`}>
+										<Image width={80} height={80} src={image} alt={`${product.name} view ${index + 1}`} className="w-full h-full object-cover object-center" />
+									</button>
+								))}
+							</div>
+						)}
 					</div>
-				</header>
-				<main className="flex-1 overflow-auto">
-					<div className="p-4 lg:p-6">
-						<div className="max-w-7xl mx-auto">
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-								{/* Product Images */}
-								<div className="space-y-4">
-									<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-										{product.images && product.images.length > 0 && <Image width={400} height={400} src={product.images[selectedImageIndex]} alt={product.name} className="w-full h-full object-cover object-top" />}
-									</div>
-									{product.images && product.images.length > 1 && (
-										<div className="grid grid-cols-4 gap-2">
-											{product.images.map((image, index) => (
-												<button
-													key={index}
-													onClick={() => setSelectedImageIndex(index)}
-													className={`aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 transition-colors ${selectedImageIndex === index ? 'border-blue-900' : 'border-transparent hover:border-gray-300'}`}
-												>
-													<Image width={400} height={400} src={image} alt={`${product.name} view ${index + 1}`} className="w-full h-full object-cover object-top" />
-												</button>
-											))}
-										</div>
-									)}
-								</div>
-								{/* Product Details */}
-								<div className="space-y-6">
+					{/* Product Details */}
+					<div className="flex flex-col gap-8">
+						<div>
+							<div className="flex items-center gap-3 mb-2">
+								<span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 text-xs font-semibold">
+									<i className="ri-price-tag-3-line"></i>
+									{product.category}
+								</span>
+								{product.location && (
+									<span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 text-xs font-semibold">
+										<i className="ri-map-pin-line"></i>
+										{product.location}
+									</span>
+								)}
+							</div>
+							<div className="text-4xl font-black text-blue-900 dark:text-white mb-4">
+								{product.price} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+							</div>
+							<p className="text-lg text-blue-900/80 dark:text-indigo-100 mb-4">{product.description}</p>
+						</div>
+						{/* Vendor Card */}
+						{(product.vendor?.name || product.vendor?.avatar) && (
+							<Card className="bg-white dark:bg-gray-900 border-0 shadow-lg rounded-xl">
+								<CardContent className="p-5 flex items-center gap-4">
+									{product.vendor.avatar && <Image width={56} height={56} src={product.vendor.avatar} alt={product.vendor.name} className="w-14 h-14 rounded-full object-cover border border-blue-100 dark:border-indigo-900/30" />}
 									<div>
-										<h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-										{product.location && (
-											<div className="flex items-center gap-2 mb-4">
-												<i className="ri-map-pin-line w-4 h-4 flex items-center justify-center text-gray-500"></i>
-												<span className="text-gray-600">{product.location}</span>
+										<div className="font-bold text-blue-900 dark:text-white">{product.vendor.name}</div>
+										<div className="flex items-center gap-2 text-sm text-blue-700 dark:text-indigo-200">
+											{product.vendor.rating ? (
+												<>
+													<i className="ri-star-fill text-yellow-500"></i>
+													<span>{product.vendor.rating}</span>
+												</>
+											) : null}
+											{product.vendor.rating && product.vendor.totalSales ? <span>•</span> : null}
+											{product.vendor.totalSales ? <span>{product.vendor.totalSales} sales</span> : null}
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						)}
+						{/* Seller Contact Info */}
+						{product.contactInfo && (
+							<Card className="bg-white dark:bg-gray-900 border-0 shadow-lg rounded-xl">
+								<CardContent className="p-5">
+									<h3 className="font-semibold text-blue-900 dark:text-white mb-3">Contact Seller</h3>
+									<div className="flex flex-col gap-2">
+										{product.contactInfo.phone && (
+											<div className="flex items-center gap-2 text-blue-900 dark:text-indigo-100">
+												<i className="ri-phone-line"></i>
+												<span>{product.contactInfo.phone}</span>
 											</div>
 										)}
-										<div className="text-4xl font-bold text-blue-900 mb-4">
-											{product.price} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-										</div>
-										{product.description && <p className="text-gray-600 mb-4">{product.description}</p>}
+										{product.contactInfo.email && (
+											<div className="flex items-center gap-2 text-blue-900 dark:text-indigo-100">
+												<i className="ri-mail-line"></i>
+												<span>{product.contactInfo.email}</span>
+											</div>
+										)}
 									</div>
-									{/* Vendor Details */}
-									{(product.vendor?.name || product.vendor?.avatar) && (
-										<Card>
-											<CardContent className="p-4">
-												<h3 className="font-semibold text-gray-900 mb-3">Vendor details</h3>
-												<div className="flex items-center gap-3 mb-3">
-													{product.vendor.avatar && <Image width={400} height={400} src={product.vendor.avatar} alt={product.vendor.name} className="w-12 h-12 rounded-full object-cover" />}
-													<div>
-														<div className="font-medium text-gray-900">{product.vendor.name}</div>
-														{(product.vendor.rating || product.vendor.totalSales) && (
-															<div className="flex items-center gap-1 text-sm text-gray-600">
-																{product.vendor.rating ? (
-																	<>
-																		<i className="ri-star-fill w-4 h-4 flex items-center justify-center text-yellow-500"></i>
-																		<span>{product.vendor.rating}</span>
-																	</>
-																) : null}
-																{product.vendor.rating && product.vendor.totalSales ? <span>•</span> : null}
-																{product.vendor.totalSales ? <span>{product.vendor.totalSales} sales</span> : null}
-															</div>
-														)}
-													</div>
-												</div>
-												{product.fullDescription && <p className="text-sm text-gray-600">{product.fullDescription}</p>}
-											</CardContent>
-										</Card>
-									)}
-									{/* Specifications */}
-									{product.specifications && Object.keys(product.specifications).length > 0 && (
-										<Card>
-											<CardContent className="p-4">
-												<h3 className="font-semibold text-gray-900 mb-3">Specifications</h3>
-												<div className="space-y-2">
-													{Object.entries(product.specifications).map(([key, value]) => (
-														<div key={key} className="flex justify-between py-1 border-b border-gray-100 last:border-b-0">
-															<span className="text-gray-600">{key}:</span>
-															<span className="font-medium text-gray-900">{value}</span>
-														</div>
-													))}
-												</div>
-											</CardContent>
-										</Card>
-									)}
-									{/* Buyer Information */}
-									{product && product.vendor && (
-										<Card>
-											<CardContent className="p-4">
-												<h3 className="font-semibold text-gray-900 mb-3">Seller Information</h3>
-												<div className="flex items-center gap-3 mb-3">
-													{product.vendor.avatar && <Image width={400} height={400} src={product.vendor.avatar} alt={product.vendor.name} className="w-12 h-12 rounded-full object-cover" />}
-													<div>
-														{
-															<>
-																<div className="flex items-center gap-2">
-																	<i className="ri-phone-line w-4 h-4 flex items-center justify-center text-gray-500"></i>
-																	<span className="text-gray-900 dark:text-white">{product.contactInfo.phone}</span>
-																</div>
-																<div className="flex items-center gap-2">
-																	<i className="ri-mail-line w-4 h-4 flex items-center justify-center text-gray-500"></i>
-																	<span className="text-gray-900 dark:text-white">{product.contactInfo.email}</span>
-																</div>
-															</>
-														}
-													</div>
-												</div>
-											</CardContent>
-										</Card>
-									)}
-								</div>
-							</div>
-							{/* Description Section */}
-							{product.fullDescription && (
-								<div className="mt-12">
-									<Card>
-										<CardContent className="p-6">
-											<h2 className="text-2xl font-bold text-gray-900 mb-4">Description</h2>
-											<p className="text-gray-600 leading-relaxed">{product.fullDescription}</p>
-										</CardContent>
-									</Card>
-								</div>
-							)}
-						</div>
+								</CardContent>
+							</Card>
+						)}
+						{/* Specifications */}
+						{product.specifications && Object.keys(product.specifications).length > 0 && (
+							<Card className="bg-white dark:bg-gray-900 border-0 shadow-lg rounded-xl">
+								<CardContent className="p-5">
+									<h3 className="font-semibold text-blue-900 dark:text-white mb-3">Specifications</h3>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+										{Object.entries(product.specifications).map(([key, value]) => (
+											<div key={key} className="flex justify-between border-b border-blue-50 dark:border-indigo-900/30 py-1 last:border-b-0">
+												<span className="text-blue-900/80 dark:text-indigo-100">{key}:</span>
+												<span className="font-medium text-blue-900 dark:text-white">{value}</span>
+											</div>
+										))}
+									</div>
+								</CardContent>
+							</Card>
+						)}
 					</div>
-				</main>
+				</div>
+				{/* Full Description */}
+				{product.fullDescription && (
+					<div className="mt-14">
+						<Card className="bg-white dark:bg-gray-900 border-0 shadow-lg rounded-xl">
+							<CardContent className="p-8">
+								<h2 className="text-2xl font-bold text-blue-900 dark:text-white mb-4">Description</h2>
+								<p className="text-blue-900/80 dark:text-indigo-100 leading-relaxed">{product.fullDescription}</p>
+							</CardContent>
+						</Card>
+					</div>
+				)}
 			</div>
 		</div>
 	);
