@@ -285,7 +285,7 @@ export default function DashboardPage() {
 					{/* Credit cards - single column on mobile */}
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
 						{data.creditCards.map((card, index) => (
-							<CreditCard key={index} card={card} variant={index === 0 ? 'primary' : 'default'} />
+							<CreditCard key={index} index={index} card={card} variant={index === 0 ? 'primary' : 'default'} />
 						))}
 					</div>
 

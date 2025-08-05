@@ -27,17 +27,12 @@ const pageTitle = {
 
 export function AccountHeader({ onMenuClick, onNotificationClick, unreadNotifications }: AccountHeaderProps) {
 	const pathname = usePathname();
-	const { theme, setTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
 	const title = pageTitle[pathname as keyof typeof pageTitle] || 'Account';
 
 	useEffect(() => {
 		setMounted(true);
 	}, []);
-
-	const toggleTheme = () => {
-		setTheme(theme === 'light' ? 'dark' : 'light');
-	};
 
 	useEffect(() => {
 		window.googleTranslateElementInit = function () {
@@ -59,24 +54,19 @@ export function AccountHeader({ onMenuClick, onNotificationClick, unreadNotifica
 
 	if (!mounted) {
 		return (
-			<header className="bg-card border-b border-border px-4 lg:px-6 py-4">
+			<header className="bg-[#1F2A44] border-b border-gray-200 dark:border-gray-800 px-4 lg:px-8 py-4 shadow-sm">
 				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-4">
-						<button onClick={onMenuClick} className="lg:hidden p-2 hover:bg-accent rounded-lg transition-colors">
-							<i className="ri-menu-line w-5 h-5 flex items-center justify-center text-foreground"></i>
+					<div className="flex items-center gap-4 min-w-0">
+						<button onClick={onMenuClick} className="lg:hidden p-2 rounded-md hover:bg-[#223055] focus:bg-[#223055] transition-colors" aria-label="Open menu">
+							<i className="ri-menu-line w-5 h-5 flex items-center justify-center text-white"></i>
 						</button>
-
-						<h1 className="text-xl lg:text-2xl font-bold text-foreground">{title}</h1>
+						<Logo size="sm" variant="default" alt="" className="mr-2" />
+						<span className="font-poppins text-lg font-semibold text-white truncate">{title}</span>
 					</div>
-
-					<div className="flex items-center gap-2">
-						<button className="p-2 hover:bg-accent rounded-lg transition-colors">
-							<i className="ri-sun-line w-5 h-5 flex items-center justify-center text-foreground"></i>
-						</button>
-
-						<button onClick={onNotificationClick} className="p-2 hover:bg-accent rounded-lg relative transition-colors">
-							<i className="ri-notification-3-line w-5 h-5 flex items-center justify-center text-foreground"></i>
-							<span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full bg-red-300 dark:bg-red-500 p-3 font-semibold flex justify-center items-center">{unreadNotifications}</span>
+					<div className="flex items-center gap-4">
+						<button onClick={onNotificationClick} className="relative p-2 rounded-md hover:bg-[#223055] focus:bg-[#223055] transition-colors" aria-label="Notifications">
+							<i className="ri-notification-3-line w-5 h-5 flex items-center justify-center text-white"></i>
+							{unreadNotifications > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#4F46E5] text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-[#1F2A44]">{unreadNotifications}</span>}
 						</button>
 					</div>
 				</div>
@@ -85,28 +75,20 @@ export function AccountHeader({ onMenuClick, onNotificationClick, unreadNotifica
 	}
 
 	return (
-		<header className="bg-card border-b border-border px-4 lg:px-6 py-4">
+		<header className="bg-[#1F2A44] border-b border-gray-200 dark:border-gray-800 px-4 lg:px-8 py-4 shadow-sm">
 			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-4 relative">
-					<button onClick={onMenuClick} className="lg:hidden p-2 hover:bg-accent rounded-lg transition-colors">
-						<i className="ri-menu-line w-5 h-5 flex items-center justify-center text-foreground"></i>
+				<div className="flex items-center gap-4 min-w-0">
+					<button onClick={onMenuClick} className="lg:hidden p-2 rounded-md hover:bg-[#223055] focus:bg-[#223055] transition-colors" aria-label="Open menu">
+						<i className="ri-menu-line w-5 h-5 flex items-center justify-center text-white"></i>
 					</button>
-
-					<div className="flex items-center">
-						<Logo size="sm" variant="default" alt="" className="" />
-					</div>
-					<h1 className="text-xl lg:text-2xl font-bold text-foreground">{title}</h1>
-					<div id="google_translate_element" className=""></div>
+					{/* <Logo size="sm" variant="default" alt="" className="mr-2" /> */}
+					<span className="font-poppins text-lg font-semibold text-white truncate">{title}</span>
+					<div id="google-translate-script"></div>
 				</div>
-
-				<div className="flex items-center gap-2">
-					<button onClick={toggleTheme} className="p-2 hover:bg-accent rounded-lg transition-colors" title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
-						{theme === 'light' ? <i className="ri-moon-line w-5 h-5 flex items-center justify-center text-foreground"></i> : <i className="ri-sun-line w-5 h-5 flex items-center justify-center text-foreground"></i>}
-					</button>
-
-					<button onClick={onNotificationClick} className="p-2 hover:bg-accent rounded-lg relative transition-colors">
-						<i className="ri-notification-3-line w-5 h-5 flex items-center justify-center text-foreground"></i>
-						<span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full bg-red-300 dark:bg-red-500 p-3 font-bold flex justify-center items-center">{unreadNotifications}</span>
+				<div className="flex items-center gap-4">
+					<button onClick={onNotificationClick} className="relative p-2 rounded-md hover:bg-[#223055] focus:bg-[#223055] transition-colors" aria-label="Notifications">
+						<i className="ri-notification-3-line w-5 h-5 flex items-center justify-center text-white"></i>
+						{unreadNotifications > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#4F46E5] text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-[#1F2A44]">{unreadNotifications}</span>}
 					</button>
 				</div>
 			</div>

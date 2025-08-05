@@ -315,33 +315,6 @@ export default function GetHelpPage() {
 							</div>
 						))}
 					</div>
-					<div className="bg-card rounded-lg border border-border p-4 lg:p-6">
-						<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-6"></div>
-						<div className="overflow-x-auto">
-							<table className="w-full">
-								<thead className="bg-gray-50 dark:bg-gray-700">
-									<tr>
-										{[...Array(6)].map((_, index) => (
-											<th key={index} className="px-6 py-3">
-												<div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
-											</th>
-										))}
-									</tr>
-								</thead>
-								<tbody className="bg-background divide-y divide-gray-200 dark:divide-gray-700">
-									{[...Array(5)].map((_, index) => (
-										<tr key={index}>
-											{[...Array(6)].map((_, cellIndex) => (
-												<td key={cellIndex} className="px-6 py-4">
-													<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
-												</td>
-											))}
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-					</div>
 				</div>
 			</div>
 		);
@@ -368,73 +341,71 @@ export default function GetHelpPage() {
 	}
 
 	return (
-		<div className="p-4 lg:p-6 bg-background min-h-screen" suppressHydrationWarning={true}>
+		<div className="p-4 lg:p-6 bg-gray-50 dark:bg-gray-900 min-h-screen" suppressHydrationWarning={true}>
 			<div className="max-w-6xl mx-auto">
-				<h1 className="text-2xl font-bold text-foreground mb-6">Get Help</h1>
+				<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Get Help</h1>
 
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-					<Card className="p-4 bg-blue-50 dark:bg-blue-900/20">
+				{/* Stats Cards */}
+				<div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-14">
+					<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-wallet-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+									<i className="ri-wallet-line w-7 h-7 flex items-center justify-center text-indigo-600 dark:text-indigo-300"></i>
 								</div>
 								<div>
-									<div className="text-sm text-blue-600 dark:text-blue-400">Total Provided</div>
-									<div className="text-lg font-semibold text-blue-900 dark:text-blue-300">{formatCurrency(phRecords.reduce((sum, record) => sum + (record?.originalAmount || record.amount), 0))}</div>
+									<div className="text-base text-indigo-700 dark:text-indigo-200 mb-1">Total Provided</div>
+									<div className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(phRecords.reduce((sum, record) => sum + (record?.originalAmount || record.amount), 0))}</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-
-					<Card className="p-4 bg-green-50 dark:bg-green-900/20">
+					<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-money-dollar-circle-line w-5 h-5 flex items-center justify-center text-green-600 dark:text-green-400"></i>
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+									<i className="ri-money-dollar-circle-line w-7 h-7 flex items-center justify-center text-emerald-600 dark:text-emerald-300"></i>
 								</div>
 								<div>
-									<div className="text-sm text-green-600 dark:text-green-400">Available to Request</div>
-									<div className="text-lg font-semibold text-green-900 dark:text-green-300">{formatCurrency(phRecords.filter((r) => r.status === 'active').reduce((sum, record) => sum + record.maturedAmount, 0))}</div>
+									<div className="text-base text-emerald-700 dark:text-emerald-200 mb-1">Available to Request</div>
+									<div className="text-2xl font-bold text-gray-900 dark:text-white">{formatCurrency(phRecords.filter((r) => r.status === 'active').reduce((sum, record) => sum + record.maturedAmount, 0))}</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-
-					<Card className="p-4 bg-yellow-50 dark:bg-yellow-900/20">
+					<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-time-line w-5 h-5 flex items-center justify-center text-yellow-600 dark:text-yellow-400"></i>
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
+									<i className="ri-time-line w-7 h-7 flex items-center justify-center text-yellow-600 dark:text-yellow-300"></i>
 								</div>
 								<div>
-									<div className="text-sm text-yellow-600 dark:text-yellow-400">Pending Requests</div>
-									<div className="text-lg font-semibold text-yellow-900 dark:text-yellow-300">{phRecords.filter((r) => r.status === 'pending' || r.status === 'waiting-match').length}</div>
+									<div className="text-base text-yellow-700 dark:text-yellow-200 mb-1">Pending Requests</div>
+									<div className="text-2xl font-bold text-gray-900 dark:text-[#fde68a]">{phRecords.filter((r) => r.status === 'pending' || r.status === 'waiting-match').length}</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-
-					<Card className="p-4 bg-purple-50 dark:bg-purple-900/20">
+					<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-group-line w-5 h-5 flex items-center justify-center text-purple-600 dark:text-purple-400"></i>
+							<div className="flex items-center gap-4">
+								<div className="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+									<i className="ri-group-line w-7 h-7 flex items-center justify-center text-purple-600 dark:text-purple-300"></i>
 								</div>
 								<div>
-									<div className="text-sm text-purple-600 dark:text-purple-400">Matched Requests</div>
-									<div className="text-lg font-semibold text-purple-900 dark:text-purple-300">{phRecords.filter((r) => r.status === 'matched' || r.status === 'partial-match').length}</div>
+									<div className="text-base text-purple-700 dark:text-purple-200 mb-1">Matched Requests</div>
+									<div className="text-2xl font-bold text-gray-900 dark:text-white">{phRecords.filter((r) => r.status === 'matched' || r.status === 'partial-match').length}</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
 				</div>
 
-				<Card className="bg-card border-0 shadow-sm rounded-lg overflow-hidden">
+				{/* Help Records Table */}
+				<Card className="bg-gradient-to-br from-[#e0e7ff] via-[#f3f4f6] to-[#c7d2fe] dark:from-[#232e48] dark:via-[#232e48] dark:to-[#373f5b] border-0 shadow-lg rounded-lg overflow-hidden">
 					<div className="p-6 border-b border-border">
-						<h2 className="text-lg font-semibold text-foreground">Your Help Records</h2>
+						<h2 className="text-lg font-semibold text-gray-900 dark:text-white">Your Help Records</h2>
 					</div>
-
 					<div className="overflow-x-auto">
 						<table className="w-full">
 							<thead className="bg-gray-50 dark:bg-gray-700">
@@ -447,9 +418,9 @@ export default function GetHelpPage() {
 									<th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
 								</tr>
 							</thead>
-							<tbody className="bg-card divide-y divide-border">
+							<tbody className="bg-transparent divide-y divide-border">
 								{phRecords.map((record) => (
-									<tr key={record.id} className="hover:bg-accent/50">
+									<tr key={record.id} className="hover:bg-indigo-100/60 dark:hover:bg-indigo-900/30 transition">
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{record.package}</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
 											<span className="font-medium">{formatCurrency(record?.originalAmount || record.amount)}</span>
@@ -486,7 +457,7 @@ export default function GetHelpPage() {
 														</Button>
 													</CustomLink>
 												)}
-												{(record.status === 'pending' || record.status === 'waiting-match') && <span className="text-xs text-muted-foreground">Waiting for match...</span>}
+												{(record.status === 'pending' || record.status === 'waiting-match') && <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">Waiting for match...</span>}
 											</div>
 										</td>
 									</tr>
@@ -510,7 +481,7 @@ export default function GetHelpPage() {
 									key={index}
 									onClick={() => typeof page === 'number' && handlePageChange(page)}
 									disabled={page === '...' || page === currentPage}
-									className={`px-3 py-2 rounded-lg border cursor-pointer ${page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'} ${
+									className={`px-3 py-2 rounded-lg border cursor-pointer ${page === currentPage ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'} ${
 										page === '...' ? 'cursor-default' : ''
 									}`}
 								>
@@ -527,11 +498,6 @@ export default function GetHelpPage() {
 						</div>
 					)}
 				</Card>
-				{pageLoading && (
-					<div className="flex items-center justify-center py-10">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-					</div>
-				)}
 			</div>
 		</div>
 	);

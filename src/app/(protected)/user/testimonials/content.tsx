@@ -255,32 +255,34 @@ export default function UserTestimonialsPage() {
 				confirmVariant="destructive"
 				loading={deleteLoading}
 			/>
-			<div className="p-4 lg:p-6 min-h-screen">
+			<div className="p-4 lg:p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
 				<div className="max-w-3xl mx-auto">
-					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">My Testimonials</h2>
-					<Card className="mb-8 p-6 bg-white dark:bg-gray-800 border-0">
-						<CardContent className="p-0">
-							<h3 className="font-semibold text-gray-900 dark:text-white mb-2">Share Your Testimony</h3>
+					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">My Testimonials</h2>
+					{/* Share Testimony Card */}
+					<Card className="mb-10 p-0 border-0 shadow-lg bg-white dark:bg-gray-800">
+						<CardContent className="p-6">
+							<h3 className="font-semibold text-gray-900 dark:text-white mb-3">Share Your Testimony</h3>
 							<textarea
 								value={content}
 								onChange={(e) => setContent(e.target.value)}
 								placeholder="Write your testimony..."
 								rows={3}
-								className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+								className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
 							/>
-							<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, false)} className="mb-2" />
+							<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, false)} className="mb-3" />
 							{videoPreview && (
-								<video controls className="w-full max-w-md mb-2 rounded">
+								<video controls className="w-full max-w-md mb-3 rounded shadow">
 									<source src={videoPreview} type="video/mp4" />
 									Your browser does not support the video tag.
 								</video>
 							)}
-							<Button onClick={handleUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
-								Upload
+							<Button onClick={handleUpload} className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 text-base font-semibold rounded-lg">
+								Upload Testimony
 							</Button>
 						</CardContent>
 					</Card>
-					<div className="space-y-6">
+					{/* Testimonials List */}
+					<div className="space-y-8">
 						{isLoading ? (
 							<div className="flex items-center justify-center py-10">
 								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -289,25 +291,25 @@ export default function UserTestimonialsPage() {
 							<div className="text-center text-gray-500 dark:text-gray-400">No testimonies yet.</div>
 						) : (
 							testimonies.map((testimony) => (
-								<Card key={testimony.id} className="p-4 bg-white dark:bg-gray-800 border-0">
-									<CardContent className="p-0">
+								<Card key={testimony.id} className="p-0 border-0 shadow bg-white dark:bg-gray-800">
+									<CardContent className="p-6">
 										{editingId === testimony.id ? (
 											<>
 												<textarea
 													value={editContent}
 													onChange={(e) => setEditContent(e.target.value)}
 													rows={3}
-													className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
+													className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
 												/>
-												<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, true)} className="mb-2" />
+												<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, true)} className="mb-3" />
 												{editVideoPreview && (
-													<video controls className="w-full max-w-md mb-2 rounded">
+													<video controls className="w-full max-w-md mb-3 rounded shadow">
 														<source src={editVideoPreview} type="video/mp4" />
 														Your browser does not support the video tag.
 													</video>
 												)}
 												<div className="flex gap-2">
-													<Button onClick={() => handleEditSave(testimony.id)} className="bg-green-600 hover:bg-green-700 text-white">
+													<Button onClick={() => handleEditSave(testimony.id)} className="bg-green-600 hover:bg-green-700 text-white flex-1">
 														Save
 													</Button>
 													<Button
@@ -319,37 +321,55 @@ export default function UserTestimonialsPage() {
 															}
 														}}
 														variant="outline"
+														className="flex-1"
 													>
 														Cancel
 													</Button>
 												</div>
 											</>
 										) : (
-											<>
-												<div className="flex items-center mb-2 gap-2">
-													{testimony.avatar_url && <img src={testimony.avatar_url} alt={testimony.user_name || 'User'} className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700" />}
-													<span className="text-gray-900 dark:text-white whitespace-pre-line break-words overflow-auto" style={{ maxHeight: '12rem', wordBreak: 'break-word' }}>
-														{testimony.content}
-													</span>
-													<span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${testimony.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`} title={testimony.approved ? 'Published' : 'Unpublished Approval'}>
-														{testimony.approved ? 'Published' : 'Unpublished'}
-													</span>
+											<div className="flex flex-col md:flex-row gap-4">
+												{/* Avatar & User Info */}
+												<div className="flex flex-col items-center md:items-start min-w-[60px]">
+													{testimony.avatar_url ? (
+														<img src={testimony.avatar_url} alt={testimony.user_name || 'User'} className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-700 mb-2" />
+													) : (
+														<div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-2">
+															<i className="ri-user-line text-2xl text-blue-600 dark:text-blue-400"></i>
+														</div>
+													)}
+													<span className="text-xs text-gray-500 dark:text-gray-400">{testimony.user_name}</span>
 												</div>
-												{testimony.video_url && (
-													<video controls className="w-full max-w-md mb-2 rounded">
-														<source src={testimony.video_url} type="video/mp4" />
-														Your browser does not support the video tag.
-													</video>
-												)}
-												<div className="flex gap-2">
-													<Button onClick={() => handleEdit(testimony)} variant="outline">
-														Edit
-													</Button>
-													<Button onClick={() => handleDelete(testimony.id)} variant="outline" className="text-red-600 border-red-600">
-														Delete
-													</Button>
+												{/* Testimony Content */}
+												<div className="flex-1 flex flex-col gap-2">
+													<div className="flex items-center gap-2">
+														<span className="text-gray-900 dark:text-white whitespace-pre-line break-words overflow-auto text-base font-medium" style={{ maxHeight: '12rem', wordBreak: 'break-word' }}>
+															{testimony.content}
+														</span>
+														<span
+															className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${testimony.approved ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'}`}
+															title={testimony.approved ? 'Published' : 'Unpublished Approval'}
+														>
+															{testimony.approved ? 'Published' : 'Unpublished'}
+														</span>
+													</div>
+													{testimony.video_url && (
+														<video controls className="w-full max-w-md mb-2 rounded shadow">
+															<source src={testimony.video_url} type="video/mp4" />
+															Your browser does not support the video tag.
+														</video>
+													)}
+													<div className="flex gap-2 mt-2">
+														<Button onClick={() => handleEdit(testimony)} variant="outline" className="flex-1">
+															Edit
+														</Button>
+														<Button onClick={() => handleDelete(testimony.id)} variant="outline" className="text-red-600 border-red-600 flex-1">
+															Delete
+														</Button>
+													</div>
+													<div className="text-xs text-gray-400 dark:text-gray-500 mt-1">{new Date(testimony.created_at).toLocaleString()}</div>
 												</div>
-											</>
+											</div>
 										)}
 									</CardContent>
 								</Card>
@@ -362,7 +382,7 @@ export default function UserTestimonialsPage() {
 						</div>
 					)}
 					{totalPages > 1 && !pageLoading && (
-						<div className="flex justify-center items-center gap-2 mt-6">
+						<div className="flex justify-center items-center gap-2 mt-8">
 							<button
 								onClick={() => handlePageChange(currentPage - 1)}
 								disabled={currentPage === 1}

@@ -57,30 +57,32 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
 	};
 
 	return (
-		<div className="w-64 bg-blue-900 text-white min-h-screen p-4 flex flex-col">
-			<div className="mb-8 flex-shrink-0">
-				<div className="flex items-center justify-between mb-2">
+		<aside className="w-72 min-h-screen bg-[#1F2A44] text-gray-100 flex flex-col shadow-lg border-r border-gray-200 dark:border-gray-800">
+			<div className="flex-shrink-0 px-6 pt-8 pb-4">
+				<div className="flex items-center justify-between">
+					<span className="font-poppins text-lg font-bold tracking-tight text-white">Account</span>
 					{onClose && (
-						<button onClick={onClose} className="lg:hidden p-2 hover:bg-blue-800 rounded-lg transition-colors">
+						<button onClick={onClose} className="lg:hidden p-2 rounded-md hover:bg-gray-800 focus:bg-gray-800 transition-colors" aria-label="Close sidebar">
 							<i className="ri-close-line w-5 h-5 flex items-center justify-center"></i>
 						</button>
 					)}
 				</div>
 			</div>
-
-			<nav className="space-y-6 flex-1 overflow-y-auto">
+			<nav className="flex-1 overflow-y-auto px-2 pb-8">
 				{navigationItems.map((section) => (
-					<div key={section.category}>
-						<h3 className="text-xs lg:text-sm font-semibold text-blue-200 mb-3 uppercase tracking-wider">{section.category}</h3>
+					<div key={section.category} className="">
 						<ul className="space-y-1">
 							{section.items.map((item) => (
 								<li key={item.name}>
 									<button
 										onClick={() => handleNavigation(item.href)}
-										className={cn('w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm cursor-pointer text-left', pathname === item.href ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-800 hover:text-white')}
+										className={cn(
+											'w-full flex items-center gap-3 px-4 py-2 rounded-md text-sm font-inter transition-colors duration-150',
+											pathname === item.href ? 'bg-white text-[#1F2A44] font-semibold shadow-sm' : 'text-gray-100 hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white'
+										)}
 									>
-										<i className={`${item.icon} w-4 h-4 lg:w-5 lg:h-5 flex items-center justify-center`}></i>
-										<span className="text-xs lg:text-sm">{item.name}</span>
+										<i className={`${item.icon} w-5 h-5 flex items-center justify-center text-[#4B5563] group-hover:text-[#4F46E5] transition-colors`}></i>
+										<span className="text-sm font-medium tracking-tight">{item.name}</span>
 									</button>
 								</li>
 							))}
@@ -88,6 +90,6 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
 					</div>
 				))}
 			</nav>
-		</div>
+		</aside>
 	);
 }
