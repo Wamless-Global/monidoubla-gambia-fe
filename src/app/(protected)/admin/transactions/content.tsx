@@ -13,9 +13,8 @@ import Image from 'next/image';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
 import { handleFetchMessage } from '@/lib/helpers';
-import { cn } from '@/lib/utils';
 
-interface Transaction {
+export interface Transaction {
 	id: string;
 	phUser: string;
 	ghUser: string;

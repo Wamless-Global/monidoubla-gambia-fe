@@ -7,17 +7,7 @@ import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
-
-// NOTE: All original interfaces and logic are preserved.
-interface Transaction {
-	id: string;
-	phUser: string;
-	ghUser: string;
-	amount: string;
-	dateMatched: string;
-	status: 'Confirmed' | 'Paid' | 'Pending';
-	paymentProof: string;
-}
+import { Transaction } from './content';
 
 interface TransactionModalProps {
 	isOpen: boolean;
