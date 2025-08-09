@@ -73,3 +73,79 @@
 .auth-img > * {
 	z-index: 2;
 }
+
+@layer components {
+	.container {
+		@apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+	}
+
+	.button {
+		@apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 ease-in-out;
+	}
+
+	.button-primary {
+		@apply bg-primary text-white hover:bg-secondary focus:ring-4 focus:ring-secondary/50;
+	}
+
+	.button-secondary {
+		@apply bg-neutral-light text-text-primary border border-neutral-dark/20 hover:bg-secondary hover:text-white;
+	}
+
+	.button-accent {
+		@apply bg-accent text-white hover:bg-accent/80 focus:ring-4 focus:ring-accent/50;
+	}
+
+	.card {
+		@apply bg-white rounded-lg shadow p-6 transition-all duration-200 hover:shadow-lg;
+	}
+
+	.sidebar {
+		@apply fixed inset-y-0 left-0 w-64 bg-neutral-dark text-white transform transition-transform duration-300 ease-in-out;
+	}
+
+	.sidebar-mobile {
+		@apply translate-x-0;
+	}
+
+	.sidebar-mobile-hidden {
+		@apply -translate-x-full;
+	}
+
+	@media (min-width: 768px) {
+		.sidebar {
+			@apply translate-x-0;
+		}
+	}
+
+	.modal {
+		@apply fixed inset-0 bg-neutral-dark/50 flex items-center justify-center z-50;
+	}
+
+	.modal-content {
+		@apply bg-white rounded-lg p-6 max-w-lg w-full mx-4 shadow-xl;
+	}
+
+	.input {
+		@apply w-full px-4 py-2 border border-neutral-dark/20 rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent;
+	}
+
+	.label {
+		@apply block text-sm font-medium text-text-secondary mb-1;
+	}
+
+	.table {
+		@apply w-full border-collapse;
+	}
+
+	.table th {
+		@apply bg-neutral-light text-text-secondary font-semibold py-3 px-4 text-left;
+	}
+
+	.table td {
+		@apply py-3 px-4 border-t border-neutral-dark/10;
+	}
+
+	.table tr:hover {
+		@apply bg-neutral-light/50;
+	}
+}

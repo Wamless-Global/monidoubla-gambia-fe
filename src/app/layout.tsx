@@ -68,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet" />
 				<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
 			</head>
-			<body className={`${montserrat.className} bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm`} suppressHydrationWarning>
+			<body className={`${montserrat.className} bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white text-sm`} suppressHydrationWarning>
 				<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
 					<Suspense>
 						<ProgressBar />

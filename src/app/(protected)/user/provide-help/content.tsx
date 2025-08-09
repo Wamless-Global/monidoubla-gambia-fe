@@ -338,7 +338,7 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 										</div>
 									</div>
 								</CardContent>
-								<CardFooter className="p-6 pt-0">
+								<CardFooter className="p-6">
 									<Button onClick={() => handlePackageSelect(pkg)} variant="outline" className="w-full border-teal-500 text-teal-600 hover:bg-teal-50 hover:text-teal-700">
 										Select Package
 									</Button>
