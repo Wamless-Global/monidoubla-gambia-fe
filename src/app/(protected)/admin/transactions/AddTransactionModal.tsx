@@ -41,10 +41,50 @@ export function AddTransactionModal({ isOpen, onClose, onAdd }: AddTransactionMo
 	}, [formData.paymentProof]);
 
 	const validateForm = () => {
-		/* ... (Logic preserved) ... */
+		const newErrors: Record<string, string> = {};
+
+		if (!formData.phUser) {
+			newErrors.phUser = 'Please select a PH user';
+		}
+
+		if (!formData.ghUser) {
+			newErrors.ghUser = 'Please select a GH user';
+		}
+
+		if (formData.phUser === formData.ghUser) {
+			newErrors.ghUser = 'PH user and GH user cannot be the same';
+		}
+
+		if (!formData.amount) {
+			newErrors.amount = 'Amount is required';
+		} else if (isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
+			newErrors.amount = 'Please enter a valid amount';
+		} else if (Number(formData.amount) > 10000) {
+			newErrors.amount = 'Amount cannot exceed 10,000 ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}';
+		}
+
+		if (formData.status === 'Confirmed' && !formData.paymentProof) {
+			newErrors.paymentProof = 'Payment proof is required for confirmed transactions';
+		}
+
+		if (formData.paymentProof) {
+			const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+			if (!validTypes.includes(formData.paymentProof.type)) {
+				newErrors.paymentProof = 'Please upload a valid image file (JPEG, PNG)';
+			} else if (formData.paymentProof.size > 5 * 1024 * 1024) {
+				newErrors.paymentProof = 'File size must be less than 5MB';
+			}
+		}
+
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
 	};
+
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		/* ... (Logic preserved) ... */
+		const file = e.target.files?.[0];
+		if (file) {
+			setFormData({ ...formData, paymentProof: file });
+		}
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
