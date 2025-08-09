@@ -252,46 +252,46 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 				</div>
 
 				{/* Summary Cards */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-					<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+					<Card className="p-6 bg-blue-50 dark:bg-blue-900/20">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-4">
-								<div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-money-dollar-circle-line w-7 h-7 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+							<div className="flex items-center gap-3">
+								<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+									<i className="ri-money-dollar-circle-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
 								</div>
 								<div>
-									<div className="text-base text-blue-700 dark:text-blue-200 mb-1">Total Expected</div>
-									<div className="text-2xl font-bold text-gray-900 dark:text-white">
+									<div className="text-sm text-blue-600 dark:text-blue-400">Total Expected</div>
+									<div className="text-2xl font-bold text-blue-900 dark:text-blue-300">
 										{getMaturedAmount()} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
+					<Card className="p-6 bg-green-50 dark:bg-green-900/20">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-4">
-								<div className="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-check-double-line w-7 h-7 flex items-center justify-center text-green-600 dark:text-green-400"></i>
+							<div className="flex items-center gap-3">
+								<div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+									<i className="ri-check-double-line w-6 h-6 flex items-center justify-center text-green-600 dark:text-green-400"></i>
 								</div>
 								<div>
-									<div className="text-base text-green-700 dark:text-green-200 mb-1">Confirmed</div>
-									<div className="text-2xl font-bold text-gray-900 dark:text-white">
+									<div className="text-sm text-green-600 dark:text-green-400">Confirmed</div>
+									<div className="text-2xl font-bold text-green-900 dark:text-green-300">
 										{getTotalConfirmedAmount()} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
+					<Card className="p-6 bg-yellow-50 dark:bg-yellow-900/20">
 						<CardContent className="p-0">
-							<div className="flex items-center gap-4">
-								<div className="w-14 h-14 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-time-line w-7 h-7 flex items-center justify-center text-yellow-600 dark:text-yellow-400"></i>
+							<div className="flex items-center gap-3">
+								<div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
+									<i className="ri-time-line w-6 h-6 flex items-center justify-center text-yellow-600 dark:text-yellow-400"></i>
 								</div>
 								<div>
-									<div className="text-base text-yellow-700 dark:text-yellow-200 mb-1">Pending</div>
-									<div className="text-2xl font-bold text-gray-900 dark:text-white">
+									<div className="text-sm text-yellow-600 dark:text-yellow-400">Pending</div>
+									<div className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">
 										{getTotalPendingAmount()} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 									</div>
 								</div>
@@ -301,7 +301,7 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 				</div>
 
 				{/* Progress Bar */}
-				<Card className="p-6 mb-12 bg-white dark:bg-gray-800 border-0 shadow">
+				<Card className="p-6 mb-8">
 					<CardContent className="p-0">
 						<div className="flex items-center justify-between mb-4">
 							<h3 className="text-lg font-semibold text-foreground">Payment Progress</h3>
@@ -319,90 +319,86 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 				</Card>
 
 				{/* Matched Users */}
-				<Card className="bg-white dark:bg-gray-800 border-0 shadow-lg rounded-lg mb-12">
+				<Card className="bg-card border-0 shadow-sm rounded-lg mb-10">
 					<div className="p-6 border-b border-border">
 						<h2 className="text-lg font-semibold text-foreground">Matched Users</h2>
 						<p className="text-sm text-muted-foreground mt-1">{data.data.matches.length} users matched to fulfill your request</p>
 					</div>
 					<div className="p-6">
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 							{data.data.matches.map((match) => (
-								<div key={match.id} className="relative group border border-border rounded-xl p-0 bg-white dark:bg-gray-900 shadow-md hover:shadow-xl transition-shadow duration-300">
-									{/* Status badge */}
-									<span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold shadow ${getPaymentStatusColor(match.status)}`}>{match.status}</span>
-									{/* Card Content */}
-									<div className="grid grid-cols-1 gap-0">
-										{/* User Info */}
-										<div className="flex flex-col items-center justify-center py-6 px-6 border-b border-border bg-white dark:bg-gray-900 rounded-t-xl">
-											<div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2">
-												<i className="ri-user-line w-7 h-7 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+								<div key={match.id} className="border border-border rounded-lg p-6">
+									<div className="flex items-center justify-between mb-4">
+										<div className="flex items-center gap-3">
+											<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+												<i className="ri-user-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
 											</div>
-											<h4 className="font-bold text-lg text-foreground mb-1">{match.userInfo?.name}</h4>
-											<p className="text-xs text-muted-foreground break-words max-w-[180px] text-center">{match.userInfo.email}</p>
-											<span className="mt-1 text-xs text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded">@{match.userInfo.username}</span>
+											<div>
+												<h4 className="font-semibold text-foreground">{match.userInfo?.name}</h4>
+												<p className="text-sm text-muted-foreground break-words max-w-[200px]">{match.userInfo.email}</p>
+											</div>
 										</div>
-										{/* Details Grid */}
-										<div className="grid grid-cols-2 gap-4 px-6 py-5">
-											<div className="flex flex-col">
-												<span className="text-xs text-muted-foreground mb-1">Amount</span>
-												<span className="font-semibold text-foreground text-base">
-													{match.amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-												</span>
-											</div>
-											<div className="flex flex-col">
-												<span className="text-xs text-muted-foreground mb-1">Date</span>
-												<span className="text-foreground text-base">{new Date(match.created_at).toLocaleDateString()}</span>
-											</div>
-											{match.proof_of_payment && (
-												<div className="col-span-2 flex flex-col mt-2">
-													<span className="text-xs text-muted-foreground mb-1">Payment Proof</span>
-													<img src={match.proof_of_payment} alt="Payment proof" className="w-full h-32 object-cover rounded-lg border border-border" />
-												</div>
-											)}
+										<span className={`px-2 py-1 rounded-full text-xs font-medium max-w-[100px] text-center truncate ${getPaymentStatusColor(match.status)}`}>{match.status}</span>
+									</div>
+									<div className="space-y-3 mb-4">
+										<div className="flex justify-between text-sm">
+											<span className="text-muted-foreground">Username:</span>
+											<span className="text-foreground">{match.userInfo.username}</span>
 										</div>
-										{/* Actions & Status */}
-										<div className="flex flex-col gap-3 px-6 pb-6">
-											{(match.status === 'submitted' || match.status === 'proof-submitted') && (
-												<div className="flex gap-3">
-													<Button onClick={() => handlePaymentAction(match.id, 'confirm')} disabled={processingPayment === match.id} className="bg-green-600 hover:bg-green-700 text-white flex-1">
-														{processingPayment === match.id ? (
-															<div className="flex items-center gap-2">
-																<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-																<span>Processing...</span>
-															</div>
-														) : (
-															<>
-																<i className="ri-check-line w-4 h-4 flex items-center justify-center mr-2"></i>
-																Confirm
-															</>
-														)}
-													</Button>
-													<Button onClick={() => handlePaymentAction(match.id, 'decline')} disabled={processingPayment === match.id} variant="outline" className="bg-card border-border text-foreground hover:bg-accent flex-1">
-														<i className="ri-close-line w-4 h-4 flex items-center justify-center mr-2"></i>
-														Decline
-													</Button>
-												</div>
-											)}
-											{match.status === 'confirmed' && (
-												<div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-semibold">
-													<i className="ri-check-double-line w-4 h-4 flex items-center justify-center"></i>
-													<span>Payment confirmed</span>
-												</div>
-											)}
-											{match.status === 'declined' && (
-												<div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-semibold">
-													<i className="ri-close-circle-line w-4 h-4 flex items-center justify-center"></i>
-													<span>Payment declined</span>
-												</div>
-											)}
-											{match.status === 'pending' && (
-												<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm font-semibold">
-													<i className="ri-time-line w-4 h-4 flex items-center justify-center"></i>
-													<span>Awaiting payment</span>
-												</div>
-											)}
+										<div className="flex justify-between text-sm">
+											<span className="text-muted-foreground">Amount:</span>
+											<span className="text-foreground font-semibold">
+												{match.amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+											</span>
+										</div>
+										<div className="flex justify-between text-sm">
+											<span className="text-muted-foreground">Date:</span>
+											<span className="text-foreground">{new Date(match.created_at).toLocaleDateString()}</span>
 										</div>
 									</div>
+									{match.proof_of_payment && (match.status === 'submitted' || match.status === 'proof-submitted') && (
+										<div className="space-y-4">
+											<div className="text-sm font-medium text-foreground">Payment Proof:</div>
+											<img src={match.proof_of_payment} alt="Payment proof" className="w-full h-40 object-cover rounded-lg border border-border" />
+											<div className="flex gap-3">
+												<Button onClick={() => handlePaymentAction(match.id, 'confirm')} disabled={processingPayment === match.id} className="bg-green-600 hover:bg-green-700 text-white flex-1">
+													{processingPayment === match.id ? (
+														<div className="flex items-center gap-2">
+															<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+															<span>Processing...</span>
+														</div>
+													) : (
+														<>
+															<i className="ri-check-line w-4 h-4 flex items-center justify-center mr-2"></i>
+															Confirm
+														</>
+													)}
+												</Button>
+												<Button onClick={() => handlePaymentAction(match.id, 'decline')} disabled={processingPayment === match.id} variant="outline" className="bg-card border-border text-foreground hover:bg-accent flex-1">
+													<i className="ri-close-line w-4 h-4 flex items-center justify-center mr-2"></i>
+													Decline
+												</Button>
+											</div>
+										</div>
+									)}
+									{match.status === 'confirmed' && (
+										<div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
+											<i className="ri-check-double-line w-4 h-4 flex items-center justify-center"></i>
+											<span>Payment confirmed</span>
+										</div>
+									)}
+									{match.status === 'declined' && (
+										<div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
+											<i className="ri-close-circle-line w-4 h-4 flex items-center justify-center"></i>
+											<span>Payment declined</span>
+										</div>
+									)}
+									{match.status === 'pending' && (
+										<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm">
+											<i className="ri-time-line w-4 h-4 flex items-center justify-center"></i>
+											<span>Awaiting payment</span>
+										</div>
+									)}
 								</div>
 							))}
 						</div>
@@ -411,14 +407,15 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 
 				{/* PH Users (who you provided help to) */}
 				{myPHs.details.length > 0 && (
-					<Card className="bg-white dark:bg-gray-800 border-0 shadow-lg rounded-lg mb-8">
+					<Card className="bg-card border-0 shadow-sm rounded-lg mb-8">
 						<div className="p-6 border-b border-border">
 							<h2 className="text-lg font-semibold text-foreground">Users Who You Provided Help To</h2>
+							{/* <p className="text-sm text-muted-foreground mt-1">{myPHs.details.length} user(s) who helped you with this request</p> */}
 						</div>
 						<div className="p-6">
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 								{myPHs.details.map((detail) => (
-									<div key={detail.id} className="border border-border rounded-lg p-6 bg-gray-50 dark:bg-gray-900/40">
+									<div key={detail.id} className="border border-border rounded-lg p-6">
 										<div className="flex items-center justify-between mb-4">
 											<div className="flex items-center gap-3">
 												<div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
@@ -437,7 +434,7 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 												<span className="text-foreground">{detail.phoneNumber}</span>
 											</div>
 											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Momo Provider:</span>
+												<span className="text-muted-foreground"> Momo Provider:</span>
 												<span className="text-foreground">{detail.momo_provider}</span>
 											</div>
 											<div className="flex justify-between text-sm">

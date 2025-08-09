@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
 import { getCurrentUser } from '@/lib/userUtils';
-import { getCurrencyFromLocalStorage, parseMaturityDays, getSettings, handleFetchMessage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, parseMaturityDays, getSettings, handleFetchMessage, formatDateNice } from '@/lib/helpers';
 import { useRouter } from 'next/navigation';
 import nProgress from 'nprogress';
 
@@ -30,7 +30,7 @@ interface AssignedUser {
 	amount: number;
 	momo_provider: string;
 	momo_number: string;
-	accountName: string;
+	momo_name: string;
 	timeAssigned: string;
 	status: 'pending' | 'proof-submitted' | 'confirmed' | 'declined' | 'cancelled';
 }
@@ -61,7 +61,7 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 	const [currentPage, setCurrentPage] = useState(1);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isRequestingGH, setIsRequestingGH] = useState<string | null>(null);
-	const itemsPerPage = 2;
+	const itemsPerPage = 1;
 	const [totalPages, setTotalPages] = useState(1);
 	const [packages, setPackages] = useState<Package[]>([]);
 	// Add a ticking state to force re-render every second for countdown
@@ -136,6 +136,7 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 							amount: Number(u.amount),
 							bankName: u.bankName,
 							momo_number: u.momo_number,
+							momo_name: u.accountName,
 							momo_provider: u.momo_provider,
 							timeAssigned: u.timeAssigned || '',
 							status: u.status,
@@ -429,15 +430,15 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 	const paginatedRequests = phRequests;
 
 	const renderSelectPackage = () => (
-		<div className="p-4 lg:p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
+		<div className="p-4 lg:p-6 min-h-screen">
 			<div className="max-w-6xl mx-auto">
 				<div className="mb-6">
 					<Button onClick={() => setCurrentState('view-requests')} variant="ghost" className="mb-4 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
 						<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center mr-2"></i>
 						Back to Requests
 					</Button>
-					<h2 className="font-poppins text-2xl font-bold text-gray-900 dark:text-white mb-2">Select a Package</h2>
-					<p className="text-gray-600 dark:text-gray-400">Choose a package to provide help. Each package offers different returns and maturity periods.</p>
+					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Select a package</h2>
+					<p className="text-gray-600 dark:text-gray-400">Choose the package that best suits your donation goals</p>
 				</div>
 
 				{packages.length === 0 ? (
@@ -449,39 +450,36 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 						<p className="text-gray-600 dark:text-gray-400 mb-6">There are currently no donation packages available. Please check back later.</p>
 					</div>
 				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{packages.map((pkg, idx) => (
-							<Card key={pkg.id} className={`p-0 border-0 slide-up ${idx % 3 === 0 ? 'bg-gradient-to-br from-[#4F46E5] to-[#6366F1]' : idx % 3 === 1 ? 'bg-gradient-to-br from-[#059669] to-[#10B981]' : 'bg-gradient-to-br from-[#F59E42] to-[#FBBF24]'}`}>
-								<CardContent className="p-6 flex flex-col h-full">
-									<div className="mb-4 flex items-center gap-2">
-										<h3 className="font-poppins text-lg font-semibold text-white">{pkg.name}</h3>
-										<i className="ri-crown-line w-4 h-4 flex items-center justify-center text-yellow-300"></i>
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+						{packages.map((pkg) => (
+							<Card key={pkg.id} className="p-6 hover:shadow-lg transition-shadow bg-white dark:bg-gray-800 border-0">
+								<CardContent className="p-0">
+									<div className="mb-4">
+										<div className="flex items-center gap-2 mb-2">
+											<h3 className="font-semibold text-gray-900 dark:text-white">{pkg.name}</h3>
+											<i className="ri-crown-line w-4 h-4 flex items-center justify-center text-yellow-500"></i>
+										</div>
 									</div>
-									<div className="space-y-3 mb-6 text-white">
+
+									<div className="space-y-3 mb-6">
 										<div className="flex items-center gap-2 text-sm">
-											<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-white/80"></i>
-											<span>
-												Profit: <span className="font-semibold">{pkg.profitPercentage}%</span>
-											</span>
+											<i className="ri-checkbox-circle-line w-4 h-4 flex items-center justify-center text-green-500"></i>
+											<span className="text-gray-600 dark:text-gray-400">Percentage profit: {pkg.profitPercentage}%</span>
 										</div>
 										<div className="flex items-center gap-2 text-sm">
-											<i className="ri-time-line w-4 h-4 flex items-center justify-center text-white/80"></i>
-											<span>
-												Maturity: <span className="font-semibold">{pkg.maturityPeriod} days</span>
-											</span>
+											<i className="ri-time-line w-4 h-4 flex items-center justify-center text-blue-500"></i>
+											<span className="text-gray-600 dark:text-gray-400">Maturity period: {pkg.maturityPeriod} days</span>
 										</div>
 										<div className="flex items-center gap-2 text-sm">
-											<i className="ri-money-dollar-circle-line w-4 h-4 flex items-center justify-center text-white/80"></i>
-											<span>
-												Amount:{' '}
-												<span className="font-semibold">
-													{pkg.minAmount} - {pkg.maxAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-												</span>
+											<i className="ri-money-dollar-circle-line w-4 h-4 flex items-center justify-center text-purple-500"></i>
+											<span className="text-gray-600 dark:text-gray-400">
+												Amount: {pkg.minAmount} - {pkg.maxAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 											</span>
 										</div>
 									</div>
-									<Button onClick={() => handlePackageSelect(pkg)} className="button-primary bg-white/90 text-[#1F2A44] font-semibold px-6 py-2 rounded transition-colors hover:bg-white">
-										Select
+
+									<Button onClick={() => handlePackageSelect(pkg)} variant="outline" className="w-full whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+										Select package
 									</Button>
 								</CardContent>
 							</Card>
@@ -493,158 +491,127 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 	);
 
 	const renderEnterAmount = () => (
-		<div className="p-4 lg:p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
-			<div className="max-w-6xl mx-auto">
+		<div className="p-4 lg:p-6 min-h-screen">
+			<div className="max-w-2xl mx-auto">
 				<div className="mb-6">
 					<Button onClick={() => setCurrentState('select-package')} variant="ghost" className="mb-4 whitespace-nowrap text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
 						<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center mr-2"></i>
 						Back to packages
 					</Button>
-					<h2 className="font-poppins text-2xl font-bold text-gray-900 dark:text-white mb-2">Enter Amount</h2>
-					<p className="text-gray-600 dark:text-gray-400">
-						Selected package: <span className="font-semibold text-[#1F2A44] dark:text-white">{selectedPackage?.name}</span>
-					</p>
+					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Enter Amount</h2>
+					<p className="text-gray-600 dark:text-gray-400">Selected package: {selectedPackage?.name}</p>
 				</div>
-				<div className="flex flex-col md:flex-row gap-8">
-					{/* Package Details Section (now comes first) */}
-					<Card className="flex-1 p-0 border-0 slide-up bg-gradient-to-br from-[#059669] to-[#10B981] dark:from-[#1b2e23] dark:to-[#14532d]">
-						<CardContent className="p-0">
-							<div className="p-8 flex flex-col gap-4 h-full">
-								<h3 className="font-bold text-white text-xl mb-2">{selectedPackage?.name}</h3>
-								<div className="grid grid-cols-1 gap-4 text-sm">
-									<div>
-										<span className="block text-xs text-emerald-100">Profit Percentage</span>
-										<span className="font-medium text-white">{selectedPackage?.profitPercentage}%</span>
+
+				<Card className="p-6 bg-white dark:bg-gray-800 border-0">
+					<CardContent className="p-0">
+						<div className="space-y-6">
+							<div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+								<h3 className="font-semibold text-gray-900 dark:text-white mb-3">Package Details</h3>
+								<div className="space-y-2 text-sm">
+									<div className="flex justify-between">
+										<span className="text-gray-600 dark:text-gray-400">Profit Percentage:</span>
+										<span className="font-medium text-gray-900 dark:text-white">{selectedPackage?.profitPercentage}%</span>
 									</div>
-									<div>
-										<span className="block text-xs text-emerald-100">Maturity Period</span>
-										<span className="font-medium text-white">{selectedPackage?.maturityPeriod} days</span>
+									<div className="flex justify-between">
+										<span className="text-gray-600 dark:text-gray-400">Maturity Period:</span>
+										<span className="font-medium text-gray-900 dark:text-white">{selectedPackage?.maturityPeriod} days</span>
 									</div>
-									<div>
-										<span className="block text-xs text-emerald-100">Amount Range</span>
-										<span className="font-medium text-white">
+									<div className="flex justify-between">
+										<span className="text-gray-600 dark:text-gray-400">Amount Range:</span>
+										<span className="font-medium text-gray-900 dark:text-white">
 											{selectedPackage?.minAmount} - {selectedPackage?.maxAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 										</span>
 									</div>
 								</div>
 							</div>
-						</CardContent>
-					</Card>
-					{/* Amount Input Section */}
-					<Card className="flex-1 p-0 border-0 slide-up bg-gradient-to-br from-[#4F46E5] to-[#6366F1] dark:from-[#232e48] dark:to-[#373f5b]">
-						<CardContent className="p-0">
-							<div className="space-y-8 p-8">
-								<div>
-									<label className="block text-sm font-medium text-white mb-2">Amount to Provide ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
-									<input
-										type="number"
-										value={amount}
-										onChange={(e) => setAmount(e.target.value)}
-										min={selectedPackage?.minAmount}
-										max={selectedPackage?.maxAmount}
-										placeholder="Enter amount"
-										className="w-full px-4 py-3 border-2 border-white/60 dark:border-gray-700 rounded-lg bg-white/90 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent font-semibold text-lg"
-									/>
-									<p className="text-xs text-white/80 dark:text-gray-300 mt-1">
-										Minimum: {selectedPackage?.minAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code} | Maximum: {selectedPackage?.maxAmount}{' '}
-										{getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-									</p>
-									{amount && (Number(amount) < (selectedPackage?.minAmount || 0) || Number(amount) > (selectedPackage?.maxAmount || 0)) && (
-										<p className="text-sm mt-2 text-red-600 dark:text-red-400 font-medium">
-											Amount must be between {selectedPackage?.minAmount} and {selectedPackage?.maxAmount}
-										</p>
-									)}
-								</div>
-								{/* Expected Return */}
-								{amount && Number(amount) >= (selectedPackage?.minAmount || 0) && Number(amount) <= (selectedPackage?.maxAmount || 0) && (
-									<div className="bg-gradient-to-br from-green-200 to-green-400 dark:from-green-900 dark:to-green-700 p-6 rounded-lg shadow">
-										<h4 className="font-medium text-green-900 dark:text-green-200 mb-2">Expected Return</h4>
-										<div className="text-md text-green-900 dark:text-green-200 space-y-1">
-											<div className="flex justify-between">
-												<span>Amount provided:</span>
-												<span className="font-semibold">
-													{amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-												</span>
-											</div>
-											<div className="flex justify-between">
-												<span>Expected profit ({selectedPackage?.profitPercentage}%):</span>
-												<span className="font-semibold">
-													{((Number(amount) * (selectedPackage?.profitPercentage || 0)) / 100).toFixed(2)} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-												</span>
-											</div>
-											<div className="flex justify-between font-semibold border-t border-green-300 dark:border-green-800 pt-2 mt-2">
-												<span>Total return:</span>
-												<span>
-													{((Number(amount) * (selectedPackage?.profitPercentage || 0)) / 100 + Number(amount)).toFixed(2)} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-												</span>
-											</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">Amount to Provide ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
+								<input
+									type="number"
+									value={amount}
+									onChange={(e) => setAmount(e.target.value)}
+									min={selectedPackage?.minAmount}
+									max={selectedPackage?.maxAmount}
+									placeholder="Enter amount"
+									className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+								/>
+								<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+									Minimum: {selectedPackage?.minAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code} | Maximum: {selectedPackage?.maxAmount}{' '}
+									{getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+								</p>
+							</div>
+
+							{amount && (
+								<div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+									<h4 className="font-medium text-green-800 dark:text-green-200 mb-2">Expected Return</h4>
+									<div className="text-sm text-green-700 dark:text-green-300">
+										<div className="flex justify-between">
+											<span>Amount provided:</span>
+											<span className="font-medium">
+												{amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+											</span>
+										</div>
+										<div className="flex justify-between">
+											<span>Expected profit ({selectedPackage?.profitPercentage}%):</span>
+											<span className="font-medium">
+												{((Number(amount) * (selectedPackage?.profitPercentage || 0)) / 100).toFixed(2)} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+											</span>
+										</div>
+										<div className="flex justify-between font-semibold border-t border-green-200 dark:border-green-800 pt-2 mt-2">
+											<span>Total return:</span>
+											<span>
+												{((Number(amount) * (selectedPackage?.profitPercentage || 0)) / 100).toFixed(2)} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+											</span>
 										</div>
 									</div>
-								)}
-								{/* Submit Button */}
-								<Button
-									onClick={handleAmountSubmit}
-									className="w-full whitespace-nowrap bg-white/90 text-[#1F2A44] font-semibold px-6 py-3 rounded-lg text-lg transition-colors hover:bg-white"
-									disabled={!amount || Number(amount) < (selectedPackage?.minAmount || 0) || Number(amount) > (selectedPackage?.maxAmount || 0)}
-								>
-									Confirm Amount
-								</Button>
-							</div>
-						</CardContent>
-					</Card>
-				</div>
+								</div>
+							)}
+
+							<Button onClick={handleAmountSubmit} className="w-full whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white" disabled={!amount || Number(amount) < (selectedPackage?.minAmount || 0) || Number(amount) > (selectedPackage?.maxAmount || 0)}>
+								Confirm Amount
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	);
 
 	const renderWaiting = () => (
-		<div className="p-4 lg:p-6 min-h-screen bg-gray-50 dark:bg-gray-900">
-			<div className="max-w-xl mx-auto">
-				<Card className="p-0 border-0 bg-gradient-to-br from-[#4F46E5] to-[#6366F1] dark:from-[#232e48] dark:to-[#373f5b] shadow-xl">
+		<div className="p-4 lg:p-6 min-h-screen">
+			<div className="max-w-2xl mx-auto">
+				<Card className="p-8 text-center bg-white dark:bg-gray-800 border-0">
 					<CardContent className="p-0">
-						<div className="py-10 px-6 flex flex-col items-center">
-							<div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6 shadow-lg">
-								<i className="ri-time-line w-10 h-10 flex items-center justify-center text-blue-600 dark:text-blue-300"></i>
+						<div className="mb-6">
+							<div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+								<i className="ri-time-line w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
 							</div>
-							<h2 className="text-2xl font-bold text-white mb-2 text-center">Creating Your Request</h2>
-							<p className="text-indigo-100 mb-8 text-center">
-								Please wait while we create your provide help request.
-								<br />
-								This usually takes a few seconds.
-							</p>
+							<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Creating Your Request</h2>
+							<p className="text-gray-600 dark:text-gray-400">Please wait while we create your provide help request. This usually takes a few seconds.</p>
+						</div>
 
-							{/* Progress Bar */}
-							<div className="w-full mb-8">
-								<div className="w-full bg-indigo-200 dark:bg-indigo-900 rounded-full h-3">
-									<div className="bg-green-400 dark:bg-green-600 h-3 rounded-full transition-all duration-500" style={{ width: `${waitingProgress}%` }}></div>
-								</div>
-								<p className="text-xs text-indigo-100 mt-2 text-center">{waitingProgress}% complete</p>
+						<div className="mb-6">
+							<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+								<div className="bg-blue-600 h-2 rounded-full transition-all duration-500" style={{ width: `${waitingProgress}%` }}></div>
 							</div>
+							<p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{waitingProgress}% complete</p>
+						</div>
 
-							{/* Info Steps */}
-							<div className="space-y-4 w-full">
-								<div className="flex items-center gap-3 text-sm">
-									<i className="ri-shield-check-line w-5 h-5 flex items-center justify-center text-green-300"></i>
-									<span className="text-indigo-100">Your request is secure and encrypted</span>
-								</div>
-								<div className="flex items-center gap-3 text-sm">
-									<i className="ri-group-line w-5 h-5 flex items-center justify-center text-blue-200"></i>
-									<span className="text-indigo-100">Creating your PH request</span>
-								</div>
-								<div className="flex items-center gap-3 text-sm">
-									<i className="ri-money-dollar-circle-line w-5 h-5 flex items-center justify-center text-yellow-200"></i>
-									<span className="text-indigo-100">
-										Amount: {amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-									</span>
-								</div>
-								{selectedPackage && (
-									<div className="flex items-center gap-3 text-sm">
-										<i className="ri-gift-line w-5 h-5 flex items-center justify-center text-pink-200"></i>
-										<span className="text-indigo-100">
-											Package: <span className="font-semibold">{selectedPackage.name}</span>
-										</span>
-									</div>
-								)}
+						<div className="space-y-4">
+							<div className="flex items-center gap-3 text-sm">
+								<i className="ri-shield-check-line w-4 h-4 flex items-center justify-center text-green-500"></i>
+								<span className="text-gray-600 dark:text-gray-400">Your request is secure and encrypted</span>
+							</div>
+							<div className="flex items-center gap-3 text-sm">
+								<i className="ri-group-line w-4 h-4 flex items-center justify-center text-blue-500"></i>
+								<span className="text-gray-600 dark:text-gray-400">Creating your PH request</span>
+							</div>
+							<div className="flex items-center gap-3 text-sm">
+								<i className="ri-money-dollar-circle-line w-4 h-4 flex items-center justify-center text-purple-500"></i>
+								<span className="text-gray-600 dark:text-gray-400">
+									Amount: {amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+								</span>
 							</div>
 						</div>
 					</CardContent>
@@ -657,25 +624,48 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 		if (isLoading) {
 			return (
 				<div className={`p-4 lg:p-6 ${!hideHeader && 'min-h-screen'}`}>
-					<div className="max-w-3xl mx-auto">
-						{/* Skeleton loader */}
-						{[...Array(2)].map((_, i) => (
-							<div key={i} className="animate-pulse mb-8">
-								<Card className="p-6 bg-white dark:bg-gray-800 border-0">
-									<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-									<div className="space-y-4">
-										{[...Array(4)].map((_, j) => (
-											<div key={j} className="h-14 bg-gray-200 dark:bg-gray-700 rounded"></div>
-										))}
-									</div>
-									<div className="space-y-4 mt-6">
-										{[...Array(2)].map((_, k) => (
-											<div key={k} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-										))}
-									</div>
-								</Card>
+					<div className="max-w-6xl mx-auto">
+						<div className="mb-6 flex justify-between items-center">
+							<div>
+								<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">My PH Requests</h2>
+								<p className="text-gray-600 dark:text-gray-400">Manage all your provide help requests</p>
 							</div>
-						))}
+
+							{!hideHeader && (
+								<Button onClick={() => setCurrentState('select-package')} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
+									<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
+									Create New Request
+								</Button>
+							)}
+						</div>
+						<div className="space-y-6">
+							{[...Array(2)].map((_, i) => (
+								<div key={i} className="animate-pulse">
+									<Card className="p-6 bg-white dark:bg-gray-800 border-0">
+										<div className="flex items-center justify-between mb-4">
+											<div className="flex items-center gap-3">
+												<div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+												<div>
+													<div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2"></div>
+													<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+												</div>
+											</div>
+											<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+										</div>
+										<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+											{[...Array(4)].map((_, j) => (
+												<div key={j} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+											))}
+										</div>
+										<div className="space-y-4">
+											{[...Array(2)].map((_, k) => (
+												<div key={k} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+											))}
+										</div>
+									</Card>
+								</div>
+							))}
+						</div>
 					</div>
 				</div>
 			);
@@ -684,11 +674,14 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 		return (
 			<div className={`p-4 lg:p-6 ${!hideHeader && 'min-h-screen'}`}>
 				<div className="max-w-6xl mx-auto">
-					<div className="mb-8 flex flex-col gap-2">
-						<h2 className="text-2xl font-bold text-gray-900 dark:text-white">My PH Requests</h2>
-						<p className="text-gray-600 dark:text-gray-400">Manage all your provide help requests</p>
+					<div className="mb-6 flex justify-between items-center">
+						<div>
+							<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">My PH Requests</h2>
+							<p className="text-gray-600 dark:text-gray-400">Manage all your provide help requests</p>
+						</div>
+
 						{!hideHeader && (
-							<Button onClick={() => setCurrentState('select-package')} className="self-start bg-[#1F2A44] hover:bg-[#25325a] text-white mt-2">
+							<Button onClick={() => setCurrentState('select-package')} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
 								<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
 								Create New Request
 							</Button>
@@ -702,7 +695,7 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 								</div>
 								<h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No PH Requests Yet</h3>
 								<p className="text-gray-600 dark:text-gray-400 mb-6">You haven't created any provide help requests yet. Start by creating your first request.</p>
-								<Button onClick={() => setCurrentState('select-package')} className="bg-[#1F2A44] hover:bg-[#25325a] text-white whitespace-nowrap">
+								<Button onClick={() => setCurrentState('select-package')} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
 									<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
 									Create First Request
 								</Button>
@@ -710,122 +703,164 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 						</Card>
 					) : (
 						<>
-							<div className="space-y-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+							<div className="space-y-6">
 								{paginatedRequests.map((request) => {
-									const isWaiting = request.status === 'pending' || request.status === 'waiting-match';
 									return (
-										<Card key={request.id} className="p-0 bg-white dark:bg-gray-800 border-0 slide-up">
+										<Card key={request.id} className="p-6 bg-white dark:bg-gray-800 border-0">
 											<CardContent className="p-0">
-												{/* Request ID and Status */}
-												<div className="flex flex-col gap-2 border-b border-gray-200 dark:border-gray-700 px-6 pt-6 pb-4">
-													<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-														<div className="flex items-center gap-3">
-															<span className="font-poppins text-lg font-semibold text-gray-900 dark:text-white">{request.id}</span>
-															<span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>{getStatusText(request.status, new Date() > new Date(request.expectedMaturity))}</span>
+												<div className="flex items-center justify-between mb-4">
+													<div className="flex items-center gap-3">
+														<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+															<i className="ri-hand-heart-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
 														</div>
-														<span className="text-sm text-gray-500 dark:text-gray-400">{request.packageName}</span>
+														<div>
+															<h3 className="font-semibold text-gray-900 dark:text-white">{request.id}</h3>
+															<p className="text-sm text-gray-600 dark:text-gray-400">{request.packageName}</p>
+														</div>
 													</div>
-												</div>
 
-												{/* Key Metrics as horizontal cards */}
-												<div className="flex flex-col gap-4 px-6 py-6">
-													<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-														<div className="rounded-lg bg-gradient-to-br from-[#4F46E5] to-[#6366F1] p-4 flex flex-col shadow">
-															<span className="text-xs text-indigo-100 mb-1">Amount</span>
-															<span className="font-semibold text-lg text-white">
-																{request.amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-															</span>
-														</div>
-														<div className="rounded-lg bg-gradient-to-br from-[#F59E42] to-[#FBBF24] p-4 flex flex-col shadow">
-															<span className="text-xs text-yellow-900 mb-1">Assigned Users</span>
-															<span className="font-semibold text-lg text-[#1F2A44]">{request.assignedUsers.length}</span>
-														</div>
-														{/* Only show these stats if not waiting */}
-														{!isWaiting && (
-															<>
-																<div className="rounded-lg bg-gradient-to-br from-[#059669] to-[#10B981] p-4 flex flex-col shadow">
-																	<span className="text-xs text-emerald-100 mb-1">Expected Maturity</span>
-																	<span className="font-semibold text-lg text-white">{request.status === 'active' ? getCountdown(request.expectedMaturity) : 'N/A'}</span>
-																</div>
-																<div className="rounded-lg bg-gradient-to-br from-[#6366F1] to-[#4F46E5] p-4 flex flex-col shadow">
-																	<span className="text-xs text-indigo-100 mb-1">Match Progress</span>
-																	<span className="font-semibold text-lg text-white">{request.matchingProgress}%</span>
-																</div>
-															</>
+													<div className="flex items-center gap-2">
+														<span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>{getStatusText(request.status, new Date() > new Date(request.expectedMaturity))}</span>
+
+														{request.status === 'active' && new Date() > new Date(request.expectedMaturity) && (
+															<Button
+																size="sm"
+																className="ml-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs"
+																onClick={async () => {
+																	setIsRequestingGH(request.id);
+																	try {
+																		const user = getCurrentUser();
+																		if (!user) {
+																			toast.error('User not found. Please log in again.');
+																			return;
+																		}
+																		const gain = (request.amount * (request.profitPercentage || 0)) / 100;
+																		const res = await fetchWithAuth('/api/gh-requests', {
+																			method: 'POST',
+																			headers: { 'Content-Type': 'application/json' },
+																			body: JSON.stringify({ user: user.id, amount: gain, status: 'pending', requestId: request.id }),
+																		});
+																		const data = await res.json();
+																		if (!res.ok) {
+																			throw new Error(data?.message || 'Failed to request GH');
+																		} else {
+																			nProgress.start();
+																			router.push('/user/get-help');
+																		}
+																		toast.success('GH request submitted successfully!');
+																	} catch (err: any) {
+																		toast.error(err?.message || 'Failed to request GH');
+																	} finally {
+																		setIsRequestingGH(null);
+																	}
+																}}
+																disabled={isRequestingGH === request.id}
+															>
+																{isRequestingGH === request.id ? (
+																	<div className="flex items-center gap-2">
+																		<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+																		<span>Requesting...</span>
+																	</div>
+																) : (
+																	'Request GH'
+																)}
+															</Button>
 														)}
 													</div>
-													{/* Waiting message */}
-													{isWaiting && (
-														<div className="mt-6 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-blue-900 dark:text-blue-200 text-center font-medium">
-															Your request is waiting to be matched. Please wait while the system finds a match for you.
+												</div>
+												<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+													<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+														<div className="flex items-center gap-2 mb-1">
+															<i className="ri-money-dollar-circle-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+															<span className="text-sm text-gray-600 dark:text-gray-400">Amount</span>
 														</div>
-													)}
+														<p className="font-semibold text-gray-900 dark:text-white">
+															{request.amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+														</p>
+													</div>
+													<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+														<div className="flex items-center gap-2 mb-1">
+															<i className="ri-calendar-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+															<span className="text-sm text-gray-600 dark:text-gray-400">Expected Maturity</span>
+														</div>
+														<p className="font-semibold text-gray-900 dark:text-white">{request.status === 'active' ? getCountdown(request.expectedMaturity) : 'N/A'}</p>
+													</div>
+													<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+														<div className="flex items-center gap-2 mb-1">
+															<i className="ri-team-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+															<span className="text-sm text-gray-600 dark:text-gray-400">Assigned Users</span>
+														</div>
+														<p className="font-semibold text-gray-900 dark:text-white">{request.assignedUsers.length}</p>
+													</div>
+													<div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+														<div className="flex items-center gap-2 mb-1">
+															<i className="ri-bar-chart-line w-4 h-4 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+															<span className="text-sm text-gray-600 dark:text-gray-400">Match Progress</span>
+														</div>
+														<p className="font-semibold text-gray-900 dark:text-white">{request.matchingProgress}%</p>
+													</div>
 												</div>
 
-												{/* Assigned Users List */}
+												{(request.status === 'waiting-match' || request.status === 'pending') && (
+													<div className="text-center py-6">
+														<div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+															<i className="ri-search-line w-8 h-8 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
+														</div>
+														<h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Waiting for Match</h4>
+														<p className="text-gray-600 dark:text-gray-400">We're searching for users to match with your request. This process typically takes a few hours.</p>
+													</div>
+												)}
+
 												{request.assignedUsers.length > 0 && (
-													<div className="px-6 pb-6">
+													<div>
 														<h4 className="font-medium text-gray-900 dark:text-white mb-3">Assigned Users</h4>
-														<div className="flex flex-col gap-6">
-															{request.assignedUsers.map((user, idx) => (
-																<div
-																	key={user.id}
-																	className={`rounded-xl p-6 flex flex-col gap-4 shadow-md border-0 slide-up ${
-																		idx % 2 === 0 ? 'bg-gradient-to-br from-[#e0e7ff] to-[#c7d2fe] dark:from-[#232e48] dark:to-[#373f5b]' : 'bg-gradient-to-br from-[#fef9c3] to-[#fde68a] dark:from-[#2d3b5e] dark:to-[#4b5563]'
-																	}`}
-																>
-																	<div
-																		key={user.id}
-																		className={`rounded-xl p-6 flex flex-col gap-4 shadow-md border-0 slide-up ${
-																			idx % 2 === 0 ? 'bg-gradient-to-br from-[#e0e7ff] to-[#c7d2fe] dark:from-[#232e48] dark:to-[#373f5b]' : 'bg-gradient-to-br from-[#fef9c3] to-[#fde68a] dark:from-[#2d3b5e] dark:to-[#4b5563]'
-																		}`}
-																	>
-																		<div className="flex flex-col gap-1">
-																			<span className="font-semibold text-[#1F2A44] dark:text-white text-base">{user.name || 'N/A'}</span>
-																			<span className="text-xs text-gray-500 dark:text-gray-400">@{user.username || 'N/A'}</span>
-																		</div>
-																		<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-																			<div>
-																				<span className="block text-xs text-gray-400">Phone</span>
-																				<span className="block text-sm text-gray-900 dark:text-white">{user.phoneNumber || 'N/A'}</span>
+														<div className="space-y-4">
+															{request.assignedUsers.map((user) => (
+																<div key={user.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+																	<div className="flex items-center justify-between mb-3">
+																		<div className="flex items-center gap-3">
+																			<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+																				<i className="ri-user-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
 																			</div>
 																			<div>
-																				<span className="block text-xs text-gray-400">Momo Provider</span>
-																				<span className="block text-sm text-gray-900 dark:text-white">{user.momo_provider || 'N/A'}</span>
-																			</div>
-																			<div>
-																				<span className="block text-xs text-gray-400">Amount</span>
-																				<span className="block text-sm font-semibold text-[#1F2A44] dark:text-white">
-																					{user.amount != null ? `${user.amount} ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}` : 'N/A'}
-																				</span>
-																			</div>
-																			<div>
-																				<span className="block text-xs text-gray-400">Momo Number</span>
-																				<span className="block text-sm text-gray-900 dark:text-white">{user.momo_number || 'N/A'}</span>
-																			</div>
-																			<div>
-																				<span className="block text-xs text-gray-400">Account Name</span>
-																				<span className="block text-sm text-gray-900 dark:text-white">{user.accountName || 'N/A'}</span>
-																			</div>
-																			<div>
-																				<span className="block text-xs text-gray-400">Time Assigned</span>
-																				<span className="block text-sm text-gray-900 dark:text-white">{user.timeAssigned ? new Date(user.timeAssigned).toLocaleString() : 'N/A'}</span>
+																				<h5 className="font-semibold text-gray-900 dark:text-white">{user.name}</h5>
+																				<p className="text-sm text-gray-600 dark:text-gray-400">@{user.username}</p>
 																			</div>
 																		</div>
-																		<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-																			<span className={`px-2 py-1 rounded-full text-xs font-medium ${getUserStatusColor(user.status)}`}>
-																				{user.status === 'proof-submitted' ? 'Proof Submitted' : user.status === 'confirmed' ? 'Payment Confirmed' : user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+																		<span className={`px-2 py-1 rounded-full text-xs font-medium ${getUserStatusColor(user.status)}`}>{user.status === 'proof-submitted' ? 'Proof Submitted' : user.status}</span>
+																	</div>
+
+																	<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Phone: </span>
+																			<span className="text-sm text-gray-900 dark:text-white">{user.phoneNumber}</span>
+																		</div>
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Amount: </span>
+																			<span className="text-sm font-semibold text-gray-900 dark:text-white">
+																				{user.amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 																			</span>
-																			<Button
-																				size="sm"
-																				onClick={() => handleUploadPayment(user)}
-																				disabled={user.status === 'confirmed' || user.status === 'proof-submitted'}
-																				className="bg-[#1F2A44] hover:bg-[#25325a] text-white px-4 py-2 rounded font-medium mt-2 sm:mt-0"
-																			>
-																				{user.status === 'confirmed' ? 'Payment Confirmed' : user.status === 'proof-submitted' ? 'Proof Submitted' : 'I have made payment'}
-																			</Button>
+																		</div>
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Momo Name: </span>
+																			<span className="text-sm text-gray-900 dark:text-white">{user.momo_name}</span>
+																		</div>
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Momo Provider: </span>
+																			<span className="text-sm text-gray-900 dark:text-white">{user.momo_provider}</span>
+																		</div>
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Momo Number: </span>
+																			<span className="text-sm text-gray-900 dark:text-white">{user.momo_number}</span>
+																		</div>
+																		<div>
+																			<span className="text-sm text-gray-600 dark:text-gray-400">Assigned {formatDateNice(user.timeAssigned)}</span>
 																		</div>
 																	</div>
+																	<Button size="sm" onClick={() => handleUploadPayment(user)} disabled={user.status === 'confirmed' || user.status === 'proof-submitted'} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
+																		<i className="ri-upload-line w-4 h-4 flex items-center justify-center mr-2"></i>
+																		{user.status === 'confirmed' ? 'Payment Confirmed' : user.status === 'proof-submitted' ? 'Proof Submitted' : 'I have made payment'}
+																	</Button>
 																</div>
 															))}
 														</div>
@@ -836,9 +871,9 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 									);
 								})}
 							</div>
-							{/* Pagination */}
+
 							{totalPages > 1 && (
-								<div className="flex justify-center items-center gap-2 mt-10">
+								<div className="flex justify-center items-center gap-2 mt-8">
 									<Button
 										variant="outline"
 										size="sm"
@@ -849,6 +884,7 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 										<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center mr-1"></i>
 										Previous
 									</Button>
+
 									<div className="flex items-center gap-1">
 										{[...Array(totalPages)].map((_, i) => (
 											<Button
@@ -856,12 +892,13 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 												variant={currentPage === i + 1 ? 'default' : 'outline'}
 												size="sm"
 												onClick={() => setCurrentPage(i + 1)}
-												className={`w-8 h-8 p-0 ${currentPage === i + 1 ? 'bg-[#1F2A44] text-white' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}`}
+												className={`w-8 h-8 p-0 ${currentPage === i + 1 ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}`}
 											>
 												{i + 1}
 											</Button>
 										))}
 									</div>
+
 									<Button
 										variant="outline"
 										size="sm"
@@ -877,6 +914,7 @@ export default function ProvideHelpPage({ hideHeader = false }: { hideHeader?: b
 						</>
 					)}
 				</div>
+
 				<PaymentProofModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} onConfirm={handlePaymentProofUpload} userName={selectedUser?.name || ''} amount={selectedUser?.amount || 0} />
 			</div>
 		);

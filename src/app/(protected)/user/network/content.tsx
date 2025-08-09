@@ -6,7 +6,7 @@ import { NetworkSkeleton } from '@/components/LoadingSkeleton';
 import { Button } from '@/components/ui/button';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
-import { getCurrencyFromLocalStorage, getSettings, handleFetchMessage } from '@/lib/helpers';
+import { formatCurrency, getCurrencyFromLocalStorage, getSettings, handleFetchMessage } from '@/lib/helpers';
 import { getCurrentUser } from '@/lib/userUtils';
 import { toast } from 'sonner';
 import nProgress from 'nprogress';
@@ -124,14 +124,6 @@ export default function NetworkPage() {
 		setSearchQuery(query);
 	};
 
-	const formatCurrency = (amount: number) => {
-		return new Intl.NumberFormat('en-GH', {
-			style: 'currency',
-			currency: getSettings()?.baseCurrency || getCurrencyFromLocalStorage()?.code || 'GHS',
-			minimumFractionDigits: 0,
-		}).format(amount);
-	};
-
 	const formatDate = (dateString: string) => {
 		return new Date(dateString).toLocaleDateString('en-GH', {
 			year: 'numeric',
@@ -212,63 +204,66 @@ export default function NetworkPage() {
 	}
 
 	return (
-		<div className="p-4 lg:p-6 min-h-screen bg-gradient-to-br from-[#e0e7ff] via-[#f3f4f6] to-[#c7d2fe] dark:from-[#232e48] dark:via-[#232e48] dark:to-[#373f5b]">
-			<div className="max-w-6xl mx-auto space-y-10">
+		<div className="p-4 lg:p-6">
+			<div className="max-w-6xl mx-auto space-y-6">
 				{/* Header */}
-				<div className="flex items-center justify-between mb-2">
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Network</h1>
+				<div className="flex items-center justify-between">
+					<h1 className="text-2xl font-bold text-foreground">My Network</h1>
 				</div>
 
-				{/* Stats Cards - ProvideHelpPage style */}
-				<div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-					<Card className="p-6 bg-gradient-to-br from-[#4F46E5] to-[#6366F1] dark:from-[#232e48] dark:to-[#373f5b] border-0 shadow-lg">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-4">
-								<div className="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-group-line w-7 h-7 flex items-center justify-center text-indigo-600 dark:text-indigo-300"></i>
-								</div>
+				{/* Stats Cards */}
+				<div className="grid grid-cols-1 md:grid-cols-4 gap-4 lg:gap-6">
+					<Card>
+						<CardContent className="p-6">
+							<div className="flex items-center justify-between">
 								<div>
-									<div className="text-base text-indigo-100">Total Members</div>
-									<div className="text-2xl font-bold text-white">{networkStats.totalMembers}</div>
+									<p className="text-sm text-muted-foreground">Total Members</p>
+									<p className="text-2xl font-bold text-foreground">{networkStats.totalMembers}</p>
+								</div>
+								<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+									<i className="ri-group-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-gradient-to-br from-[#059669] to-[#10B981] dark:from-[#1b2e23] dark:to-[#14532d] border-0 shadow-lg">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-4">
-								<div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-user-star-line w-7 h-7 flex items-center justify-center text-emerald-600 dark:text-emerald-300"></i>
-								</div>
+
+					<Card>
+						<CardContent className="p-6">
+							<div className="flex items-center justify-between">
 								<div>
-									<div className="text-base text-emerald-100">Active Members</div>
-									<div className="text-2xl font-bold text-white">{networkStats.activeMembers.toLocaleString()}</div>
+									<p className="text-sm text-muted-foreground">Active Members</p>
+									<p className="text-2xl font-bold text-foreground">{networkStats.activeMembers.toLocaleString()}</p>
+								</div>
+								<div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
+									<i className="ri-user-star-line w-6 h-6 flex items-center justify-center text-green-600 dark:text-green-400"></i>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-gradient-to-br from-[#F59E42] to-[#FBBF24] dark:from-[#a16207] dark:to-[#fde68a] border-0 shadow-lg">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-4">
-								<div className="w-14 h-14 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-hand-heart-line w-7 h-7 flex items-center justify-center text-yellow-600 dark:text-yellow-300"></i>
-								</div>
+
+					<Card>
+						<CardContent className="p-6">
+							<div className="flex items-center justify-between">
 								<div>
-									<div className="text-base text-yellow-900">Total Bonus</div>
-									<div className="text-2xl font-bold text-[#1F2A44]">{formatCurrency(networkStats.totalHelpProvided)}</div>
+									<p className="text-sm text-muted-foreground">Total Bonus</p>
+									<p className="text-2xl font-bold text-foreground">{formatCurrency(networkStats.totalHelpProvided)}</p>
+								</div>
+								<div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+									<i className="ri-hand-heart-line w-6 h-6 flex items-center justify-center text-purple-600 dark:text-purple-400"></i>
 								</div>
 							</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-gradient-to-br from-[#6366F1] to-[#4F46E5] dark:from-[#373f5b] dark:to-[#232e48] border-0 shadow-lg">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-4">
-								<div className="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-wallet-3-line w-7 h-7 flex items-center justify-center text-purple-600 dark:text-purple-300"></i>
-								</div>
+
+					<Card>
+						<CardContent className="p-6">
+							<div className="flex items-center justify-between">
 								<div>
-									<div className="text-base text-indigo-100">Total Bonus Withdrawn</div>
-									<div className="text-2xl font-bold text-white">{formatCurrency(networkStats.totalBonusWithdrawn ?? 0)}</div>
+									<p className="text-sm text-muted-foreground">Total Bonus Withdrawn</p>
+									<p className="text-2xl font-bold text-foreground">{formatCurrency(networkStats.totalBonusWithdrawn ?? 0)}</p>
+								</div>
+								<div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
+									<i className="ri-wallet-3-line w-6 h-6 flex items-center justify-center text-yellow-600 dark:text-yellow-400"></i>
 								</div>
 							</div>
 						</CardContent>
@@ -276,24 +271,18 @@ export default function NetworkPage() {
 				</div>
 
 				{/* Members List */}
-				<Card className="bg-gradient-to-br from-[#e0e7ff] via-[#f3f4f6] to-[#c7d2fe] dark:from-[#232e48] dark:via-[#232e48] dark:to-[#373f5b] border-0 shadow-lg rounded-lg">
-					<CardContent className="p-8">
-						<div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-8">
-							<h2 className="text-xl font-semibold text-gray-900 dark:text-white">Network Members</h2>
+				<Card>
+					<CardContent className="p-6">
+						<div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-6">
+							<h2 className="text-xl font-semibold text-foreground">Network Members</h2>
 							<div className="relative flex-1 lg:max-w-md">
-								<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-indigo-400 dark:text-indigo-300 w-5 h-5 flex items-center justify-center"></i>
-								<input
-									type="text"
-									placeholder="Search members..."
-									value={searchQuery}
-									onChange={(e) => handleSearch(e.target.value)}
-									className="w-full pl-10 pr-4 py-3 border-2 border-indigo-200 dark:border-indigo-700 rounded-xl bg-white dark:bg-gray-800 text-blue-900 dark:text-white text-base font-medium shadow focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition"
-								/>
-								{searchLoading && <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-indigo-400 dark:text-indigo-300">Searching...</span>}
+								<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
+								<input type="text" placeholder="Search members..." value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring text-sm bg-background" />
+								{searchLoading && <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-muted-foreground">Searching...</span>}
 							</div>
 							<Button
 								size="sm"
-								className="ml-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 text-base font-semibold rounded-lg"
+								className="ml-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs"
 								onClick={async () => {
 									setIsRequestingGH('bonus');
 									try {
@@ -335,48 +324,47 @@ export default function NetworkPage() {
 							</Button>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+						<div className="space-y-4">
 							{pageLoading ? (
-								<div className="col-span-full flex items-center justify-center py-10">
+								<div className="flex items-center justify-center py-10">
 									<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
 								</div>
 							) : networkMembers.length > 0 ? (
-								networkMembers.map((member) => (
-									<div key={member.id} className="flex items-center gap-6 p-6 rounded-xl bg-gradient-to-br from-white via-indigo-50 to-blue-50 dark:from-gray-900 dark:via-[#232e48] dark:to-[#373f5b] border-0 shadow group hover:scale-[1.015] hover:shadow-xl transition">
+								networkMembers.map((member, index) => (
+									<div key={member.id} className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors">
 										<div className="relative">
-											<img src={member.avatar} alt={member.name} className="w-16 h-16 rounded-full object-cover border-4 border-indigo-100 dark:border-indigo-900/30" />
-											<div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white dark:border-gray-900 ${member.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+											<img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
+											<div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background ${member.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
 										</div>
 										<div className="flex-1 min-w-0">
 											<div className="flex items-center gap-2 mb-1">
-												<h3 className="font-bold text-lg text-gray-900 dark:text-white">{member.name}</h3>
+												<h3 className="font-medium text-foreground">{member.name}</h3>
 												<span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${getLevelBadgeClass(member.level)}`}>Level {member.level}</span>
 											</div>
-											<p className="text-xs text-indigo-700 dark:text-indigo-200">@{member.username}</p>
 											<p className="text-xs text-muted-foreground">Joined {formatDate(member.joinDate)}</p>
 										</div>
 										<div className="text-right">
-											<p className="text-lg font-bold text-indigo-900 dark:text-indigo-200">{formatCurrency(member.totalHelp)}</p>
+											<p className="text-sm font-medium text-foreground">{formatCurrency(member.totalHelp)}</p>
 											<p className="text-xs text-muted-foreground">Bonus Earned</p>
 										</div>
 									</div>
 								))
 							) : (
-								<div className="col-span-full text-center py-12">
-									<i className="ri-user-search-line w-16 h-16 flex items-center justify-center mx-auto mb-4 text-indigo-200 dark:text-indigo-700"></i>
-									<h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No members found</h3>
-									<p className="text-indigo-700 dark:text-indigo-200">{searchQuery ? 'Try adjusting your search terms' : 'Your network is empty'}</p>
+								<div className="text-center py-8">
+									<i className="ri-user-search-line w-12 h-12 flex items-center justify-center mx-auto mb-4 text-muted-foreground"></i>
+									<h3 className="text-lg font-medium text-foreground mb-2">No members found</h3>
+									<p className="text-muted-foreground">{searchQuery ? 'Try adjusting your search terms' : 'Your network is empty'}</p>
 								</div>
 							)}
 						</div>
 
 						{/* Pagination */}
 						{totalPages > 1 && !pageLoading && (
-							<div className="flex justify-center items-center gap-2 mt-10">
+							<div className="flex justify-center items-center gap-2 mt-6">
 								<button
 									onClick={() => handlePageChange(currentPage - 1)}
 									disabled={currentPage === 1}
-									className="px-3 py-2 rounded-lg border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+									className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
 								>
 									<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center"></i>
 								</button>
@@ -385,7 +373,7 @@ export default function NetworkPage() {
 										key={index}
 										onClick={() => typeof page === 'number' && handlePageChange(page)}
 										disabled={page === '...' || page === currentPage}
-										className={`px-3 py-2 rounded-lg border cursor-pointer ${page === currentPage ? 'bg-indigo-600 text-white border-indigo-600' : 'border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30'} ${
+										className={`px-3 py-2 rounded-lg border cursor-pointer ${page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'} ${
 											page === '...' ? 'cursor-default' : ''
 										}`}
 									>
@@ -395,7 +383,7 @@ export default function NetworkPage() {
 								<button
 									onClick={() => handlePageChange(currentPage + 1)}
 									disabled={currentPage === totalPages}
-									className="px-3 py-2 rounded-lg border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+									className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
 								>
 									<i className="ri-arrow-right-line w-4 h-4 flex items-center justify-center"></i>
 								</button>

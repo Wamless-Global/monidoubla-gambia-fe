@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { TransactionModal } from './TransactionModal';
 import { AddTransactionModal } from './AddTransactionModal';
@@ -43,17 +44,41 @@ export default function TransactionsPage() {
 	const [deleteLoading, setDeleteLoading] = useState(false);
 	const itemsPerPage = 10;
 
+	// Stats state
+	const [stats, setStats] = useState<any>(null);
+	const [statsLoading, setStatsLoading] = useState(true);
+	const [statsError, setStatsError] = useState<string | null>(null);
+
 	useEffect(() => {
+		// Fetch stats for cards
+		const fetchStats = async () => {
+			setStatsLoading(true);
+			try {
+				const response = await fetchWithAuth('/api/admin/stats');
+				const result = await response.json();
+				if (!response.ok || !result.success) {
+					setStatsError('Failed to fetch stats');
+					logger.error('Failed to fetch stats:', result);
+				} else {
+					setStats(result.data);
+				}
+			} catch (err) {
+				setStatsError('Failed to fetch stats');
+				logger.error('Failed to fetch stats:', err);
+			} finally {
+				setStatsLoading(false);
+			}
+		};
+		fetchStats();
+
+		// Fetch transactions
 		const loadTransactions = async () => {
 			setLoading(true);
 			try {
 				const res = await fetchWithAuth('/api/matches/all');
 				if (!res.ok) throw new Error('Failed to fetch transactions');
 				const data = await res.json();
-				// Map API data to Transaction interface
-
 				logger.log(data);
-
 				const txs: Transaction[] = (data.data.matches || []).map((item: any) => ({
 					id: item.id,
 					phUser: item?.userInfo?.name || item.ph_user || '',
@@ -298,14 +323,55 @@ export default function TransactionsPage() {
 
 	return (
 		<div className="p-6 space-y-6">
+			{/* Stats Cards */}
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+				{/* PH Requests Card */}
+				<Card className="bg-blue-500 dark:bg-blue-600 text-white p-6 border-0 shadow-sm rounded-lg">
+					<div className="flex items-center justify-between">
+						<div>
+							<div className="flex items-center gap-2 mb-2">
+								<i className="ri-hand-heart-line w-5 h-5 flex items-center justify-center"></i>
+								<span className="text-sm font-medium opacity-90">Total PH Requests</span>
+							</div>
+							<div className="text-3xl font-bold mb-1">{stats?.totalPhRequests?.toLocaleString() ?? '0'}</div>
+							<div className="text-sm opacity-80">{stats?.percentIncrease?.phRequests ?? 0}% in the past week</div>
+						</div>
+					</div>
+				</Card>
+				{/* GH Requests Card */}
+				<Card className="bg-green-500 dark:bg-green-600 text-white p-6 border-0 shadow-sm rounded-lg">
+					<div className="flex items-center justify-between">
+						<div>
+							<div className="flex items-center gap-2 mb-2">
+								<i className="ri-gift-line w-5 h-5 flex items-center justify-center"></i>
+								<span className="text-sm font-medium opacity-90">Total GH Requests</span>
+							</div>
+							<div className="text-3xl font-bold mb-1">{stats?.totalGhRequests?.toLocaleString() ?? '0'}</div>
+							<div className="text-sm opacity-80">{stats?.percentIncrease?.ghRequests ?? 0}% in the past week</div>
+						</div>
+					</div>
+				</Card>
+				{/* Matches Card */}
+				<Card className="bg-pink-500 dark:bg-pink-600 text-white p-6 border-0 shadow-sm rounded-lg">
+					<div className="flex items-center justify-between">
+						<div>
+							<div className="flex items-center gap-2 mb-2">
+								<i className="ri-exchange-line w-5 h-5 flex items-center justify-center"></i>
+								<span className="text-sm font-medium opacity-90">Total Matches</span>
+							</div>
+							<div className="text-3xl font-bold mb-1">{stats?.totalMatches?.toLocaleString() ?? '0'}</div>
+							<div className="text-sm opacity-80">{stats?.percentIncrease?.matches ?? 0}% in the past week</div>
+						</div>
+					</div>
+				</Card>
+			</div>
 			{/* Header */}
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 				<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Transactions</h1>
-
 				{/* <Button onClick={() => setAddModal(true)} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-					<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
-					Add Transaction
-				</Button> */}
+				<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
+				Add Transaction
+			</Button> */}
 			</div>
 
 			{/* Search and Filters */}

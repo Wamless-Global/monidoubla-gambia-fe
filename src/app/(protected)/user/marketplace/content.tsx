@@ -148,104 +148,83 @@ export default function MarketplacePage() {
 	}
 
 	return (
-		<div className="p-0 lg:p-0 min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 dark:from-[#181f2e] dark:via-[#232e48] dark:to-[#232e48]">
-			<div className="max-w-7xl mx-auto py-10 px-4 lg:px-0">
-				{/* Marketplace Header */}
-				<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
-					<div>
-						<h1 className="text-3xl font-extrabold text-blue-900 dark:text-white mb-2 tracking-tight">Marketplace</h1>
-						<p className="text-base text-blue-800 dark:text-indigo-200">Find, buy, and sell products in your community.</p>
+		<div className="p-4 lg:p-6">
+			<div className="max-w-6xl mx-auto space-y-6">
+				{/* Search and Filter */}
+				<div className="flex flex-col lg:flex-row gap-4">
+					<div className="flex-1">
+						<div className="relative">
+							<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex items-center justify-center"></i>
+							<input
+								type="text"
+								placeholder="Search products, categories, or locations..."
+								value={searchQuery}
+								onChange={(e) => handleSearch(e.target.value)}
+								className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+							/>
+						</div>
 					</div>
 					<div className="flex gap-2">
-						<Button variant="outline" onClick={() => setIsFilterModalOpen(true)} className="flex items-center gap-2 border-blue-200 dark:border-indigo-700 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-indigo-900/30">
-							<i className="ri-filter-line w-5 h-5"></i>
+						<Button variant="outline" onClick={() => setIsFilterModalOpen(true)} className="whitespace-nowrap">
+							<i className="ri-filter-line w-4 h-4 flex items-center justify-center mr-2"></i>
 							Filters
 						</Button>
-						<Button variant="outline" onClick={handleFilterReset} className="flex items-center gap-2 border-blue-200 dark:border-indigo-700 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-indigo-900/30">
-							<i className="ri-refresh-line w-5 h-5"></i>
+						<Button variant="outline" onClick={handleFilterReset} className="whitespace-nowrap">
+							<i className="ri-refresh-line w-4 h-4 flex items-center justify-center mr-2"></i>
 							Reset
 						</Button>
 					</div>
 				</div>
 
-				{/* Search Bar */}
-				<div className="flex flex-col md:flex-row gap-4 mb-8">
-					<div className="flex-1">
-						<div className="relative">
-							<input
-								type="text"
-								placeholder="Search for anything (products, categories, locations)..."
-								value={searchQuery}
-								onChange={(e) => handleSearch(e.target.value)}
-								className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-blue-200 dark:border-indigo-700 bg-white dark:bg-gray-800 text-blue-900 dark:text-white text-lg font-medium shadow focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-							/>
-							<i className="ri-search-line absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-400 dark:text-indigo-300 w-6 h-6"></i>
-						</div>
-					</div>
-					<div className="flex items-center gap-4">
-						<select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="rounded-xl border-2 border-blue-200 dark:border-indigo-700 bg-white dark:bg-gray-800 text-blue-900 dark:text-white px-4 py-2 text-base font-medium shadow">
-							<option value="newest">Newest</option>
-							<option value="price-low">Price: Low to High</option>
-							<option value="price-high">Price: High to Low</option>
-							<option value="popular">Most Viewed</option>
-						</select>
-					</div>
-				</div>
-
-				{/* Results count and active filters */}
-				<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-6">
-					<div className="text-blue-900 dark:text-indigo-100 text-sm font-semibold">
-						Showing <span className="font-bold">{filteredProducts.length}</span> of <span className="font-bold">{products.length}</span> products
-					</div>
+				{/* Results count */}
+				<div className="flex items-center justify-between">
+					<p className="text-sm text-gray-600">
+						Showing {filteredProducts.length} of {products.length} products
+					</p>
 					{(searchQuery || selectedCategory) && (
-						<div className="flex flex-wrap gap-2">
-							{searchQuery && <span className="bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-3 py-1 rounded-full text-xs font-semibold">Search: "{searchQuery}"</span>}
-							{selectedCategory && <span className="bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-3 py-1 rounded-full text-xs font-semibold">Category: {selectedCategory}</span>}
-						</div>
+						<p className="text-sm text-gray-500">
+							{searchQuery && `Search: "${searchQuery}"`}
+							{searchQuery && selectedCategory && ' • '}
+							{selectedCategory && `Category: ${selectedCategory}`}
+						</p>
 					)}
 				</div>
 
-				{/* Products Masonry Grid */}
-				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
+				{/* Products Grid */}
+				<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
 					{filteredProducts.map((product) => (
 						<CustomLink key={product.id} href={`/user/marketplace/${product.id}`}>
-							<Card className="group h-full border-0 shadow-xl rounded-2xl bg-white dark:bg-gray-900 hover:scale-[1.025] hover:shadow-2xl transition-transform duration-300 cursor-pointer flex flex-col">
-								<div className="relative aspect-square rounded-t-2xl overflow-hidden">
-									<Image src={product.image} alt={product.name} width={400} height={400} className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-300" />
-									{product.status === 'sold' && <span className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">SOLD</span>}
-								</div>
-								<CardContent className="flex-1 flex flex-col justify-between p-5">
+							<Card className="group hover:shadow-lg transition-shadow h-full cursor-pointer">
+								<CardContent className="p-4">
+									<div className="aspect-square mb-4 bg-gray-100 rounded-lg overflow-hidden">
+										<Image src={product.image} alt={product.name} width={400} height={400} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300" />
+										import Image from 'next/image';
+									</div>
+
 									<div className="space-y-2">
-										<h3 className="font-extrabold text-lg text-blue-900 dark:text-white line-clamp-1">{product.name}</h3>
-										<p className="text-2xl font-black text-blue-700 dark:text-blue-300">
+										<h3 className="font-semibold text-gray-900 line-clamp-1">{product.name}</h3>
+										<p className="text-2xl font-bold text-blue-900">
 											{product.price} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 										</p>
-										<p className="text-sm text-blue-900/80 dark:text-indigo-100 line-clamp-2">{product.description}</p>
-									</div>
-									<div className="flex flex-wrap gap-2 mt-4">
-										<span className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-2 py-1 rounded">
-											<i className="ri-map-pin-line"></i>
-											{product.location}
-										</span>
-										<span className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-2 py-1 rounded">
-											<i className="ri-user-line"></i>
-											{product.seller}
-										</span>
-										<span className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-2 py-1 rounded">
-											<i className="ri-price-tag-3-line"></i>
-											{product.category}
-										</span>
-										<span className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-2 py-1 rounded">
-											<i className="ri-star-line"></i>
-											{product.condition}
-										</span>
-									</div>
-									<div className="flex items-center justify-between pt-4 mt-4 border-t border-blue-100 dark:border-indigo-800">
-										<span className="text-xs text-blue-700 dark:text-indigo-200">{product.datePosted}</span>
-										<span className="flex items-center gap-1 text-xs text-blue-700 dark:text-indigo-200">
-											<i className="ri-eye-line"></i>
-											{product.views}
-										</span>
+										<p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+
+										<div className="flex items-center gap-1 text-sm text-gray-500">
+											<i className="ri-map-pin-line w-3 h-3 flex items-center justify-center"></i>
+											<span className="line-clamp-1">{product.location}</span>
+										</div>
+
+										<div className="flex items-center gap-1 text-sm text-gray-500">
+											<i className="ri-user-line w-3 h-3 flex items-center justify-center"></i>
+											<span className="line-clamp-1">{product.seller}</span>
+										</div>
+
+										<div className="flex items-center justify-between pt-2">
+											<span className="text-xs text-gray-500">{product.datePosted}</span>
+											<div className="flex items-center gap-1 text-xs text-gray-500">
+												<i className="ri-eye-line w-3 h-3 flex items-center justify-center"></i>
+												<span>{product.views}</span>
+											</div>
+										</div>
 									</div>
 								</CardContent>
 							</Card>
@@ -255,18 +234,18 @@ export default function MarketplacePage() {
 
 				{/* No results */}
 				{filteredProducts.length === 0 && !isLoading && (
-					<div className="flex flex-col items-center justify-center py-24 text-center">
-						<i className="ri-search-line w-20 h-20 flex items-center justify-center text-blue-200 dark:text-indigo-700 mb-6"></i>
-						<h3 className="text-2xl font-bold text-blue-900 dark:text-white mb-2">No products found</h3>
-						<p className="text-blue-700 dark:text-indigo-200 mb-4">Try adjusting your search terms or filters.</p>
+					<div className="flex flex-col items-center justify-center py-16 text-center">
+						<i className="ri-search-line w-16 h-16 flex items-center justify-center text-gray-400 mb-4"></i>
+						<h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+						<p className="text-gray-500 mb-4">Try adjusting your search terms or filters</p>
 						<Button onClick={handleFilterReset} variant="outline" className="whitespace-nowrap">
 							Clear filters
 						</Button>
 					</div>
 				)}
-
-				<FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} onApplyFilters={handleFilterApply} currentFilters={currentFilters} />
 			</div>
+
+			<FilterModal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} onApplyFilters={handleFilterApply} currentFilters={currentFilters} />
 		</div>
 	);
 }

@@ -135,91 +135,77 @@ export default function MyListingsPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 dark:from-[#181f2e] dark:via-[#232e48] dark:to-[#232e48] py-10">
-			<div className="max-w-7xl mx-auto px-4 lg:px-0">
-				<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-10">
-					<h1 className="text-2xl md:text-3xl font-extrabold text-blue-900 dark:text-white">My Listings</h1>
+		<div className="p-4 lg:p-6 space-y-6">
+			<div className="max-w-6xl mx-auto space-y-6">
+				<div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+					<div className="relative flex-1 lg:max-w-md">
+						<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex items-center justify-center"></i>
+						<input type="text" placeholder="Search for items" value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" />
+					</div>
+
 					<CustomLink href="/user/add-product">
 						<Button className="bg-blue-900 hover:bg-blue-800 whitespace-nowrap">
-							<i className="ri-add-line w-5 h-5 flex items-center justify-center mr-2"></i>
+							<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
 							Add New Product
 						</Button>
 					</CustomLink>
 				</div>
-				{/* Search Bar */}
-				<div className="relative max-w-lg mb-10">
-					<i className="ri-search-line absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-400 dark:text-indigo-300 w-5 h-5 flex items-center justify-center"></i>
-					<input
-						type="text"
-						placeholder="Search your listings"
-						value={searchQuery}
-						onChange={(e) => handleSearch(e.target.value)}
-						className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-blue-200 dark:border-indigo-700 bg-white dark:bg-gray-800 text-blue-900 dark:text-white text-lg font-medium shadow focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
-					/>
-				</div>
-				{/* Listings Grid */}
-				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
+
+				<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
 					{filteredProducts.map((product) => (
-						<Card key={product.id} className="group h-full border-0 shadow-xl rounded-2xl bg-white dark:bg-gray-900 hover:scale-[1.025] hover:shadow-2xl transition-transform duration-300 cursor-pointer flex flex-col">
-							<div className="relative aspect-square rounded-t-2xl overflow-hidden">
-								<img src={product.image} alt={product.name} className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-300" />
-								{product.status === 'sold' && <span className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">SOLD</span>}
-							</div>
-							<CardContent className="flex-1 flex flex-col justify-between p-5">
+						<Card key={product.id} className="group hover:shadow-lg transition-shadow h-full">
+							<CardContent className="p-4">
+								<div className="aspect-square mb-4 bg-gray-100 rounded-lg overflow-hidden">
+									<img src={product.image} alt={product.name} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300" />
+								</div>
+
 								<div className="space-y-2">
-									<h3 className="font-extrabold text-lg text-blue-900 dark:text-white line-clamp-1">{product.name}</h3>
-									<p className="text-2xl font-black text-blue-700 dark:text-blue-300">
+									<h3 className="font-semibold text-gray-900 line-clamp-1">{product.name}</h3>
+									<p className="text-2xl font-bold text-blue-900">
 										{product.price} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
 									</p>
-									<p className="text-sm text-blue-900/80 dark:text-indigo-100 line-clamp-2">{product.description}</p>
-								</div>
-								<div className="flex flex-wrap gap-2 mt-4">
-									<span className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-2 py-1 rounded">
-										<i className="ri-map-pin-line"></i>
-										{product.location}
-									</span>
-									<span className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-2 py-1 rounded">
-										<i className="ri-price-tag-3-line"></i>
-										{product.category}
-									</span>
-									<span className="flex items-center gap-1 text-xs bg-blue-100 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 px-2 py-1 rounded">
-										<i className="ri-star-line"></i>
-										{product.condition}
-									</span>
-								</div>
-								<div className="flex items-center justify-between pt-4 mt-4 border-t border-blue-100 dark:border-indigo-800">
-									<span className="text-xs text-blue-700 dark:text-indigo-200">{product.datePosted}</span>
-									<span className="flex items-center gap-1 text-xs text-blue-700 dark:text-indigo-200">
-										<i className="ri-eye-line"></i>
-										{product.views}
-									</span>
-								</div>
-								<div className="flex items-center gap-2 mt-4">
-									<button onClick={() => handleEditProduct(product.id)} className="p-2 rounded-lg bg-blue-50 dark:bg-indigo-900/30 text-blue-700 dark:text-indigo-200 hover:bg-blue-100 dark:hover:bg-indigo-800 transition" title="Edit product">
-										<i className="ri-edit-line w-5 h-5 flex items-center justify-center"></i>
-									</button>
-									<button onClick={() => handleDeleteClick(product.id)} className="p-2 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-800 transition" title="Delete product">
-										<i className="ri-delete-bin-line w-5 h-5 flex items-center justify-center"></i>
-									</button>
+									<p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
+
+									<div className="flex items-center gap-1 text-sm text-gray-500">
+										<i className="ri-map-pin-line w-3 h-3 flex items-center justify-center"></i>
+										<span className="line-clamp-1">{product.location}</span>
+									</div>
+
+									<div className="flex items-center gap-1 text-sm text-gray-500">
+										<i className="ri-calendar-line w-3 h-3 flex items-center justify-center"></i>
+										<span>{product.datePosted}</span>
+									</div>
+
+									<div className="flex items-center justify-between pt-2">
+										<div className="flex items-center gap-2">
+											<button onClick={() => handleEditProduct(product.id)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Edit product">
+												<i className="ri-edit-line w-4 h-4 flex items-center justify-center text-gray-600"></i>
+											</button>
+											<button onClick={() => handleDeleteClick(product.id)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Delete product">
+												<i className="ri-delete-bin-line w-4 h-4 flex items-center justify-center text-gray-600"></i>
+											</button>
+										</div>
+									</div>
 								</div>
 							</CardContent>
 						</Card>
 					))}
 				</div>
-				{/* No Listings */}
+
 				{filteredProducts.length === 0 && !isLoading && (
-					<div className="flex flex-col items-center justify-center py-24 text-center">
-						<i className="ri-store-line w-20 h-20 flex items-center justify-center text-blue-200 dark:text-indigo-700 mb-6"></i>
-						<h3 className="text-2xl font-bold text-blue-900 dark:text-white mb-2">No listings found</h3>
-						<p className="text-blue-700 dark:text-indigo-200 mb-4">{searchQuery ? 'No items match your search criteria' : "You haven't created any listings yet"}</p>
+					<div className="flex flex-col items-center justify-center py-16 text-center">
+						<i className="ri-store-line w-16 h-16 flex items-center justify-center text-gray-400 mb-4"></i>
+						<h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
+						<p className="text-gray-500 mb-4">{searchQuery ? 'No items match your search criteria' : "You haven't created any listings yet"}</p>
 						<CustomLink href="/user/add-product">
 							<Button className="bg-blue-900 hover:bg-blue-800 whitespace-nowrap">
-								<i className="ri-add-line w-5 h-5 flex items-center justify-center mr-2"></i>
+								<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
 								Add New Product
 							</Button>
 						</CustomLink>
 					</div>
 				)}
+
 				<ConfirmationModal
 					isOpen={isDeleteModalOpen}
 					onClose={() => setIsDeleteModalOpen(false)}
