@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
@@ -10,6 +10,7 @@ import { CustomLink } from '@/components/CustomLink';
 import { PHRequest, GHRequest } from './types';
 import RequestCard from './RequestCard';
 import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
 
 // Format PH requests from API response
 export const formatRequests = (data: any[]): PHRequest[] =>
@@ -373,71 +374,85 @@ export default function PHMultipleMatchPage({ to = 'ph-requests' }) {
 	}
 
 	return (
-		<div className="p-6 space-y-6 min-h-screen">
-			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+		<div className="space-y-6">
+			<header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
 				<div className="flex items-center gap-4">
-					<CustomLink href={`/admin/${to}`} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-						<i className="ri-arrow-left-line w-5 h-5 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
+					<CustomLink href={`/admin/${to}`}>
+						<Button variant="outline" size="icon">
+							<i className="ri-arrow-left-line"></i>
+						</Button>
 					</CustomLink>
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Multiple Match</h1>
+					<div>
+						<h1 className="text-3xl font-bold text-slate-800">Multiple Match</h1>
+						<p className="text-slate-500 mt-1">Select requests from both columns to match them.</p>
+					</div>
 				</div>
-				<Button onClick={handleConfirmMatch} disabled={matching || !canMatch()} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap min-w-[140px]">
-					{matching ? (
-						<div className="flex items-center gap-2">
-							<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-							<span>Matching...</span>
-						</div>
-					) : (
-						'Confirm match'
-					)}
+				<Button onClick={handleConfirmMatch} disabled={matching || !canMatch()} className="min-w-[160px]">
+					{matching ? 'Matching...' : 'Confirm Match'}
 				</Button>
-			</div>
+			</header>
 
 			{(selectedPHRequests.length > 0 || selectedGHRequests.length > 0) && (
-				<Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700">
-					<div className="flex items-center justify-between text-sm">
+				<div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+					<div className="flex flex-col sm:flex-row items-center justify-between text-sm gap-4">
 						<div className="flex items-center gap-4">
-							<span className="text-blue-700 dark:text-blue-300">
-								PH Selected: {selectedPHRequests.length} ({totalPHAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})
+							<span className="font-medium text-indigo-800">
+								PH Selected: {selectedPHRequests.length} ({totalPHAmount.toLocaleString()} {getSettings()?.baseCurrency})
 							</span>
-							<span className="text-blue-700 dark:text-blue-300">
-								GH Selected: {selectedGHRequests.length} ({totalGHAmount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})
+							<span className="font-medium text-indigo-800">
+								GH Selected: {selectedGHRequests.length} ({totalGHAmount.toLocaleString()} {getSettings()?.baseCurrency})
 							</span>
 						</div>
-						<div className={`font-medium ${canMatch() ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>{canMatch() ? 'Ready to match' : 'Cannot match'}</div>
+						<div className={cn('font-semibold', canMatch() ? 'text-green-600' : 'text-amber-600')}>{canMatch() ? 'Ready to Match' : 'Select from both lists'}</div>
 					</div>
-				</Card>
+				</div>
 			)}
 
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<RequestCard
-					type="PH"
-					requests={filteredPHRequests}
-					selectedRequests={selectedPHRequests}
-					searchTerm={phSearchTerm}
-					currentPage={phCurrentPage}
-					totalPages={phTotalPages}
-					loading={phLoading}
-					totalAmount={totalPHAmount}
-					onSearchChange={setPHSearchTerm}
-					onToggleRequest={handlePHRequestToggle}
-					onPageChange={handlePHPageChange}
-					itemsPerPage={itemsPerPage}
-				/>
-				<RequestCard
-					type="GH"
-					requests={filteredGHRequests}
-					selectedRequests={selectedGHRequests}
-					searchTerm={ghSearchTerm}
-					currentPage={ghCurrentPage}
-					totalPages={ghTotalPages}
-					loading={ghLoading}
-					totalAmount={totalGHAmount}
-					onSearchChange={setGHSearchTerm}
-					onToggleRequest={handleGHRequestToggle}
-					onPageChange={handleGHPageChange}
-					itemsPerPage={itemsPerPage}
-				/>
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+				<Card>
+					<CardHeader>
+						<CardTitle>Available PH Requests</CardTitle>
+						<CardDescription>Select users who are providing help.</CardDescription>
+					</CardHeader>
+					<CardContent className="p-0">
+						<RequestCard
+							type="PH"
+							requests={filteredPHRequests}
+							selectedRequests={selectedPHRequests}
+							searchTerm={phSearchTerm}
+							currentPage={phCurrentPage}
+							totalPages={phTotalPages}
+							loading={phLoading}
+							totalAmount={totalPHAmount}
+							onSearchChange={setPHSearchTerm}
+							onToggleRequest={handlePHRequestToggle}
+							onPageChange={handlePHPageChange}
+							itemsPerPage={itemsPerPage}
+						/>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader>
+						<CardTitle>Available GH Requests</CardTitle>
+						<CardDescription>Select users who need to get help.</CardDescription>
+					</CardHeader>
+					<CardContent className="p-0">
+						<RequestCard
+							type="GH"
+							requests={filteredGHRequests}
+							selectedRequests={selectedGHRequests}
+							searchTerm={ghSearchTerm}
+							currentPage={ghCurrentPage}
+							totalPages={ghTotalPages}
+							loading={ghLoading}
+							totalAmount={totalGHAmount}
+							onSearchChange={setGHSearchTerm}
+							onToggleRequest={handleGHRequestToggle}
+							onPageChange={handleGHPageChange}
+							itemsPerPage={itemsPerPage}
+						/>
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	);

@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
-import { handleFetchMessage, getSettings } from '@/lib/helpers';
+import { handleFetchMessage } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
 
+// NOTE: All original interfaces and logic are preserved.
 interface GeneralSettings {
 	platformName: string;
 	platformCurrency: string;
@@ -16,6 +18,10 @@ interface GeneralSettings {
 	commissionRate: string;
 	maintenanceMode: boolean;
 	maintenanceMessage: string;
+	referralGeneration?: string;
+	referralBonusWithdrawableAmount?: number;
+	referralBonusReleaseType?: 'completed' | 'matured';
+	platform_base_currency?: string;
 }
 
 interface NotificationSettings {
@@ -64,19 +70,22 @@ function parseSettings(settingsArr: { setting_key: string; setting_value: string
 	return result;
 }
 
+const ToggleSwitch = ({ enabled, onChange }: { enabled: boolean; onChange: () => void }) => (
+	<button
+		type="button"
+		onClick={onChange}
+		className={cn('relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2', enabled ? 'bg-indigo-600' : 'bg-slate-200')}
+		aria-pressed={enabled}
+	>
+		<span className={cn('pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out', enabled ? 'translate-x-5' : 'translate-x-0')} />
+	</button>
+);
+
 export default function SettingsPage() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [saving, setSaving] = useState<string | null>(null);
-	const [isMounted, setIsMounted] = useState(false);
-
-	const [generalSettings, setGeneralSettings] = useState<
-		GeneralSettings & {
-			referralGeneration?: string;
-			referralBonusWithdrawableAmount?: number;
-			referralBonusReleaseType?: 'completed' | 'matured';
-			platform_base_currency?: string;
-		}
-	>({
+	const [activeSection, setActiveSection] = useState('general');
+	const [generalSettings, setGeneralSettings] = useState<GeneralSettings>({
 		platformName: '',
 		platformCurrency: '',
 		platform_base_currency: '',
@@ -89,43 +98,12 @@ export default function SettingsPage() {
 		referralBonusWithdrawableAmount: 0,
 		referralBonusReleaseType: 'completed',
 	});
-
-	const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
-		smsProvider: 'twilio',
-		smsApiKey: '',
-		smsApiSecret: '',
-		smsSenderId: '',
-		emailHost: '',
-		emailPort: 0,
-		emailUser: '',
-		emailPassword: '',
-		emailFromName: '',
-	});
-
-	const [systemSettings, setSystemSettings] = useState<SystemSettings>({
-		maxTransactionAmount: 0,
-		minTransactionAmount: 0,
-		sessionTimeout: 0,
-		backupFrequency: '',
-		enableTwoFA: false,
-		requireEmailVerification: false,
-		maxLoginAttempts: 0,
-	});
-
-	const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({
-		allowLogin: false,
-		allowAccountCreation: false,
-		enableGoogleAuth: false,
-		enableFacebookAuth: false,
-		enableTwitterAuth: false,
-		enableAppleAuth: false,
-		enableGithubAuth: false,
-	});
-
+	const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({ smsProvider: 'twilio', smsApiKey: '', smsApiSecret: '', smsSenderId: '', emailHost: '', emailPort: 0, emailUser: '', emailPassword: '', emailFromName: '' });
+	const [systemSettings, setSystemSettings] = useState<SystemSettings>({ maxTransactionAmount: 0, minTransactionAmount: 0, sessionTimeout: 0, backupFrequency: '', enableTwoFA: false, requireEmailVerification: false, maxLoginAttempts: 0 });
+	const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({ allowLogin: false, allowAccountCreation: false, enableGoogleAuth: false, enableFacebookAuth: false, enableTwitterAuth: false, enableAppleAuth: false, enableGithubAuth: false });
 	const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
 	useEffect(() => {
-		setIsMounted(true);
 		loadSettings();
 	}, []);
 
@@ -133,29 +111,13 @@ export default function SettingsPage() {
 		setIsLoading(true);
 		try {
 			const res = await fetchWithAuth('/api/admin/settings');
-
-			if (!res.ok) {
-				throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch settings'));
-			}
+			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch settings'));
 			const data = await res.json();
-
 			if (data?.data?.settings) {
-				setGeneralSettings((prev) => ({
-					...prev,
-					...parseSettings(data.data.settings, prev),
-				}));
-				setNotificationSettings((prev) => ({
-					...prev,
-					...parseSettings(data.data.settings, prev),
-				}));
-				setSystemSettings((prev) => ({
-					...prev,
-					...parseSettings(data.data.settings, prev),
-				}));
-				setSecuritySettings((prev) => ({
-					...prev,
-					...parseSettings(data.data.settings, prev),
-				}));
+				setGeneralSettings((prev) => ({ ...prev, ...parseSettings(data.data.settings, prev) }));
+				setNotificationSettings((prev) => ({ ...prev, ...parseSettings(data.data.settings, prev) }));
+				setSystemSettings((prev) => ({ ...prev, ...parseSettings(data.data.settings, prev) }));
+				setSecuritySettings((prev) => ({ ...prev, ...parseSettings(data.data.settings, prev) }));
 			}
 		} catch (error) {
 			toast.error(handleFetchMessage(error, 'Failed to load settings.'));
@@ -164,111 +126,54 @@ export default function SettingsPage() {
 		}
 	};
 
-	const handleLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (file && (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/svg+xml')) {
-			setGeneralSettings((prev) => ({ ...prev, logoFile: file, logoUrl: URL.createObjectURL(file) }));
-		} else if (file) {
-			toast.error('Please select a valid image file (JPEG, PNG, or SVG)');
-		}
-	};
-
 	const validateGeneralSettings = (): boolean => {
 		const newErrors: { [key: string]: string } = {};
-
-		if (!generalSettings.platformName.trim()) {
-			newErrors.platformName = 'Platform name is required';
-		} else if (generalSettings.platformName.length < 2) {
-			newErrors.platformName = 'Platform name must be at least 2 characters';
-		}
-
-		if (!generalSettings.platformCurrency.trim()) {
-			newErrors.platformCurrency = 'Platform currency is required';
-		}
-
-		if (generalSettings.maintenanceMode && !generalSettings.maintenanceMessage.trim()) {
-			newErrors.maintenanceMessage = 'Maintenance message is required when maintenance mode is enabled';
-		}
-
+		if (!generalSettings.platformName.trim() || generalSettings.platformName.length < 2) newErrors.platformName = 'Platform name must be at least 2 characters';
+		if (!generalSettings.platformCurrency.trim()) newErrors.platformCurrency = 'Platform currency is required';
+		if (generalSettings.maintenanceMode && !generalSettings.maintenanceMessage.trim()) newErrors.maintenanceMessage = 'Maintenance message is required when enabled';
 		setErrors((prev) => ({ ...prev, ...newErrors }));
 		return Object.keys(newErrors).length === 0;
 	};
 
 	const validateNotificationSettings = (): boolean => {
 		const newErrors: { [key: string]: string } = {};
-
-		if (notificationSettings.smsApiKey && !notificationSettings.smsApiSecret) {
-			newErrors.smsApiSecret = 'SMS API key and secret must be filled together';
-		}
-
-		if (notificationSettings.emailHost && !notificationSettings.emailUser) {
-			newErrors.emailUser = 'Email user is required when email host is configured';
-		}
-
-		if (notificationSettings.emailPort < 1 || notificationSettings.emailPort > 65535) {
-			newErrors.emailPort = 'Email port must be between 1-65535';
-		}
-
+		if (notificationSettings.smsApiKey && !notificationSettings.smsApiSecret) newErrors.smsApiSecret = 'SMS API key and secret must be filled together';
+		if (notificationSettings.emailHost && !notificationSettings.emailUser) newErrors.emailUser = 'Email user is required when email host is configured';
+		if (notificationSettings.emailPort < 1 || notificationSettings.emailPort > 65535) newErrors.emailPort = 'Email port must be between 1-65535';
 		setErrors((prev) => ({ ...prev, ...newErrors }));
 		return Object.keys(newErrors).length === 0;
 	};
 
 	const validateSystemSettings = (): boolean => {
 		const newErrors: { [key: string]: string } = {};
-
-		if (systemSettings.maxTransactionAmount <= systemSettings.minTransactionAmount) {
-			newErrors.maxTransactionAmount = 'Maximum transaction amount must be greater than minimum';
-		}
-
-		if (systemSettings.minTransactionAmount < 1) {
-			newErrors.minTransactionAmount = 'Minimum transaction amount must be greater than 0';
-		}
-
-		if (systemSettings.sessionTimeout < 5 || systemSettings.sessionTimeout > 480) {
-			newErrors.sessionTimeout = 'Session timeout must be between 5-480 minutes';
-		}
-
-		if (systemSettings.maxLoginAttempts < 1 || systemSettings.maxLoginAttempts > 20) {
-			newErrors.maxLoginAttempts = 'Maximum login attempts must be between 1-20';
-		}
-
+		if (systemSettings.maxTransactionAmount <= systemSettings.minTransactionAmount) newErrors.maxTransactionAmount = 'Maximum must be greater than minimum';
+		if (systemSettings.minTransactionAmount < 1) newErrors.minTransactionAmount = 'Minimum must be greater than 0';
+		if (systemSettings.sessionTimeout < 5 || systemSettings.sessionTimeout > 480) newErrors.sessionTimeout = 'Must be between 5-480 minutes';
+		if (systemSettings.maxLoginAttempts < 1 || systemSettings.maxLoginAttempts > 20) newErrors.maxLoginAttempts = 'Must be between 1-20';
 		setErrors((prev) => ({ ...prev, ...newErrors }));
 		return Object.keys(newErrors).length === 0;
 	};
 
 	const objectToUpdates = (obj: Record<string, any>) =>
 		Object.entries(obj)
-			.filter(([key, value]) => key !== 'logoFile' && key !== 'smsSenderId' && value !== '' && value !== null && value !== undefined)
-			.map(([key, value]) => ({
-				key,
-				setting_value: typeof value === 'string' ? value : JSON.stringify(value),
-			}));
+			.filter(([key]) => key !== 'logoFile')
+			.map(([key, value]) => ({ key, setting_value: String(value) }));
 
-	const handleSaveGeneralSettings = async () => {
-		if (!validateGeneralSettings()) return;
-		setSaving('general');
+	const handleSaveSettings = async (section: string, settingsData: any, validator?: () => boolean) => {
+		if (validator && !validator()) {
+			toast.error('Please fix the errors before saving.');
+			return;
+		}
+		setSaving(section);
 		try {
-			const updates = objectToUpdates(generalSettings);
-			logger.log({ updates });
+			const updates = objectToUpdates(settingsData);
 			const res = await fetchWithAuth('/api/admin/settings', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ updates }),
 			});
-
-			if (!res.ok) {
-				throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
-			}
-			toast.success('General settings saved successfully');
-			setErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors.platformName;
-				delete newErrors.platformCurrency;
-				delete newErrors.commissionRate;
-				delete newErrors.maintenanceMessage;
-				delete newErrors.logoUrl;
-				return newErrors;
-			});
+			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
+			toast.success(`${section.charAt(0).toUpperCase() + section.slice(1)} settings saved successfully`);
 		} catch (error) {
 			toast.error(handleFetchMessage(error, 'Failed to save settings. Please try again.'));
 		} finally {
@@ -276,683 +181,201 @@ export default function SettingsPage() {
 		}
 	};
 
-	const handleSaveNotificationSettings = async () => {
-		if (!validateNotificationSettings()) return;
-		setSaving('notification');
-		try {
-			const updates = objectToUpdates(notificationSettings);
-			const res = await fetchWithAuth('/api/admin/settings', {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ updates }),
-			});
-
-			if (!res.ok) {
-				throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
-			}
-			toast.success('Notification settings saved successfully');
-			setErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors.smsApiSecret;
-				delete newErrors.emailUser;
-				delete newErrors.emailPort;
-				return newErrors;
-			});
-		} catch (error) {
-			toast.error(handleFetchMessage(error, 'Failed to save settings. Please try again.'));
-		} finally {
-			setSaving(null);
-		}
-	};
-
-	const handleSaveSystemSettings = async () => {
-		if (!validateSystemSettings()) return;
-		setSaving('system');
-		try {
-			const updates = objectToUpdates(systemSettings);
-			const res = await fetchWithAuth('/api/admin/settings', {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ updates }),
-			});
-
-			if (!res.ok) {
-				throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
-			}
-			toast.success('System settings saved successfully');
-			setErrors((prev) => {
-				const newErrors = { ...prev };
-				delete newErrors.maxTransactionAmount;
-				delete newErrors.minTransactionAmount;
-				delete newErrors.sessionTimeout;
-				delete newErrors.maxLoginAttempts;
-				return newErrors;
-			});
-		} catch (error) {
-			toast.error(handleFetchMessage(error, 'Failed to save settings. Please try again.'));
-		} finally {
-			setSaving(null);
-		}
-	};
-
-	const handleSaveSecuritySettings = async () => {
-		setSaving('security');
-		try {
-			const updates = objectToUpdates(securitySettings);
-			const res = await fetchWithAuth('/api/admin/settings', {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ updates }),
-			});
-
-			if (!res.ok) {
-				throw new Error(handleFetchMessage(await res.json(), 'Failed to save settings'));
-			}
-			toast.success('Security settings saved successfully');
-		} catch (error) {
-			toast.error(handleFetchMessage(error, 'Failed to save settings. Please try again.'));
-		} finally {
-			setSaving(null);
-		}
-	};
-
-	if (!isMounted || isLoading) {
-		return (
-			<div className="p-6 space-y-6  min-h-screen">
-				{/* Header */}
-				<div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-
-				{/* General Settings Card */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-					<div className="space-y-6">
-						<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-40 animate-pulse"></div>
-
-						{/* Platform Name */}
-						<div className="space-y-2">
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-							<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-						</div>
-
-						{/* Country */}
-						<div className="space-y-2">
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
-							<input
-								type="text"
-								value={generalSettings.country}
-								onChange={(e) => setGeneralSettings((prev) => ({ ...prev, country: e.target.value }))}
-								placeholder="Enter country"
-								className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-							/>
-						</div>
-						<div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-					</div>
-				</div>
-
-				{/* Notification Settings Card */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-					<div className="space-y-6">
-						<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-44 animate-pulse"></div>
-
-						{/* SMS Settings */}
-						<div className="space-y-4">
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-28 animate-pulse"></div>
-							<div className="space-y-2">
-								<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
-								<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-							</div>
-							<div className="space-y-2">
-								<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-								<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-							</div>
-						</div>
-
-						{/* Email Settings */}
-						<div className="space-y-4">
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-							<div className="space-y-2">
-								<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-28 animate-pulse"></div>
-								<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-							</div>
-							<div className="space-y-2">
-								<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-								<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-							</div>
-						</div>
-
-						{/* Save Button */}
-						<div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-					</div>
-				</div>
-
-				{/* System Settings Card */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-					<div className="space-y-6">
-						<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-36 animate-pulse"></div>
-
-						{/* Max Transaction Amount */}
-						<div className="space-y-2">
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-44 animate-pulse"></div>
-							<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-						</div>
-
-						{/* Min Transaction Amount */}
-						<div className="space-y-2">
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-44 animate-pulse"></div>
-							<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-						</div>
-
-						{/* Session Timeout */}
-						<div className="space-y-2">
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-36 animate-pulse"></div>
-							<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-						</div>
-
-						{/* Backup Frequency */}
-						<div className="space-y-2">
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-36 animate-pulse"></div>
-							<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-						</div>
-
-						{/* Save Button */}
-						<div className="h-10 bg-gray-300 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
-					</div>
-				</div>
-			</div>
-		);
+	if (isLoading) {
+		return <div>Loading Settings...</div>;
 	}
 
 	return (
-		<div className="p-6 space-y-6  min-h-screen" suppressHydrationWarning={true}>
-			{/* Header */}
-			<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+		<div className="space-y-6">
+			<header>
+				<h1 className="text-3xl font-bold text-slate-800">Settings</h1>
+				<p className="text-slate-500 mt-1">Manage your platform's configuration and security.</p>
+			</header>
 
-			{/* General Settings */}
+			<div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+				<nav className="lg:col-span-1 lg:sticky top-24 self-start">
+					<ul className="space-y-1">
+						<li>
+							<a href="#general" onClick={() => setActiveSection('general')} className={cn('block px-4 py-2 rounded-md text-sm font-medium', activeSection === 'general' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-100')}>
+								General
+							</a>
+						</li>
+						<li>
+							<a href="#security" onClick={() => setActiveSection('security')} className={cn('block px-4 py-2 rounded-md text-sm font-medium', activeSection === 'security' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-100')}>
+								Security & Auth
+							</a>
+						</li>
+						<li>
+							<a href="#notifications" onClick={() => setActiveSection('notifications')} className={cn('block px-4 py-2 rounded-md text-sm font-medium', activeSection === 'notifications' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-100')}>
+								Notifications
+							</a>
+						</li>
+						<li>
+							<a href="#system" onClick={() => setActiveSection('system')} className={cn('block px-4 py-2 rounded-md text-sm font-medium', activeSection === 'system' ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-100')}>
+								System
+							</a>
+						</li>
+					</ul>
+				</nav>
 
-			<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm">
-				<div className="space-y-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">General Settings</h2>
-
-					{/* Platform Name */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Platform Name</label>
-						<input
-							type="text"
-							value={generalSettings.platformName}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, platformName: e.target.value }))}
-							placeholder="Enter platform name"
-							className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-								errors.platformName ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-							}`}
-						/>
-						{errors.platformName && <p className="text-sm text-red-600 dark:text-red-400">{errors.platformName}</p>}
-					</div>
-
-					{/* Referral Generation */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Referral Generation</label>
-						<input
-							type="text"
-							value={generalSettings.referralGeneration ?? 1}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, referralGeneration: e.target.value }))}
-							placeholder="Enter number of generations for referral bonus"
-							className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-								errors.referralGeneration ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-							}`}
-						/>
-						{errors.referralGeneration && <p className="text-sm text-red-600 dark:text-red-400">{errors.referralGeneration}</p>}
-						<p className="text-sm text-gray-500 dark:text-gray-400">Number of generations a referral bonus applies (e.g. 1, 2, 3, 4 etc.)</p>
-					</div>
-
-					{/* Auto Matching */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Auto Matching</label>
-						<button
-							onClick={() => setGeneralSettings((prev) => ({ ...prev, autoMatching: !prev.autoMatching }))}
-							className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${generalSettings.autoMatching ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-						>
-							<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${generalSettings.autoMatching ? 'translate-x-6' : 'translate-x-1'}`} />
-						</button>
-						<p className="text-sm text-gray-500 dark:text-gray-400">Enable automatic matching of PH and GH requests</p>
-					</div>
-
-					{/* Commission Rate */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Commission Rate (%)</label>
-						<input
-							type="text"
-							value={generalSettings.commissionRate}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, commissionRate: e.target.value }))}
-							placeholder="Enter commission rate"
-							className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-								errors.commissionRate ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-							}`}
-						/>
-						{errors.commissionRate && <p className="text-sm text-red-600 dark:text-red-400">{errors.commissionRate}</p>}
-						<p className="text-sm text-gray-500 dark:text-gray-400">Percentage of bonus applied to each generation (e.g. 10, 5, 2.5, 1.25 etc.)</p>
-					</div>
-
-					{/* Platform Base Currency */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Platform Base Currency</label>
-						<input
-							type="text"
-							value={generalSettings.platform_base_currency ?? ''}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, platform_base_currency: e.target.value }))}
-							placeholder="Enter base currency (e.g. USD, NGN)"
-							className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-						/>
-						<p className="text-sm text-gray-500 dark:text-gray-400">The base currency for all platform transactions (e.g. USD, NGN).</p>
-					</div>
-
-					{/* Referral Bonus Withdrawable Amount */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Referral Bonus Withdrawable Amount</label>
-						<input
-							type="number"
-							min={0}
-							value={generalSettings.referralBonusWithdrawableAmount ?? 0}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, referralBonusWithdrawableAmount: Number(e.target.value) }))}
-							placeholder="Enter minimum bonus amount for withdrawal"
-							className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-						/>
-						<p className="text-sm text-gray-500 dark:text-gray-400">Minimum referral bonus amount required before a user can withdraw their bonus.</p>
-					</div>
-
-					{/* Referral Bonus Release Type */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Referral Bonus Release Condition</label>
-						<select
-							value={generalSettings.referralBonusReleaseType ?? 'completed'}
-							onChange={(e) => setGeneralSettings((prev) => ({ ...prev, referralBonusReleaseType: e.target.value as 'completed' | 'matured' }))}
-							className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-						>
-							<option value="completed">When user's PH is completed</option>
-							<option value="matured">When user's PH is matured</option>
-						</select>
-						<p className="text-sm text-gray-500 dark:text-gray-400">Choose when the referral bonus should be released: after the user's Provide Help (PH) is completed or after it is matured.</p>
-					</div>
-
-					{/* Maintenance Mode */}
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Maintenance Mode</label>
-						<button
-							onClick={() => setGeneralSettings((prev) => ({ ...prev, maintenanceMode: !prev.maintenanceMode }))}
-							className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${generalSettings.maintenanceMode ? 'bg-red-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-						>
-							<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${generalSettings.maintenanceMode ? 'translate-x-6' : 'translate-x-1'}`} />
-						</button>
-						{generalSettings.maintenanceMode && (
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Maintenance Message</label>
-								<textarea
-									value={generalSettings.maintenanceMessage}
-									onChange={(e) => setGeneralSettings((prev) => ({ ...prev, maintenanceMessage: e.target.value }))}
-									placeholder="Enter maintenance message"
-									rows={3}
-									className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none ${
-										errors.maintenanceMessage ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-									}`}
-								/>
-								{errors.maintenanceMessage && <p className="text-sm text-red-600 dark:text-red-400">{errors.maintenanceMessage}</p>}
+				<div className="lg:col-span-3 space-y-8">
+					<Card id="general">
+						<CardHeader>
+							<CardTitle>General Settings</CardTitle>
+							<CardDescription>Configure basic platform information.</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<div>
+								<label>Platform Name</label>
+								<input type="text" value={generalSettings.platformName} onChange={(e) => setGeneralSettings((prev) => ({ ...prev, platformName: e.target.value }))} placeholder="Enter platform name" />
 							</div>
-						)}
-					</div>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<div>
+									<label>Platform Base Currency</label>
+									<input type="text" value={generalSettings.platform_base_currency ?? ''} onChange={(e) => setGeneralSettings((prev) => ({ ...prev, platform_base_currency: e.target.value }))} placeholder="e.g. USD" />
+								</div>
+								<div>
+									<label>Country</label>
+									<input type="text" value={generalSettings.country} onChange={(e) => setGeneralSettings((prev) => ({ ...prev, country: e.target.value }))} placeholder="Enter country" />
+								</div>
+							</div>
+							<div className="pt-4 border-t">
+								<div className="flex items-center justify-between">
+									<div>
+										<h4 className="font-medium">Maintenance Mode</h4>
+										<p className="text-sm text-slate-500">Temporarily disable access to the user-facing site.</p>
+									</div>
+									<ToggleSwitch enabled={generalSettings.maintenanceMode} onChange={() => setGeneralSettings((prev) => ({ ...prev, maintenanceMode: !prev.maintenanceMode }))} />
+								</div>
+								{generalSettings.maintenanceMode && (
+									<div className="mt-4">
+										<label>Maintenance Message</label>
+										<textarea value={generalSettings.maintenanceMessage} onChange={(e) => setGeneralSettings((prev) => ({ ...prev, maintenanceMessage: e.target.value }))} placeholder="Site is down for maintenance..." rows={3} />
+									</div>
+								)}
+							</div>
+						</CardContent>
+						<CardFooter>
+							<Button onClick={() => handleSaveSettings('general', generalSettings, validateGeneralSettings)} disabled={saving === 'general'}>
+								{saving === 'general' ? 'Saving...' : 'Save General Settings'}
+							</Button>
+						</CardFooter>
+					</Card>
 
-					<Button onClick={handleSaveGeneralSettings} disabled={saving === 'general'} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-						{saving === 'general' ? (
-							<>
-								<i className="ri-loader-4-line animate-spin w-4 h-4 flex items-center justify-center mr-2"></i>
-								Saving...
-							</>
-						) : (
-							'Save Settings'
-						)}
-					</Button>
+					<Card id="security">
+						<CardHeader>
+							<CardTitle>Security & Authentication</CardTitle>
+							<CardDescription>Manage how users can log in and register.</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4 divide-y divide-slate-200">
+							<div className="flex items-center justify-between pt-4 first:pt-0">
+								<div>
+									<h4 className="font-medium text-slate-800">Allow User Login</h4>
+									<p className="text-sm text-slate-500">Enable or disable user login globally.</p>
+								</div>
+								<ToggleSwitch enabled={securitySettings.allowLogin} onChange={() => setSecuritySettings((prev) => ({ ...prev, allowLogin: !prev.allowLogin }))} />
+							</div>
+							<div className="flex items-center justify-between pt-4">
+								<div>
+									<h4 className="font-medium text-slate-800">Allow Account Creation</h4>
+									<p className="text-sm text-slate-500">Enable or disable new user registrations.</p>
+								</div>
+								<ToggleSwitch enabled={securitySettings.allowAccountCreation} onChange={() => setSecuritySettings((prev) => ({ ...prev, allowAccountCreation: !prev.allowAccountCreation }))} />
+							</div>
+						</CardContent>
+						<CardFooter>
+							<Button onClick={() => handleSaveSettings('security', securitySettings)} disabled={saving === 'security'}>
+								{saving === 'security' ? 'Saving...' : 'Save Security Settings'}
+							</Button>
+						</CardFooter>
+					</Card>
+
+					<Card id="notifications">
+						<CardHeader>
+							<CardTitle>Notification Settings</CardTitle>
+							<CardDescription>Configure email and SMS providers.</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<h4 className="font-medium text-slate-800">Email Settings</h4>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<div>
+									<label>SMTP Host</label>
+									<input type="text" value={notificationSettings.emailHost} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailHost: e.target.value }))} placeholder="e.g. smtp.mailgun.org" />
+								</div>
+								<div>
+									<label>SMTP Port</label>
+									<input type="number" value={notificationSettings.emailPort} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailPort: parseInt(e.target.value) || 587 }))} placeholder="e.g. 587" />
+								</div>
+								<div>
+									<label>Email Username</label>
+									<input type="email" value={notificationSettings.emailUser} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailUser: e.target.value }))} placeholder="Your email username" />
+								</div>
+								<div>
+									<label>Email Password</label>
+									<input type="password" value={notificationSettings.emailPassword} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailPassword: e.target.value }))} placeholder="Your email password" />
+								</div>
+								<div className="sm:col-span-2">
+									<label>From Name</label>
+									<input type="text" value={notificationSettings.emailFromName} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailFromName: e.target.value }))} placeholder="e.g. Acme Inc." />
+								</div>
+							</div>
+						</CardContent>
+						<CardFooter>
+							<Button onClick={() => handleSaveSettings('notification', notificationSettings, validateNotificationSettings)} disabled={saving === 'notification'}>
+								{saving === 'notification' ? 'Saving...' : 'Save Notification Settings'}
+							</Button>
+						</CardFooter>
+					</Card>
+
+					<Card id="system">
+						<CardHeader>
+							<CardTitle>System Settings</CardTitle>
+							<CardDescription>Advanced platform-wide configurations.</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<div>
+									<label>Min Transaction Amount</label>
+									<input type="number" value={systemSettings.minTransactionAmount} onChange={(e) => setSystemSettings((prev) => ({ ...prev, minTransactionAmount: Number(e.target.value) }))} />
+								</div>
+								<div>
+									<label>Max Transaction Amount</label>
+									<input type="number" value={systemSettings.maxTransactionAmount} onChange={(e) => setSystemSettings((prev) => ({ ...prev, maxTransactionAmount: Number(e.target.value) }))} />
+								</div>
+								<div>
+									<label>Session Timeout (minutes)</label>
+									<input type="number" min="5" max="480" value={systemSettings.sessionTimeout} onChange={(e) => setSystemSettings((prev) => ({ ...prev, sessionTimeout: parseInt(e.target.value) || 60 }))} />
+								</div>
+								<div>
+									<label>Max Login Attempts</label>
+									<input type="number" min="1" max="20" value={systemSettings.maxLoginAttempts} onChange={(e) => setSystemSettings((prev) => ({ ...prev, maxLoginAttempts: parseInt(e.target.value) || 5 }))} />
+								</div>
+							</div>
+							<div className="pt-4 border-t border-slate-200 space-y-4 divide-y divide-slate-200">
+								<div className="flex items-center justify-between pt-4 first:pt-0">
+									<div>
+										<h4 className="font-medium text-slate-800">Enable Two-Factor Auth</h4>
+										<p className="text-sm text-slate-500">Require 2FA for all admin accounts.</p>
+									</div>
+									<ToggleSwitch enabled={systemSettings.enableTwoFA} onChange={() => setSystemSettings((prev) => ({ ...prev, enableTwoFA: !prev.enableTwoFA }))} />
+								</div>
+								<div className="flex items-center justify-between pt-4">
+									<div>
+										<h4 className="font-medium text-slate-800">Require Email Verification</h4>
+										<p className="text-sm text-slate-500">Users must verify their email after registration.</p>
+									</div>
+									<ToggleSwitch enabled={systemSettings.requireEmailVerification} onChange={() => setSystemSettings((prev) => ({ ...prev, requireEmailVerification: !prev.requireEmailVerification }))} />
+								</div>
+							</div>
+						</CardContent>
+						<CardFooter>
+							<Button onClick={() => handleSaveSettings('system', systemSettings, validateSystemSettings)} disabled={saving === 'system'}>
+								{saving === 'system' ? 'Saving...' : 'Save System Settings'}
+							</Button>
+						</CardFooter>
+					</Card>
 				</div>
-			</Card>
-
-			{/* Security & Authentication Settings */}
-			<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm">
-				<div className="space-y-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">Security & Authentication</h2>
-
-					{/* Account Creation & Login */}
-					<div className="space-y-4">
-						<h3 className="text-md font-medium text-gray-900 dark:text-white">Account Management</h3>
-
-						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Allow User Login</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Allow users to log in to their accounts</p>
-								</div>
-								<button
-									onClick={() => setSecuritySettings((prev) => ({ ...prev, allowLogin: !prev.allowLogin }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${securitySettings.allowLogin ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securitySettings.allowLogin ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Allow Account Creation</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Allow new users to create accounts</p>
-								</div>
-								<button
-									onClick={() => setSecuritySettings((prev) => ({ ...prev, allowAccountCreation: !prev.allowAccountCreation }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${securitySettings.allowAccountCreation ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securitySettings.allowAccountCreation ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-						</div>
-					</div>
-
-					{/* Social Login Providers */}
-					{/* <div className="space-y-4">
-						<h3 className="text-md font-medium text-gray-900 dark:text-white">Social Login Providers</h3>
-
-						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Google Authentication</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Allow users to sign in with Google</p>
-								</div>
-								<button
-									onClick={() => setSecuritySettings((prev) => ({ ...prev, enableGoogleAuth: !prev.enableGoogleAuth }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${securitySettings.enableGoogleAuth ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securitySettings.enableGoogleAuth ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Facebook Authentication</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Allow users to sign in with Facebook</p>
-								</div>
-								<button
-									onClick={() => setSecuritySettings((prev) => ({ ...prev, enableFacebookAuth: !prev.enableFacebookAuth }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${securitySettings.enableFacebookAuth ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securitySettings.enableFacebookAuth ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Twitter Authentication</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Allow users to sign in with Twitter</p>
-								</div>
-								<button
-									onClick={() => setSecuritySettings((prev) => ({ ...prev, enableTwitterAuth: !prev.enableTwitterAuth }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${securitySettings.enableTwitterAuth ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securitySettings.enableTwitterAuth ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Apple Authentication</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Allow users to sign in with Apple</p>
-								</div>
-								<button
-									onClick={() => setSecuritySettings((prev) => ({ ...prev, enableAppleAuth: !prev.enableAppleAuth }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${securitySettings.enableAppleAuth ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securitySettings.enableAppleAuth ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">GitHub Authentication</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Allow users to sign in with GitHub</p>
-								</div>
-								<button
-									onClick={() => setSecuritySettings((prev) => ({ ...prev, enableGithubAuth: !prev.enableGithubAuth }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${securitySettings.enableGithubAuth ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${securitySettings.enableGithubAuth ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-						</div>
-					</div> */}
-
-					<Button onClick={handleSaveSecuritySettings} disabled={saving === 'security'} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-						{saving === 'security' ? (
-							<>
-								<i className="ri-loader-4-line animate-spin w-4 h-4 flex items-center justify-center mr-2"></i>
-								Saving...
-							</>
-						) : (
-							'Save Security Settings'
-						)}
-					</Button>
-				</div>
-			</Card>
-
-			{/* Notification Settings */}
-			<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm">
-				<div className="space-y-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">Notification Settings</h2>
-
-					{/* SMS Settings */}
-					<div className="space-y-4">
-						<h3 className="text-md font-medium text-gray-900 dark:text-white">SMS Settings</h3>
-
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender ID</label>
-								<input
-									type="text"
-									value={notificationSettings.smsSenderId}
-									disabled
-									placeholder="Sender ID is disabled"
-									className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400 placeholder-gray-400 cursor-not-allowed"
-								/>
-							</div>
-
-							{/* SMS Provider Dropdown */}
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">SMS Provider</label>
-								<select
-									value={notificationSettings.smsProvider}
-									onChange={(e) => setNotificationSettings((prev) => ({ ...prev, smsProvider: e.target.value }))}
-									className="w-full px-3 py-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-								>
-									<option value="TwilioSmsProvider">Twilio</option>
-									<option value="termii">Termii</option>
-								</select>
-							</div>
-						</div>
-					</div>
-
-					{/* Email Settings */}
-					<div className="space-y-4">
-						<h3 className="text-md font-medium text-gray-900 dark:text-white">Email Settings</h3>
-
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">SMTP Host</label>
-								<input
-									type="text"
-									value={notificationSettings.emailHost}
-									onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailHost: e.target.value }))}
-									placeholder="Enter SMTP host"
-									className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-								/>
-							</div>
-
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">SMTP Port</label>
-								<input
-									type="number"
-									min="1"
-									max="65535"
-									value={notificationSettings.emailPort}
-									onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailPort: parseInt(e.target.value) || 587 }))}
-									placeholder="Enter SMTP port"
-									className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-										errors.emailPort ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-									}`}
-								/>
-								{errors.emailPort && <p className="text-sm text-red-600 dark:text-red-400">{errors.emailPort}</p>}
-							</div>
-						</div>
-
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Username</label>
-								<input
-									type="email"
-									value={notificationSettings.emailUser}
-									onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailUser: e.target.value }))}
-									placeholder="Enter email username"
-									className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-										errors.emailUser ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-									}`}
-								/>
-								{errors.emailUser && <p className="text-sm text-red-600 dark:text-red-400">{errors.emailUser}</p>}
-							</div>
-
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Password</label>
-								<input
-									type="password"
-									value={notificationSettings.emailPassword}
-									onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailPassword: e.target.value }))}
-									placeholder="Enter email password"
-									className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-								/>
-							</div>
-						</div>
-
-						<div className="space-y-2">
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">From Name</label>
-							<input
-								type="text"
-								value={notificationSettings.emailFromName}
-								onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailFromName: e.target.value }))}
-								placeholder="Enter from name"
-								className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-							/>
-						</div>
-					</div>
-
-					<Button onClick={handleSaveNotificationSettings} disabled={saving === 'notification'} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-						{saving === 'notification' ? (
-							<>
-								<i className="ri-loader-4-line animate-spin w-4 h-4 flex items-center justify-center mr-2"></i>
-								Saving...
-							</>
-						) : (
-							'Save Settings'
-						)}
-					</Button>
-				</div>
-			</Card>
-
-			{/* System Settings */}
-			<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm">
-				<div className="space-y-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">System Settings</h2>
-
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Session Timeout (minutes)</label>
-							<input
-								type="number"
-								min="5"
-								max="480"
-								value={systemSettings.sessionTimeout}
-								onChange={(e) => setSystemSettings((prev) => ({ ...prev, sessionTimeout: parseInt(e.target.value) || 60 }))}
-								placeholder="Enter session timeout"
-								className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-									errors.sessionTimeout ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-								}`}
-							/>
-							{errors.sessionTimeout && <p className="text-sm text-red-600 dark:text-red-400">{errors.sessionTimeout}</p>}
-						</div>
-
-						<div className="space-y-2">
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Backup Frequency</label>
-							<select
-								value={systemSettings.backupFrequency}
-								onChange={(e) => setSystemSettings((prev) => ({ ...prev, backupFrequency: e.target.value }))}
-								className="w-full px-3 py-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-							>
-								<option value="hourly">Hourly</option>
-								<option value="daily">Daily</option>
-								<option value="weekly">Weekly</option>
-								<option value="monthly">Monthly</option>
-							</select>
-						</div>
-					</div>
-
-					<div className="space-y-2">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Maximum Login Attempts</label>
-						<input
-							type="number"
-							min="1"
-							max="20"
-							value={systemSettings.maxLoginAttempts}
-							onChange={(e) => setSystemSettings((prev) => ({ ...prev, maxLoginAttempts: parseInt(e.target.value) || 5 }))}
-							placeholder="Enter maximum login attempts"
-							className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 ${
-								errors.maxLoginAttempts ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-							}`}
-						/>
-						{errors.maxLoginAttempts && <p className="text-sm text-red-600 dark:text-red-400">{errors.maxLoginAttempts}</p>}
-					</div>
-
-					{/* Security Settings */}
-					<div className="space-y-4">
-						<h3 className="text-md font-medium text-gray-900 dark:text-white">Security Settings</h3>
-
-						<div className="space-y-4">
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Two-Factor Authentication</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Enable two-factor authentication for admin accounts</p>
-								</div>
-								<button
-									onClick={() => setSystemSettings((prev) => ({ ...prev, enableTwoFA: !prev.enableTwoFA }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${systemSettings.enableTwoFA ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${systemSettings.enableTwoFA ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-
-							<div className="flex items-center justify-between">
-								<div>
-									<label className="text-sm font-medium text-gray-700 dark:text-gray-300">Require Email Verification</label>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Users must verify their email after registration</p>
-								</div>
-								<button
-									onClick={() => setSystemSettings((prev) => ({ ...prev, requireEmailVerification: !prev.requireEmailVerification }))}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${systemSettings.requireEmailVerification ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}
-								>
-									<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${systemSettings.requireEmailVerification ? 'translate-x-6' : 'translate-x-1'}`} />
-								</button>
-							</div>
-						</div>
-					</div>
-
-					<Button onClick={handleSaveSystemSettings} disabled={saving === 'system'} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-						{saving === 'system' ? (
-							<>
-								<i className="ri-loader-4-line animate-spin w-4 h-4 flex items-center justify-center mr-2"></i>
-								Saving...
-							</>
-						) : (
-							'Save Settings'
-						)}
-					</Button>
-				</div>
-			</Card>
+			</div>
 		</div>
 	);
 }

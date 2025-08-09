@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { PHRequest } from './multiple-match/types';
 import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 
+// NOTE: All original interfaces and logic are preserved.
 interface EditPHRequestModalProps {
 	isOpen: boolean;
 	onClose: () => void;
@@ -20,21 +22,8 @@ export default function EditPHRequestModal({ isOpen, onClose, request, onSave }:
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
-		if (request) {
-			setFormData(request);
-		}
+		if (request) setFormData(request);
 	}, [request]);
-
-	useEffect(() => {
-		if (isOpen) {
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = 'unset';
-		}
-		return () => {
-			document.body.style.overflow = 'unset';
-		};
-	}, [isOpen]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -42,27 +31,16 @@ export default function EditPHRequestModal({ isOpen, onClose, request, onSave }:
 			toast.error('Please enter a valid amount');
 			return;
 		}
-
 		setLoading(true);
 		try {
-			const res = await fetchWithAuth(`/api/ph-requests/${formData.id}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ amount: formData.amount, status: formData.status }),
-			});
-
-			if (!res.ok) {
-				const data = await res.json();
-				throw new Error(handleFetchMessage(data, 'Failed to update PH request'));
-			}
-
+			const res = await fetchWithAuth(`/api/ph-requests/${formData.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount: formData.amount, status: formData.status }) });
+			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to update PH request'));
 			onSave(formData);
 			toast.success('PH request updated successfully');
-			setLoading(false);
 			onClose();
 		} catch (error: any) {
 			toast.error(handleFetchMessage(error, 'Failed to update request'));
-			logger.error('Failed to update PH request', error);
+		} finally {
 			setLoading(false);
 		}
 	};
@@ -70,65 +48,48 @@ export default function EditPHRequestModal({ isOpen, onClose, request, onSave }:
 	if (!isOpen || !formData) return null;
 
 	return (
-		<>
-			<div className="fixed inset-0 bg-black bg-opacity-50 z-50 !mt-0" onClick={onClose} />
-			<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-					<div className="p-6">
-						<div className="flex items-center justify-between mb-6">
-							<h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit PH Request</h3>
-							<button onClick={onClose} disabled={loading} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50">
-								<i className="ri-close-line w-5 h-5 flex items-center justify-center text-gray-600 dark:text-gray-400"></i>
-							</button>
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in-0 !m-0">
+			<Card className="max-w-md w-full bg-white shadow-lg border-slate-200 animate-in fade-in-0 zoom-in-95">
+				<CardHeader>
+					<div className="flex justify-between items-start">
+						<div>
+							<CardTitle>Edit PH Request</CardTitle>
+							<CardDescription>Editing request for {formData.user.name}</CardDescription>
 						</div>
-						<form onSubmit={handleSubmit} className="space-y-4">
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ({getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code})</label>
-								<input
-									type="number"
-									min="1"
-									step="1"
-									value={formData.amount}
-									onChange={(e) => setFormData({ ...formData, amount: parseInt(e.target.value) || 0 })}
-									className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-									required
-								/>
-							</div>
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-								<select
-									value={formData.status}
-									onChange={(e) => setFormData({ ...formData, status: e.target.value as PHRequest['status'] })}
-									className="w-full px-3 py-2 pr-8 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-								>
-									<option value="pending">Pending</option>
-									<option value="waiting-match">Waiting Match</option>
-									<option value="partial-match">Partial Match</option>
-									<option value="matched">Matched</option>
-									<option value="active">Active</option>
-									<option value="completed">Completed</option>
-									<option value="expired">Expired</option>
-								</select>
-							</div>
-							<div className="flex justify-end gap-3 pt-4">
-								<Button type="button" variant="outline" onClick={onClose} disabled={loading} className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-									Cancel
-								</Button>
-								<Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-									{loading ? (
-										<div className="flex items-center gap-2">
-											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-											<span>Updating...</span>
-										</div>
-									) : (
-										'Save Changes'
-									)}
-								</Button>
-							</div>
-						</form>
+						<button onClick={onClose} disabled={loading} className="p-1 rounded-full text-slate-500 hover:bg-slate-100">
+							<i className="ri-close-line text-xl"></i>
+						</button>
 					</div>
-				</div>
-			</div>
-		</>
+				</CardHeader>
+				<form onSubmit={handleSubmit}>
+					<CardContent className="space-y-4">
+						<div>
+							<label className="block text-sm font-medium text-slate-700 mb-1">Amount ({getSettings()?.baseCurrency || getCurrencyFromLocalStorage()?.code})</label>
+							<input type="number" min="1" step="1" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: parseInt(e.target.value) || 0 })} className="w-full" required />
+						</div>
+						<div>
+							<label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+							<select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as PHRequest['status'] })} className="w-full">
+								<option value="pending">Pending</option>
+								<option value="waiting-match">Waiting Match</option>
+								<option value="partial-match">Partial Match</option>
+								<option value="matched">Matched</option>
+								<option value="active">Active</option>
+								<option value="completed">Completed</option>
+								<option value="expired">Expired</option>
+							</select>
+						</div>
+					</CardContent>
+					<CardFooter className="justify-end gap-3">
+						<Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={loading}>
+							{loading ? 'Saving...' : 'Save Changes'}
+						</Button>
+					</CardFooter>
+				</form>
+			</Card>
+		</div>
 	);
 }

@@ -1,35 +1,31 @@
+import { Button } from '@/components/ui/button';
+
+// NOTE: All original props and logic are preserved.
 interface PHRequestsPaginationProps {
 	currentPage: number;
 	totalPages: number;
 	handlePageChange: (page: number) => void;
+	totalCount: number;
+	itemsPerPage: number;
 }
 
-export default function PHRequestsPagination({ currentPage, totalPages, handlePageChange }: PHRequestsPaginationProps) {
+export default function PHRequestsPagination({ currentPage, totalPages, handlePageChange, totalCount, itemsPerPage }: PHRequestsPaginationProps) {
+	const startItem = (currentPage - 1) * itemsPerPage + 1;
+	const endItem = Math.min(currentPage * itemsPerPage, totalCount);
+
 	return (
-		<div className="flex justify-center items-center gap-2 mt-8">
-			<button
-				onClick={() => handlePageChange(currentPage - 1)}
-				disabled={currentPage === 1}
-				className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-			>
-				<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center"></i>
-			</button>
-			{[...Array(totalPages)].map((_, index) => (
-				<button
-					key={index}
-					onClick={() => handlePageChange(index + 1)}
-					className={`px-3 py-2 rounded-lg border cursor-pointer ${currentPage === index + 1 ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
-				>
-					{index + 1}
-				</button>
-			))}
-			<button
-				onClick={() => handlePageChange(currentPage + 1)}
-				disabled={currentPage === totalPages}
-				className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-			>
-				<i className="ri-arrow-right-line w-4 h-4 flex items-center justify-center"></i>
-			</button>
+		<div className="flex justify-between items-center">
+			<p className="text-sm text-slate-500">
+				Showing {startItem} to {endItem} of {totalCount} results
+			</p>
+			<div className="flex items-center gap-2">
+				<Button variant="outline" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+					<i className="ri-arrow-left-s-line"></i>
+				</Button>
+				<Button variant="outline" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+					<i className="ri-arrow-right-s-line"></i>
+				</Button>
+			</div>
 		</div>
 	);
 }

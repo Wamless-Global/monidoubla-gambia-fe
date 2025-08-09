@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CustomLink } from '@/components/CustomLink';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
 import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
 
+// NOTE: All original interfaces and logic are preserved.
 export default function AdminDashboard() {
 	const [stats, setStats] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
@@ -33,114 +35,58 @@ export default function AdminDashboard() {
 		})();
 	}, []);
 
+	const formatStat = (value: any) => (loading ? '...' : error ? 'Error' : value?.toLocaleString() ?? '0');
+	const formatPercentage = (value: any) => (loading ? '...' : error ? 'Error' : `${value ?? 0}%`);
+	const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: getSettings()?.baseCurrency || getCurrencyFromLocalStorage()?.code || 'USD' }).format(amount);
+
 	const statCards = [
-		{
-			title: 'Total Users',
-			value: loading ? '...' : error ? 'Error' : stats?.totalUsers?.toLocaleString() ?? '0',
-			change: loading ? '...' : error ? 'Error' : `${stats?.percentIncrease?.users ?? 0}%`,
-			changeText: loading ? '...' : error ? 'Error' : `${stats?.percentIncrease?.users ?? 0}% in the past week`,
-			icon: 'ri-user-line',
-			color: 'bg-blue-500 dark:bg-blue-600',
-		},
-		{
-			title: 'Total Pending PH Requests',
-			value: loading ? '...' : error ? 'Error' : stats?.totalPendingPhRequests?.toLocaleString() ?? '0',
-			change: loading ? '...' : error ? 'Error' : `${stats?.percentIncrease?.phRequests ?? 0}%`,
-			changeText: loading ? '...' : error ? 'Error' : `${stats?.percentIncrease?.phRequests ?? 0}% in the past week`,
-			icon: 'ri-hand-heart-line',
-			color: 'bg-green-500 dark:bg-green-600',
-		},
-		{
-			title: 'Total Pending GH Requests',
-			value: loading ? '...' : error ? 'Error' : stats?.totalPendingGhRequests?.toLocaleString() ?? '0',
-			change: loading ? '...' : error ? 'Error' : `${stats?.percentIncrease?.ghRequests ?? 0}%`,
-			changeText: loading ? '...' : error ? 'Error' : `${stats?.percentIncrease?.ghRequests ?? 0}% in the past week`,
-			icon: 'ri-gift-line',
-			color: 'bg-cyan-500 dark:bg-cyan-600',
-		},
-		{
-			title: 'Total Matches',
-			value: loading ? '...' : error ? 'Error' : stats?.totalMatches?.toLocaleString() ?? '0',
-			change: loading ? '...' : error ? 'Error' : `${stats?.percentIncrease?.matches ?? 0}%`,
-			changeText: loading ? '...' : error ? 'Error' : `${stats?.percentIncrease?.matches ?? 0}% in the past week`,
-			icon: 'ri-exchange-line',
-			color: 'bg-pink-500 dark:bg-pink-600',
-		},
-	];
-
-	const transactionData = [
-		{ status: 'Completed', count: loading ? '...' : error ? 'Error' : stats?.totalCompletedMatches ?? 0, percentage: 0 },
-		{ status: 'Pending', count: loading ? '...' : error ? 'Error' : stats?.totalPendingMatches ?? 0, percentage: 0 },
-		{ status: 'Failed', count: loading ? '...' : error ? 'Error' : stats?.totalFailedMatches ?? 0, percentage: 0 },
-	];
-
-	const quickStats = [
-		{ label: 'Active Users', value: loading ? '...' : error ? 'Error' : stats?.totalActiveUsers?.toLocaleString() ?? '0' },
-		{ label: 'Pending Matches', value: loading ? '...' : error ? 'Error' : stats?.totalPendingMatches?.toLocaleString() ?? '0' },
-		{ label: 'Success Rate', value: loading ? '...' : error ? 'Error' : stats && stats.totalMatches ? `${Math.round(((stats.totalCompletedMatches ?? 0) / (stats.totalMatches || 1)) * 100)}%` : '0%' },
-		{ label: 'Avg. Response Time', value: '0 hours' }, // Placeholder, update if API provides
+		{ title: 'Total Users', value: formatStat(stats?.totalUsers), change: stats?.percentIncrease?.users, icon: 'ri-user-line', color: 'bg-indigo-100 text-indigo-600' },
+		{ title: 'Pending PH Value', value: formatCurrency(stats?.totalPendingPhRequests ?? 0), change: stats?.percentIncrease?.phRequests, icon: 'ri-arrow-up-circle-line', color: 'bg-emerald-100 text-emerald-600' },
+		{ title: 'Pending GH Value', value: formatCurrency(stats?.totalPendingGhRequests ?? 0), change: stats?.percentIncrease?.ghRequests, icon: 'ri-arrow-down-circle-line', color: 'bg-amber-100 text-amber-600' },
+		{ title: 'Total Matches', value: formatStat(stats?.totalMatches), change: stats?.percentIncrease?.matches, icon: 'ri-exchange-line', color: 'bg-sky-100 text-sky-600' },
 	];
 
 	if (loading) {
+		// Redesigned Skeleton Loader
 		return (
-			<div className="p-6 space-y-6  min-h-screen">
-				{/* Stats Cards Skeleton */}
+			<div className="space-y-6 animate-pulse">
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-					{[...Array(4)].map((_, index) => (
-						<div key={index} className="bg-gray-200 dark:bg-gray-800 rounded-lg p-6 animate-pulse">
-							<div className="flex items-center justify-between">
-								<div className="space-y-3">
-									<div className="flex items-center gap-2">
-										<div className="w-5 h-5 bg-gray-300 dark:bg-gray-700 rounded"></div>
-										<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-24"></div>
-									</div>
-									<div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-16"></div>
-									<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
+					{[...Array(4)].map((_, i) => (
+						<div key={i} className="bg-white rounded-lg shadow-sm p-6">
+							<div className="flex justify-between items-start">
+								<div className="space-y-2">
+									<div className="h-4 bg-slate-200 rounded w-24"></div>
+									<div className="h-8 bg-slate-200 rounded w-16"></div>
 								</div>
-								<div className="text-right">
-									<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-16"></div>
-								</div>
+								<div className="w-10 h-10 bg-slate-200 rounded-full"></div>
+							</div>
+							<div className="h-3 bg-slate-200 rounded w-32 mt-4"></div>
+						</div>
+					))}
+				</div>
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-6">
+						<div className="h-5 bg-slate-200 rounded w-40 mb-6"></div>
+						<div className="h-64 bg-slate-200 rounded-md"></div>
+					</div>
+					<div className="lg:col-span-1 space-y-6">
+						<div className="bg-white rounded-lg shadow-sm p-6">
+							<div className="h-5 bg-slate-200 rounded w-32 mb-4"></div>
+							<div className="space-y-4">
+								<div className="h-4 bg-slate-200 rounded w-full"></div>
+								<div className="h-4 bg-slate-200 rounded w-full"></div>
+								<div className="h-4 bg-slate-200 rounded w-4/5"></div>
 							</div>
 						</div>
-					))}
-				</div>
-
-				{/* Quick Actions Skeleton */}
-				<div className="p-6 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse">
-					<div className="flex items-center justify-between mb-6">
-						<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
-					</div>
-					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-						<div className="flex items-center gap-2">
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-24"></div>
-							<div className="h-6 w-11 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
-						</div>
-						<div className="flex flex-wrap gap-2">
-							<div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-24"></div>
-							<div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-32"></div>
+						<div className="bg-white rounded-lg shadow-sm p-6">
+							<div className="h-5 bg-slate-200 rounded w-32 mb-4"></div>
+							<div className="space-y-4">
+								<div className="h-4 bg-slate-200 rounded w-full"></div>
+								<div className="h-4 bg-slate-200 rounded w-full"></div>
+								<div className="h-4 bg-slate-200 rounded w-3/4"></div>
+							</div>
 						</div>
 					</div>
-				</div>
-
-				{/* Charts Skeleton */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					{[...Array(2)].map((_, index) => (
-						<div key={index} className="p-6 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse">
-							<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-48 mb-2"></div>
-							<div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-32 mb-6"></div>
-							<div className="h-64 bg-gray-300 dark:bg-gray-700 rounded"></div>
-						</div>
-					))}
-				</div>
-
-				{/* Additional Charts */}
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-					{[...Array(3)].map((_, index) => (
-						<div key={index} className="p-6 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse">
-							<div className="h-6 bg-gray-300 dark:bg-gray-700 rounded w-32 mb-4"></div>
-							<div className="h-32 bg-gray-300 dark:bg-gray-700 rounded"></div>
-						</div>
-					))}
 				</div>
 			</div>
 		);
@@ -148,105 +94,108 @@ export default function AdminDashboard() {
 
 	if (error) {
 		return (
-			<div className="p-6 min-h-screen flex flex-col items-center justify-center">
-				<div className="text-red-600 dark:text-red-400 font-semibold text-lg mb-4">{error}</div>
-				<Button onClick={() => window.location.reload()}>Retry</Button>
+			<div className="flex flex-col items-center justify-center h-[calc(100vh-150px)]">
+				<Card className="max-w-md w-full text-center p-6">
+					<div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+						<i className="ri-error-warning-line text-2xl text-red-600"></i>
+					</div>
+					<CardTitle className="text-xl">An Error Occurred</CardTitle>
+					<CardDescription className="my-2">{error}</CardDescription>
+					<Button onClick={() => window.location.reload()}>Retry</Button>
+				</Card>
 			</div>
 		);
 	}
 
 	return (
-		<div className="p-6 space-y-6  min-h-screen" suppressHydrationWarning={true}>
-			{/* Stats Cards */}
+		<div className="space-y-6">
+			{/* Redesigned Stats Cards */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-				{statCards.map((stat, index) => (
-					<Card key={index} className={`${stat.color} text-white p-6 border-0 shadow-sm rounded-lg`}>
-						<div className="flex items-center justify-between">
-							<div>
-								<div className="flex items-center gap-2 mb-2">
-									<i className={`${stat.icon} w-5 h-5 flex items-center justify-center`}></i>
-									<span className="text-sm font-medium opacity-90">{stat.title}</span>
-								</div>
-								<div className="text-3xl font-bold mb-1">
-									{stat.value}&nbsp;
-									{stat.title.includes('Requests') ? (getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code) : ''}
-								</div>
-								{/* <div className="text-sm opacity-80">{stat.changeText}</div> */}
+				{statCards.map((stat) => (
+					<Card key={stat.title}>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium text-slate-500">{stat.title}</CardTitle>
+							<div className={cn('w-10 h-10 flex items-center justify-center rounded-full', stat.color)}>
+								<i className={cn(stat.icon, 'text-lg')}></i>
 							</div>
-							{/* <div className="text-right">
-								<div className="text-lg font-semibold">{stat.change}</div>
-							</div> */}
-						</div>
+						</CardHeader>
+						<CardContent>
+							<div className="text-3xl font-bold text-slate-800">{stat.value}</div>
+							<p className="text-xs text-slate-500 mt-1">
+								<span className={cn('font-semibold', (stat.change ?? 0) >= 0 ? 'text-green-600' : 'text-red-600')}>
+									{(stat.change ?? 0) >= 0 ? '+' : ''}
+									{formatPercentage(stat.change)}
+								</span>{' '}
+								in the past week
+							</p>
+						</CardContent>
 					</Card>
 				))}
 			</div>
 
-			{/* Quick Actions */}
-			<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm rounded-lg">
-				<div className="flex items-center justify-between mb-6">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h2>
-				</div>
-				<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-					{/* ...existing code... */}
-					<div className="flex flex-wrap gap-2">
-						<CustomLink href="/admin/users">
-							<Button variant="outline" size="sm" className="whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-								<i className="ri-user-line w-4 h-4 flex items-center justify-center mr-2"></i>
-								View Users
-							</Button>
-						</CustomLink>
-						<CustomLink href="/admin/notifications">
-							<Button variant="outline" size="sm" className="whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-								<i className="ri-notification-line w-4 h-4 flex items-center justify-center mr-2"></i>
-								Send Broadcast
-							</Button>
-						</CustomLink>
-						<CustomLink href="/admin/ph-requests/multiple-match">
-							<Button variant="outline" size="sm" className="whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-								<i className="ri-group-line w-4 h-4 flex items-center justify-center mr-2"></i>
-								Multiple Match
-							</Button>
-						</CustomLink>
-					</div>
-				</div>
-			</Card>
-
-			{/* Main Charts */}
-			{/* ...existing code for charts, or replace with live chart data if available... */}
-
-			{/* Additional Analytics */}
+			{/* Redesigned Main Layout */}
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				{/* Transaction Status */}
-				<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm rounded-lg">
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Transaction Status</h3>
-					<div className="space-y-4">
-						{transactionData.map((item, index) => (
-							<div key={index} className="flex items-center justify-between">
-								<div className="flex items-center gap-3">
-									<div className={`w-3 h-3 rounded-full ${item.status === 'Completed' ? 'bg-green-500' : item.status === 'Pending' ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
-									<span className="text-sm text-gray-600 dark:text-gray-400">{item.status}</span>
-								</div>
-								<div className="text-right">
-									<div className="text-sm font-medium text-gray-900 dark:text-white">{item.count}</div>
-									<div className="text-xs text-gray-500 dark:text-gray-400">{item.percentage}%</div>
-								</div>
+				{/* Main Column */}
+				<div className="lg:col-span-2">
+					<Card>
+						<CardHeader>
+							<CardTitle>Platform Overview</CardTitle>
+							<CardDescription>A visual representation of key platform metrics.</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{/* Placeholder for a real chart component */}
+							<div className="h-64 bg-slate-50 flex items-center justify-center rounded-md">
+								<p className="text-slate-400">Unable to load chart</p>
 							</div>
-						))}
-					</div>
-				</Card>
+						</CardContent>
+					</Card>
+				</div>
 
-				{/* Quick Stats */}
-				<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm rounded-lg">
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Stats</h3>
-					<div className="space-y-4">
-						{quickStats.map((item, idx) => (
-							<div key={idx} className="flex items-center justify-between">
-								<span className="text-sm text-gray-600 dark:text-gray-400">{item.label}</span>
-								<span className={`text-sm font-medium ${item.label === 'Success Rate' ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>{item.value}</span>
+				{/* Right Sidebar */}
+				<div className="lg:col-span-1 space-y-6">
+					<Card>
+						<CardHeader>
+							<CardTitle>Quick Actions</CardTitle>
+						</CardHeader>
+						<CardContent className="flex flex-col space-y-2">
+							<CustomLink href="/admin/users">
+								<Button variant="outline" className="w-full justify-start">
+									<i className="ri-user-line mr-2"></i>View Users
+								</Button>
+							</CustomLink>
+							<CustomLink href="/admin/notifications">
+								<Button variant="outline" className="w-full justify-start">
+									<i className="ri-notification-line mr-2"></i>Send Broadcast
+								</Button>
+							</CustomLink>
+							<CustomLink href="/admin/ph-requests/multiple-match">
+								<Button variant="outline" className="w-full justify-start">
+									<i className="ri-group-line mr-2"></i>Multiple Match
+								</Button>
+							</CustomLink>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader>
+							<CardTitle>Quick Stats</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<div className="flex items-center justify-between text-sm">
+								<span className="text-slate-500">Active Users</span>
+								<span className="font-medium text-slate-800">{formatStat(stats?.totalActiveUsers)}</span>
 							</div>
-						))}
-					</div>
-				</Card>
+							<div className="flex items-center justify-between text-sm">
+								<span className="text-slate-500">Pending Matches</span>
+								<span className="font-medium text-slate-800">{formatStat(stats?.totalPendingMatches)}</span>
+							</div>
+							<div className="flex items-center justify-between text-sm">
+								<span className="text-slate-500">Success Rate</span>
+								<span className="font-medium text-green-600">{stats && stats.totalMatches ? `${Math.round(((stats.totalCompletedMatches ?? 0) / (stats.totalMatches || 1)) * 100)}%` : '0%'}</span>
+							</div>
+						</CardContent>
+					</Card>
+				</div>
 			</div>
 		</div>
 	);

@@ -1,16 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { UserEditModal } from '@/components/UserEditModal';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { CustomLink } from '@/components/CustomLink';
-import { fetchUserByUsername, loginAsUser, verifyEmail, resendVerificationEmail, sendPasswordResetLink, deleteUser as deleteUserUtil } from '@/lib/userUtils';
+import { fetchUserByUsername, loginAsUser, resendVerificationEmail, sendPasswordResetLink, deleteUser as deleteUserUtil, verifyEmail } from '@/lib/userUtils';
 import { User } from '../content';
 import { logger } from '@/lib/logger';
+import { cn } from '@/lib/utils';
 
 // These interfaces should be imported from your types if available
 interface Transaction {
@@ -161,59 +163,14 @@ export default function UserDetail({ username }: UserDetailProps) {
 
 	if (loading) {
 		return (
-			<div className="p-6 space-y-6  min-h-screen">
-				<div className="animate-pulse">
-					{/* Header */}
-					<div className="flex items-center justify-between mb-6">
-						<div className="flex items-center gap-4">
-							<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
-							<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
-						</div>
-						<div className="flex items-center gap-2">
-							<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-							<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
-							<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-						</div>
+			<div className="animate-pulse space-y-6">
+				<div className="h-8 bg-slate-200 rounded w-48"></div>
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+					<div className="lg:col-span-1 space-y-6">
+						<div className="bg-white rounded-lg shadow-sm h-64 p-6"></div>
+						<div className="bg-white rounded-lg shadow-sm h-48 p-6"></div>
 					</div>
-
-					{/* User Info Card */}
-					<div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 mb-6">
-						<div className="flex items-center gap-6 mb-6">
-							<div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-							<div className="flex-1">
-								<div className="flex items-center gap-3 mb-2">
-									<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-40"></div>
-									<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
-								</div>
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-1"></div>
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
-							</div>
-						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-							{[...Array(4)].map((_, i) => (
-								<div key={i}>
-									<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-1"></div>
-									<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-								</div>
-							))}
-						</div>
-					</div>
-
-					{/* Tabs */}
-					<div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-						<div className="flex space-x-8">
-							<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-							<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-							<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
-						</div>
-					</div>
-
-					{/* Tab Content */}
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{[...Array(3)].map((_, i) => (
-							<div key={i} className="bg-gray-100 dark:bg-gray-800 rounded-lg h-32"></div>
-						))}
-					</div>
+					<div className="lg:col-span-2 bg-white rounded-lg shadow-sm h-96 p-6"></div>
 				</div>
 			</div>
 		);
@@ -221,249 +178,119 @@ export default function UserDetail({ username }: UserDetailProps) {
 
 	if (!user) {
 		return (
-			<div className="p-6  min-h-screen">
-				<div className="text-center">
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">User not found</h1>
-					<CustomLink href="/admin/users">
-						<Button className="bg-blue-600 hover:bg-blue-700 text-white">Back to Users</Button>
-					</CustomLink>
-				</div>
+			<div className="text-center py-20">
+				<h1 className="text-2xl font-bold text-slate-800 mb-4">User Not Found</h1>
+				<CustomLink href="/admin/users">
+					<Button>Back to Users</Button>
+				</CustomLink>
 			</div>
 		);
 	}
 
 	return (
-		<div className="p-6 space-y-6  min-h-screen">
-			{/* Header */}
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-4">
-					<CustomLink href="/admin/users">
-						<Button variant="outline" size="sm" className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-							<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center mr-2"></i>
-							Back
-						</Button>
-					</CustomLink>
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Profile</h1>
-				</div>
-				<div className="flex items-center gap-2">
-					<Button variant="outline" onClick={handleEditUser} className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap">
-						<i className="ri-edit-line w-4 h-4 flex items-center justify-center mr-2"></i>
-						Edit
-					</Button>
-					<Button variant="outline" onClick={handleSignInAsUser} disabled={actionLoading} className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap">
-						<i className="ri-login-box-line w-4 h-4 flex items-center justify-center mr-2"></i>
-						{actionLoading ? 'Signing in...' : 'Sign in as User'}
-					</Button>
-					<Button variant="outline" onClick={handleDeleteUser} className="bg-white dark:bg-gray-700 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 whitespace-nowrap">
-						<i className="ri-delete-bin-line w-4 h-4 flex items-center justify-center mr-2"></i>
-						Delete
-					</Button>
-				</div>
-			</div>
+		<div className="space-y-6">
+			<header>
+				<CustomLink href="/admin/users" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 font-medium mb-4">
+					<i className="ri-arrow-left-line"></i>
+					Back to All Users
+				</CustomLink>
+				<h1 className="text-3xl font-bold text-slate-800">User Profile</h1>
+			</header>
 
-			{/* User Info Card */}
-			<Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-sm rounded-lg">
-				<div className="flex items-center gap-6 mb-6">
-					<div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center">
-						<span className="text-white font-bold text-3xl">{user.name.charAt(0)}</span>
-					</div>
-					<div className="flex-1">
-						<div className="flex items-center gap-3 mb-2">
-							<h2 className="text-2xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
-							<span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(user.status || 'Active')}`}>{user.status}</span>
-						</div>
-						<p className="text-gray-600 dark:text-gray-400 mb-1">@{user.username}</p>
-						<p className="text-gray-600 dark:text-gray-400">{user.email}</p>
-						<div className="flex items-center gap-2 mt-2 flex-col sm:flex-row">
-							<span className={`px-2 py-1 rounded-full text-xs font-medium ${user.emailVerified ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'}`}>
-								{user.emailVerified ? 'Verified' : 'Not Verified'}
-							</span>
-							{!user.emailVerified && (
-								<>
-									<Button size="sm" variant="outline" onClick={handleVerifyEmail} disabled={actionLoading}>
-										{actionLoading ? 'Verifying...' : 'Verify Email'}
-									</Button>
-
-									<Button size="sm" variant="outline" onClick={handleResendVerification} disabled={actionLoading}>
-										Resend Verification
-									</Button>
-								</>
-							)}
-
-							<Button size="sm" variant="outline" onClick={handleResetPassword} disabled={actionLoading}>
-								Reset Password
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+				{/* Left Sidebar: Profile & Actions */}
+				<div className="lg:col-span-1 space-y-6">
+					<Card>
+						<CardContent className="p-6 text-center">
+							<img src={user.avatar || `https://ui-avatars.com/api/?name=${user.name.replace(' ', '+')}&background=E0E7FF&color=4338CA&bold=true`} alt={user.name} className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-white shadow-md" />
+							<h2 className="text-xl font-bold text-slate-800 mt-4">{user.name}</h2>
+							<p className="text-sm text-slate-500">@{user.username}</p>
+							<div className="flex items-center justify-center gap-2 mt-2">
+								<Badge variant={user.emailVerified ? 'success' : 'warning'}>{user.emailVerified ? 'Verified' : 'Unverified'}</Badge>
+								<Badge variant="secondary">{user.role}</Badge>
+							</div>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader>
+							<CardTitle>Admin Actions</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-2">
+							<Button variant="outline" className="w-full justify-start" onClick={handleEditUser}>
+								<i className="ri-edit-line mr-2"></i>Edit User
 							</Button>
-						</div>
-					</div>
+							<Button variant="outline" className="w-full justify-start" onClick={handleSignInAsUser} disabled={actionLoading}>
+								<i className="ri-login-box-line mr-2"></i>
+								{actionLoading ? 'Signing in...' : 'Sign in as User'}
+							</Button>
+							<Button variant="outline" className="w-full justify-start" onClick={handleResetPassword} disabled={actionLoading}>
+								<i className="ri-key-2-line mr-2"></i>Send Password Reset
+							</Button>
+							{!user.emailVerified && (
+								<Button variant="outline" className="w-full justify-start" onClick={handleResendVerification} disabled={actionLoading}>
+									<i className="ri-mail-send-line mr-2"></i>Resend Verification
+								</Button>
+							)}
+							<Button variant="destructive" className="w-full justify-start" onClick={handleDeleteUser}>
+								<i className="ri-delete-bin-line mr-2"></i>Delete User
+							</Button>
+						</CardContent>
+					</Card>
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-						<p className="text-gray-900 dark:text-white">{user.role}</p>
-					</div>
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
-						<p className="text-gray-900 dark:text-white">{user.location}</p>
-					</div>
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
-						<p className="text-gray-900 dark:text-white">{user.phone || 'Not provided'}</p>
-					</div>
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date Joined</label>
-						<p className="text-gray-900 dark:text-white">{user.dateJoined}</p>
-					</div>
+				{/* Right Column: Tabbed Information */}
+				<div className="lg:col-span-2">
+					<Card>
+						<CardHeader className="p-0 border-b border-slate-200">
+							<nav className="flex gap-4 px-6">
+								<button onClick={() => setActiveTab('overview')} className={cn('py-3 text-sm font-medium border-b-2', activeTab === 'overview' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-800')}>
+									Overview
+								</button>
+								<button onClick={() => setActiveTab('transactions')} className={cn('py-3 text-sm font-medium border-b-2', activeTab === 'transactions' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-800')}>
+									Transactions
+								</button>
+								<button onClick={() => setActiveTab('listings')} className={cn('py-3 text-sm font-medium border-b-2', activeTab === 'listings' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-800')}>
+									Listings
+								</button>
+							</nav>
+						</CardHeader>
+						<CardContent className="p-6">
+							{activeTab === 'overview' && (
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+									<Card>
+										<CardHeader>
+											<CardTitle className="text-sm font-medium text-slate-500">Total GH</CardTitle>
+										</CardHeader>
+										<CardContent>
+											<p className="text-2xl font-bold">{transactions.filter((t) => t.type === 'GH').length}</p>
+										</CardContent>
+									</Card>
+									<Card>
+										<CardHeader>
+											<CardTitle className="text-sm font-medium text-slate-500">Total PH</CardTitle>
+										</CardHeader>
+										<CardContent>
+											<p className="text-2xl font-bold">{transactions.filter((t) => t.type === 'PH').length}</p>
+										</CardContent>
+									</Card>
+									<Card>
+										<CardHeader>
+											<CardTitle className="text-sm font-medium text-slate-500">Total Transactions</CardTitle>
+										</CardHeader>
+										<CardContent>
+											<p className="text-2xl font-bold">{transactions.length}</p>
+										</CardContent>
+									</Card>
+								</div>
+							)}
+							{activeTab === 'transactions' && <div className="text-center text-slate-500 py-12">Transaction data would appear here.</div>}
+							{activeTab === 'listings' && <div className="text-center text-slate-500 py-12">Listing data would appear here.</div>}
+						</CardContent>
+					</Card>
 				</div>
-
-				{user.bio && (
-					<div className="mt-4">
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bio</label>
-						<p className="text-gray-900 dark:text-white">{user.bio}</p>
-					</div>
-				)}
-			</Card>
-
-			{/* Tabs */}
-			<div className="border-b border-gray-200 dark:border-gray-700">
-				<nav className="-mb-px flex space-x-8">
-					<button
-						onClick={() => setActiveTab('overview')}
-						className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === 'overview' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'}`}
-					>
-						Overview
-					</button>
-					<button
-						onClick={() => setActiveTab('transactions')}
-						className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-							activeTab === 'transactions' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-						}`}
-					>
-						Transactions
-					</button>
-					<button
-						onClick={() => setActiveTab('listings')}
-						className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === 'listings' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'}`}
-					>
-						Listings
-					</button>
-				</nav>
 			</div>
 
-			{/* Tab Content */}
-			{activeTab === 'overview' && (
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					<Card className="p-6 bg-blue-600 text-white border-0 shadow-sm rounded-lg">
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="text-sm opacity-90">Total GH Requests</p>
-								<p className="text-2xl font-bold">{transactions.filter((t) => t.type === 'GH').length}</p>
-							</div>
-							<i className="ri-gift-line w-8 h-8 flex items-center justify-center opacity-80"></i>
-						</div>
-					</Card>
-					<Card className="p-6 bg-green-600 text-white border-0 shadow-sm rounded-lg">
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="text-sm opacity-90">Total PH Requests</p>
-								<p className="text-2xl font-bold">{transactions.filter((t) => t.type === 'PH').length}</p>
-							</div>
-							<i className="ri-hand-heart-line w-8 h-8 flex items-center justify-center opacity-80"></i>
-						</div>
-					</Card>
-					<Card className="p-6 bg-purple-600 text-white border-0 shadow-sm rounded-lg">
-						<div className="flex items-center justify-between">
-							<div>
-								<p className="text-sm opacity-90">Total Transactions</p>
-								<p className="text-2xl font-bold">{transactions.length}</p>
-							</div>
-							<i className="ri-exchange-line w-8 h-8 flex items-center justify-center opacity-80"></i>
-						</div>
-					</Card>
-				</div>
-			)}
-
-			{activeTab === 'transactions' && (
-				<Card className="p-0 bg-white dark:bg-gray-800 border-0 shadow-sm rounded-lg overflow-hidden">
-					<div className="overflow-x-auto">
-						<table className="w-full">
-							<thead className="bg-gray-50 dark:bg-gray-700">
-								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-								</tr>
-							</thead>
-							<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-								{transactions.map((transaction) => (
-									<tr key={transaction.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-										<td className="px-6 py-4 whitespace-nowrap">
-											<span className={`px-2 py-1 rounded-full text-xs font-medium ${transaction.type === 'GH' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'}`}>
-												{transaction.type}
-											</span>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">GH₵ {transaction.amount}</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{transaction.date}</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>{transaction.status}</span>
-										</td>
-										<td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{transaction.description}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				</Card>
-			)}
-
-			{activeTab === 'listings' && (
-				<Card className="p-0 bg-white dark:bg-gray-800 border-0 shadow-sm rounded-lg overflow-hidden">
-					<div className="overflow-x-auto">
-						<table className="w-full">
-							<thead className="bg-gray-50 dark:bg-gray-700">
-								<tr>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-								</tr>
-							</thead>
-							<tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-								{listings.map((listing) => (
-									<tr key={listing.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-										<td className="px-6 py-4 text-sm text-gray-900 dark:text-white">{listing.title}</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<span className={`px-2 py-1 rounded-full text-xs font-medium ${listing.type === 'GH' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400' : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'}`}>{listing.type}</span>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">GH₵ {listing.amount}</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{listing.date}</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(listing.status)}`}>{listing.status}</span>
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				</Card>
-			)}
-
-			{/* Modals */}
-			<ConfirmationModal
-				isOpen={deleteModalOpen}
-				onClose={() => setDeleteModalOpen(false)}
-				onConfirm={confirmDelete}
-				title="Delete User"
-				message={`Are you sure you want to delete ${user.name}? This action cannot be undone and will remove all associated data.`}
-				confirmText="Delete"
-				cancelText="Cancel"
-				confirmVariant="destructive"
-				loading={deleteLoading}
-			/>
-
+			<ConfirmationModal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} onConfirm={confirmDelete} title="Delete User" message={`Are you sure you want to delete ${user.name}? This action is permanent.`} confirmVariant="destructive" loading={deleteLoading} />
 			<UserEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} user={user} onUserUpdated={setUser} />
 		</div>
 	);

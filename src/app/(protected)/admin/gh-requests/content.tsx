@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
@@ -13,6 +13,7 @@ import { ConfirmationModal } from '@/components/ConfirmationModal';
 import MatchUsersModal from '@/components/MatchUsersModal';
 import { Button } from '@/components/ui/button';
 import { CustomLink } from '@/components/CustomLink';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Package } from '../../user/provide-help/content';
 import AddGHRequestModal from '@/components/AddGHRequestModal';
 import { PHRequest } from '../ph-requests/multiple-match/types';
@@ -20,7 +21,6 @@ import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/
 
 export default function GHRequestsPage() {
 	const [requests, setRequests] = useState<GHRequest[]>([]);
-	const [filteredRequests, setFilteredRequests] = useState<GHRequest[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [pageLoading, setPageLoading] = useState(false);
 	const [matchLoading, setMatchLoading] = useState<{ [key: string]: boolean }>({});
@@ -30,35 +30,15 @@ export default function GHRequestsPage() {
 	const [statusFilter, setStatusFilter] = useState('All');
 	const [locationFilter, setLocationFilter] = useState('All');
 	const [sortBy, setSortBy] = useState('dateCreated');
-	const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; request: GHRequest | null }>({
-		isOpen: false,
-		request: null,
-	});
-	const [editModal, setEditModal] = useState<{ isOpen: boolean; request: GHRequest | null }>({
-		isOpen: false,
-		request: null,
-	});
-	const [matchModal, setMatchModal] = useState<{
-		isOpen: boolean;
-		request: GHRequest | null;
-		existingMatches: PHRequest[];
-	}>({
-		isOpen: false,
-		request: null,
-		existingMatches: [],
-	});
+	const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; request: GHRequest | null }>({ isOpen: false, request: null });
+	const [editModal, setEditModal] = useState<{ isOpen: boolean; request: GHRequest | null }>({ isOpen: false, request: null });
+	const [matchModal, setMatchModal] = useState<{ isOpen: boolean; request: GHRequest | null; existingMatches: PHRequest[] }>({ isOpen: false, request: null, existingMatches: [] });
 	const [addModal, setAddModal] = useState(false);
 	const [deleteLoading, setDeleteLoading] = useState(false);
 	const [isMounted, setIsMounted] = useState(false);
 	const [packages, setPackages] = useState<Package[]>([]);
 
 	const itemsPerPage = 10;
-
-	useEffect(() => {
-		setIsMounted(true);
-		fetchRequests(1);
-		fetchPackages();
-	}, []);
 
 	const fetchPackages = async () => {
 		try {
@@ -83,7 +63,7 @@ export default function GHRequestsPage() {
 		}
 	};
 
-	const fetchRequests = async (page: number) => {
+	const fetchRequests = useCallback(async (page: number) => {
 		setPageLoading(true);
 		try {
 			const res = await fetchWithAuth(`/api/gh-requests/all?page=${page}&limit=${itemsPerPage}`);
@@ -118,14 +98,19 @@ export default function GHRequestsPage() {
 			setLoading(false);
 			setPageLoading(false);
 		}
-	};
+	}, []);
 
-	const filterRequests = () => {
+	useEffect(() => {
+		setIsMounted(true);
+		fetchRequests(1);
+		fetchPackages();
+	}, [fetchRequests]);
+
+	const filteredRequests = useMemo(() => {
 		let filtered = requests.filter((request) => {
-			const matchesSearch = request.user.name.toLowerCase().includes(searchTerm.toLowerCase()) || request.user.email.toLowerCase().includes(searchTerm.toLowerCase()) || request.user.location.toLowerCase().includes(searchTerm.toLowerCase());
+			const matchesSearch = request.user.name.toLowerCase().includes(searchTerm.toLowerCase()) || request.user.email.toLowerCase().includes(searchTerm.toLowerCase());
 			const matchesStatus = statusFilter === 'All' || request.status === statusFilter;
 			const matchesLocation = locationFilter === 'All' || request.user.location.includes(locationFilter);
-
 			return matchesSearch && matchesStatus && matchesLocation;
 		});
 
@@ -142,12 +127,7 @@ export default function GHRequestsPage() {
 					return new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime();
 			}
 		});
-
-		setFilteredRequests(filtered);
-	};
-
-	useEffect(() => {
-		filterRequests();
+		return filtered;
 	}, [requests, searchTerm, statusFilter, locationFilter, sortBy]);
 
 	const handlePageChange = (page: number) => {
@@ -164,9 +144,7 @@ export default function GHRequestsPage() {
 
 		setDeleteLoading(true);
 		try {
-			const res = await fetchWithAuth(`/api/gh-requests/${deleteModal.request.id}`, {
-				method: 'DELETE',
-			});
+			const res = await fetchWithAuth(`/api/gh-requests/${deleteModal.request.id}`, { method: 'DELETE' });
 
 			if (!res.ok) {
 				const data = await res.json();
@@ -201,7 +179,6 @@ export default function GHRequestsPage() {
 			if (!res.ok) {
 				throw new Error(handleFetchMessage(json, 'Failed to fetch matches'));
 			}
-			logger.warn('Existing matches for GH request:', json);
 			const existingMatches: PHRequest[] = (json.data?.matches || []).map((match: any) => ({
 				id: match.phRequest.id,
 				user: {
@@ -225,11 +202,7 @@ export default function GHRequestsPage() {
 				assignedUsers: [],
 				notes: match.phRequest.notes || '',
 			}));
-			setMatchModal({
-				isOpen: true,
-				request,
-				existingMatches,
-			});
+			setMatchModal({ isOpen: true, request, existingMatches });
 		} catch (error) {
 			toast.error(handleFetchMessage(error, 'Failed to load existing matches'));
 			logger.error('Failed to load matches for GH request', error);
@@ -254,16 +227,7 @@ export default function GHRequestsPage() {
 			if (!res.ok) {
 				throw new Error(handleFetchMessage(await res.json(), 'Failed to create matches'));
 			}
-			setRequests(
-				requests.map((r) =>
-					r.id === ghRequest.id
-						? {
-								...r,
-								status: r.remainingAmount === selectedPHRequests.reduce((sum, ph) => sum + Math.min(ph.availableAmount, r.remainingAmount), 0) ? 'matched' : 'pending',
-						  }
-						: r
-				)
-			);
+			setRequests(requests.map((r) => (r.id === ghRequest.id ? { ...r, status: r.remainingAmount === selectedPHRequests.reduce((sum, ph) => sum + Math.min(ph.availableAmount, r.remainingAmount), 0) ? 'matched' : 'pending' } : r)));
 			setMatchModal({ isOpen: false, request: null, existingMatches: [] });
 			toast.success('Successfully matched users');
 		} catch (error) {
@@ -288,51 +252,55 @@ export default function GHRequestsPage() {
 	if (!isMounted) {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="p-6 space-y-6 min-h-screen" suppressHydrationWarning={true}>
-			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-				<h1 className="text-2xl font-bold text-gray-900 dark:text-white">GH Requests</h1>
+		<div className="space-y-6">
+			<header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+				<div>
+					<h1 className="text-3xl font-bold text-slate-800">Get Help Requests</h1>
+					<p className="text-slate-500 mt-1">Manage and match all incoming GH requests.</p>
+				</div>
 				<div className="flex gap-2">
-					<Button onClick={() => setAddModal(true)} className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap">
-						<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
-						Add Request
+					<Button onClick={() => setAddModal(true)}>
+						<i className="ri-add-line mr-2"></i>Add Request
 					</Button>
-					<CustomLink href="/admin/gh-requests/multiple-match">
-						<Button className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap">
-							<i className="ri-group-line w-4 h-4 flex items-center justify-center mr-2"></i>
-							Multiple Match
+					<CustomLink href="/admin/ph-requests/multiple-match">
+						<Button variant="outline">
+							<i className="ri-group-line mr-2"></i>Multiple Match
 						</Button>
 					</CustomLink>
 				</div>
-			</div>
+			</header>
 
 			<GHRequestsFilters searchTerm={searchTerm} setSearchTerm={setSearchTerm} statusFilter={statusFilter} setStatusFilter={setStatusFilter} locationFilter={locationFilter} setLocationFilter={setLocationFilter} sortBy={sortBy} setSortBy={setSortBy} resetFilters={resetFilters} />
 
-			<GHRequestsTable requests={filteredRequests} currentPage={currentPage} itemsPerPage={itemsPerPage} pageLoading={pageLoading} matchLoading={matchLoading} handleEditRequest={handleEditRequest} handleMatchRequest={handleMatchRequest} handleDeleteRequest={handleDeleteRequest} />
-
-			{totalPages > 1 && !pageLoading && <GHRequestsPagination currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} />}
+			<Card>
+				<CardContent className="p-0">
+					<GHRequestsTable requests={filteredRequests} pageLoading={pageLoading} matchLoading={matchLoading} handleEditRequest={handleEditRequest} handleMatchRequest={handleMatchRequest} handleDeleteRequest={handleDeleteRequest} />
+				</CardContent>
+				{totalPages > 1 && !pageLoading && (
+					<CardFooter>
+						<GHRequestsPagination currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} />
+					</CardFooter>
+				)}
+			</Card>
 
 			<ConfirmationModal
 				isOpen={deleteModal.isOpen}
 				onClose={() => setDeleteModal({ isOpen: false, request: null })}
 				onConfirm={confirmDelete}
 				title="Delete GH Request"
-				message={`Are you sure you want to delete ${deleteModal.request?.user.name}'s request for ${deleteModal.request?.remainingAmount} ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}? This action cannot be undone.`}
+				message={`Are you sure you want to delete this request? This action cannot be undone.`}
 				confirmText="Delete"
-				cancelText="Cancel"
 				confirmVariant="destructive"
 				loading={deleteLoading}
 			/>
-
 			<EditGHRequestModal isOpen={editModal.isOpen} onClose={() => setEditModal({ isOpen: false, request: null })} request={editModal.request} onSave={handleSaveRequest} />
-
 			<MatchUsersModal isOpen={matchModal.isOpen} onClose={() => setMatchModal({ isOpen: false, request: null, existingMatches: [] })} ghRequest={matchModal.request} onMatch={handleMatchUsers} existingMatches={matchModal.existingMatches} />
-
 			<AddGHRequestModal isOpen={addModal} onClose={() => setAddModal(false)} onAdd={handleAddRequests} />
 		</div>
 	);

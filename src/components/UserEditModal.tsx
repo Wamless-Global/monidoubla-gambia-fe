@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 import { User } from '@/app/(protected)/admin/users/content';
 import { toast } from 'sonner';
 import { loginAsUser as loginAsUserUtil, sendPasswordResetLink, resendVerificationEmail, setUserPassword, editUser } from '@/lib/userUtils';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { logger } from '@/lib/logger';
+import { Badge } from './ui/badge';
 
 interface UserEditModalProps {
 	isOpen: boolean;
@@ -37,6 +40,7 @@ export function UserEditModal({ isOpen, onClose, user, onUserUpdated }: UserEdit
 	const [confirmPassword, setConfirmPassword] = useState('');
 	const [showPasswordSection, setShowPasswordSection] = useState(false);
 	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [activeTab, setActiveTab] = useState<'details' | 'security' | 'actions'>('details');
 
 	useEffect(() => {
 		if (user) {
@@ -178,201 +182,115 @@ export function UserEditModal({ isOpen, onClose, user, onUserUpdated }: UserEdit
 	if (!isOpen || !user) return null;
 
 	return (
-		<>
-			<div className="fixed inset-0 bg-black bg-opacity-50 z-50 !mt-0" onClick={onClose} />
-
-			<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-				<div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-					<div className="p-6">
-						<div className="flex items-center justify-between mb-6">
-							<h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit User</h3>
-							<button onClick={onClose} disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50">
-								<i className="ri-close-line w-5 h-5 flex items-center justify-center text-gray-600 dark:text-gray-400"></i>
-							</button>
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in-0 !m-0">
+			<Card className="max-w-lg w-full bg-white shadow-lg border-slate-200 animate-in fade-in-0 zoom-in-95">
+				<CardHeader>
+					<div className="flex justify-between items-center">
+						<div>
+							<CardTitle>Edit User</CardTitle>
+							<CardDescription>Manage user profile and security settings.</CardDescription>
 						</div>
+						<button onClick={onClose} disabled={loading} className="p-1 rounded-full text-slate-500 hover:bg-slate-100">
+							<i className="ri-close-line text-xl"></i>
+						</button>
+					</div>
+					<div className="border-b border-slate-200 -mx-6 mt-4">
+						<nav className="flex gap-4 px-6">
+							<button onClick={() => setActiveTab('details')} className={cn('py-3 text-sm font-medium', activeTab === 'details' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-slate-500 hover:text-slate-800')}>
+								Details
+							</button>
+							<button onClick={() => setActiveTab('security')} className={cn('py-3 text-sm font-medium', activeTab === 'security' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-slate-500 hover:text-slate-800')}>
+								Security
+							</button>
+							<button onClick={() => setActiveTab('actions')} className={cn('py-3 text-sm font-medium', activeTab === 'actions' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-slate-500 hover:text-slate-800')}>
+								Actions
+							</button>
+						</nav>
+					</div>
+				</CardHeader>
 
-						<form onSubmit={handleSubmit} className="space-y-4">
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-								<input
-									type="text"
-									value={formData.name}
-									onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-									className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${errors.name ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
-									disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading}
-									required
-								/>
-								{errors.name && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
-							</div>
-
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
-								<input
-									type="text"
-									value={formData.username}
-									onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-									className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${errors.username ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
-									disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading}
-									required
-								/>
-								{errors.username && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.username}</p>}
-							</div>
-
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-								<div className="space-y-2">
-									<input type="email" value={formData.email} className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white cursor-not-allowed `} disabled={true} required />
-									{errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
-
-									<div className="flex items-center gap-2">
-										<span className={`px-2 py-1 rounded-full text-xs font-medium ${formData.emailVerified ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'}`}>
-											{formData.emailVerified ? 'Verified' : 'Not Verified'}
-										</span>
-										{!formData.emailVerified && (
-											<Button type="button" size="sm" onClick={handleVerifyEmail} disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading} className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 h-7 whitespace-nowrap">
-												{verifyEmailLoading ? (
-													<div className="flex items-center gap-1">
-														<div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-														<span>Verifying...</span>
-													</div>
-												) : (
-													'Verify Email'
-												)}
-											</Button>
-										)}
-									</div>
+				<form onSubmit={handleSubmit}>
+					<CardContent className="max-h-[60vh] overflow-y-auto p-6">
+						{activeTab === 'details' && (
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
+									<input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={cn('w-full', errors.name && 'border-red-500')} disabled={loading} required />
+									{errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+								</div>
+								<div>
+									<label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
+									<input type="text" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} className={cn('w-full', errors.username && 'border-red-500')} disabled={loading} required />
+									{errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
+								</div>
+								<div>
+									<label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+									<input type="email" value={formData.email} className="w-full bg-slate-100 cursor-not-allowed" disabled={true} required />
+								</div>
+								<div>
+									<label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+									<select value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} className="w-full" disabled={loading} required>
+										<option value="User">User</option>
+										<option value="Admin">Admin</option>
+										<option value="SuperAdmin">Super Admin</option>
+									</select>
 								</div>
 							</div>
-
-							<div>
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-								<select
-									value={formData.role}
-									onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-									className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white pr-8"
-									disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading}
-									required
-								>
-									<option value="User">User</option>
-									<option value="Admin">Admin</option>
-									<option value="SuperAdmin">Super Admin</option>
-								</select>
-							</div>
-
-							{/* Password Section */}
-							<div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-								<div className="flex items-center justify-between mb-4">
-									<h4 className="text-sm font-medium text-gray-900 dark:text-white">Password Actions</h4>
+						)}
+						{activeTab === 'security' && (
+							<div className="space-y-4">
+								<div className="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
+									<p className="text-sm font-medium text-slate-700">Email Status:</p>
+									<Badge variant={formData.emailVerified ? 'success' : 'warning'}>{formData.emailVerified ? 'Verified' : 'Not Verified'}</Badge>
+									{!formData.emailVerified && (
+										<Button type="button" size="sm" onClick={handleVerifyEmail} disabled={verifyEmailLoading}>
+											{' '}
+											{verifyEmailLoading ? 'Sending...' : 'Send Verification'}
+										</Button>
+									)}
 								</div>
-
-								<div className="flex flex-col gap-2 mb-4">
-									<Button
-										type="button"
-										variant="outline"
-										onClick={handleResetPassword}
-										disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading}
-										className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap"
-									>
-										{resetPasswordLoading ? (
-											<div className="flex items-center gap-2">
-												<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-												<span>Sending Reset Link...</span>
-											</div>
-										) : (
-											<>
-												<i className="ri-mail-send-line w-4 h-4 flex items-center justify-center mr-2"></i>
-												Send Password Reset Link
-											</>
-										)}
+								<div className="pt-4 space-y-2">
+									<h4 className="font-medium text-slate-800">Password Actions</h4>
+									<Button type="button" variant="outline" onClick={handleResetPassword} disabled={resetPasswordLoading} className="w-full justify-start">
+										<i className="ri-mail-send-line mr-2"></i>Send Password Reset Link
 									</Button>
-
-									<Button
-										type="button"
-										variant="outline"
-										onClick={() => setShowPasswordSection(!showPasswordSection)}
-										disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading}
-										className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap"
-									>
-										<i className="ri-lock-password-line w-4 h-4 flex items-center justify-center mr-2"></i>
+									<Button type="button" variant="outline" onClick={() => setShowPasswordSection(!showPasswordSection)} className="w-full justify-start">
+										<i className="ri-lock-password-line mr-2"></i>
 										{showPasswordSection ? 'Cancel Set Password' : 'Set New Password'}
 									</Button>
 								</div>
-
 								{showPasswordSection && (
-									<div className="space-y-3">
-										<div>
-											<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
-											<input
-												type="password"
-												value={newPassword}
-												onChange={(e) => setNewPassword(e.target.value)}
-												className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
-													errors.newPassword ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-												}`}
-												disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading}
-												placeholder="Enter new password"
-											/>
-											{errors.newPassword && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.newPassword}</p>}
-										</div>
-
-										<div>
-											<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
-											<input
-												type="password"
-												value={confirmPassword}
-												onChange={(e) => setConfirmPassword(e.target.value)}
-												className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
-													errors.confirmPassword ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-												}`}
-												disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading}
-												placeholder="Confirm new password"
-											/>
-											{errors.confirmPassword && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>}
-										</div>
-
-										<Button type="button" onClick={handleSetPassword} disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading} className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-nowrap">
-											{setPasswordLoading ? (
-												<div className="flex items-center gap-2">
-													<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-													<span>Setting Password...</span>
-												</div>
-											) : (
-												<>
-													<i className="ri-check-line w-4 h-4 flex items-center justify-center mr-2"></i>
-													Set Password
-												</>
-											)}
+									<div className="pt-4 border-t space-y-3">
+										<input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={cn('w-full', errors.newPassword && 'border-red-500')} placeholder="New Password" />
+										<input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={cn('w-full', errors.confirmPassword && 'border-red-500')} placeholder="Confirm New Password" />
+										<Button type="button" onClick={handleSetPassword} disabled={setPasswordLoading} className="w-full">
+											{setPasswordLoading ? 'Setting...' : 'Confirm New Password'}
 										</Button>
 									</div>
 								)}
 							</div>
-
-							<div className="flex flex-col gap-3 pt-4">
-								<Button type="submit" disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading} className="w-full bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap min-h-[40px]">
-									{loading ? (
-										<div className="flex items-center gap-2">
-											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-											<span>Updating...</span>
-										</div>
-									) : (
-										'Save Changes'
-									)}
-								</Button>
-								<Button
-									type="button"
-									variant="outline"
-									onClick={handleSignInAsUser}
-									disabled={loading || resetPasswordLoading || setPasswordLoading || verifyEmailLoading || isImpersonating}
-									className="w-full bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap"
-								>
-									<i className="ri-login-box-line w-4 h-4 flex items-center justify-center mr-2"></i>
-									{isImpersonating ? <span>Signing in...</span> : 'Sign in as User'}
+						)}
+						{activeTab === 'actions' && (
+							<div className="space-y-4">
+								<h4 className="font-medium text-slate-800">Impersonate User</h4>
+								<p className="text-sm text-slate-500">Sign in as this user to troubleshoot issues. You will be logged out of your admin account.</p>
+								<Button type="button" variant="outline" onClick={handleSignInAsUser} disabled={isImpersonating} className="w-full justify-start text-amber-700 border-amber-300 hover:bg-amber-50 hover:text-amber-800">
+									<i className="ri-login-box-line mr-2"></i>
+									{isImpersonating ? 'Signing in...' : 'Sign in as User'}
 								</Button>
 							</div>
-						</form>
-					</div>
-				</div>
-			</div>
-		</>
+						)}
+					</CardContent>
+					<CardFooter className="justify-end gap-3">
+						<Button type="button" variant="outline" onClick={onClose}>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={loading} className="min-w-[120px]">
+							{loading ? 'Saving...' : 'Save Changes'}
+						</Button>
+					</CardFooter>
+				</form>
+			</Card>
+		</div>
 	);
 }

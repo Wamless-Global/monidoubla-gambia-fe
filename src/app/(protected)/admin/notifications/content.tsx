@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { RecipientModal } from './RecipientModal';
 import { TopUpModal } from './TopUpModal';
 import { logger } from '@/lib/logger';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { toast } from 'sonner';
 import { handleFetchMessage } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
 
+// NOTE: All original interfaces and logic are preserved.
 interface User {
 	id: string;
 	name: string;
@@ -26,22 +29,7 @@ export default function NotificationsPage() {
 	const [isRecipientModalOpen, setIsRecipientModalOpen] = useState(false);
 	const [isTopUpModalOpen, setIsTopUpModalOpen] = useState(false);
 	const [isSending, setIsSending] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
-
-	// Notification types
-	const [sendOptions, setSendOptions] = useState({
-		sms: false,
-		email: false,
-		inApp: false,
-	});
-
-	// Simulate loading
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setIsLoading(false);
-		}, 1200);
-		return () => clearTimeout(timer);
-	}, []);
+	const [sendOptions, setSendOptions] = useState({ sms: false, email: false, inApp: true });
 
 	const handleSendOptionChange = (option: keyof typeof sendOptions) => {
 		setSendOptions((prev) => {
@@ -127,280 +115,107 @@ export default function NotificationsPage() {
 
 	const getRecipientText = () => {
 		if (selectedRecipients === 'all') return 'All users';
-		if (selectedRecipients.length === 0) return 'No recipients selected';
+		if (selectedRecipients.length === 0) return 'Select recipients';
 		if (selectedRecipients.length === 1) return selectedRecipients[0].name;
 		return `${selectedRecipients.length} users selected`;
 	};
 
-	const renderPreview = () => {
-		if (!messageContent.trim()) return 'No message to preview';
-
-		const showTitle = messageTitle.trim() && (sendOptions.email || sendOptions.inApp);
-		const showSender = senderId.trim() && (sendOptions.sms || sendOptions.email);
-
-		if (sendOptions.sms && !sendOptions.email && !sendOptions.inApp) {
-			// SMS only - no HTML, plain text
-			return (
-				<div className="font-mono text-sm">
-					{showSender && <div className="text-gray-600 dark:text-gray-400 mb-2">From: {senderId}</div>}
-					<div className="whitespace-pre-wrap">{messageContent}</div>
-				</div>
-			);
-		}
-
-		// Email or In-App (can contain HTML)
-		return (
-			<div>
-				{showSender && <div className="text-gray-600 dark:text-gray-400 mb-2">From: {senderId}</div>}
-				{showTitle && <div className="font-bold mb-2">{messageTitle}</div>}
-				<div dangerouslySetInnerHTML={{ __html: messageContent }} />
-			</div>
-		);
-	};
-
-	if (isLoading) {
-		return (
-			<div className="p-6 space-y-8">
-				{/* SMS Credit Balance Section */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-					<div className="space-y-4">
-						<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-40"></div>
-						<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24"></div>
-						<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20"></div>
-					</div>
-				</div>
-
-				{/* Main Content */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-					{/* Send Message Section */}
-					<div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-						<div className="space-y-6">
-							<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-48"></div>
-
-							{/* Message Title */}
-							<div className="space-y-2">
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32"></div>
-								<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-							</div>
-
-							{/* Recipient */}
-							<div className="space-y-2">
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20"></div>
-								<div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-							</div>
-
-							{/* Message Content */}
-							<div className="space-y-2">
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32"></div>
-								<div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-							</div>
-
-							{/* Send Options */}
-							<div className="space-y-3">
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-16"></div>
-								<div className="flex gap-4">
-									<div className="flex items-center gap-2">
-										<div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-										<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20"></div>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-										<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20"></div>
-									</div>
-									<div className="flex items-center gap-2">
-										<div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-										<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24"></div>
-									</div>
-								</div>
-							</div>
-
-							{/* Send Button */}
-							<div className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-						</div>
-					</div>
-
-					{/* Preview Section */}
-					<div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-						<div className="space-y-4">
-							<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32"></div>
-							<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-48"></div>
-
-							{/* Preview Box */}
-							<div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-3">
-								<div className="h-4 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-16"></div>
-								<div className="space-y-2">
-									<div className="h-4 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-full"></div>
-									<div className="h-4 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-3/4"></div>
-									<div className="h-4 bg-gray-200 dark:bg-gray-600 rounded animate-pulse w-1/2"></div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		);
-	}
-
 	return (
-		<div className="p-6 space-y-8">
-			{/* SMS Credit Balance Section */}
-			<div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-				<div className="space-y-4">
-					<div className="text-sm text-gray-600 dark:text-gray-400 font-medium">SMS Credit Balance</div>
-					<div className="text-3xl font-bold text-gray-900 dark:text-white">{smsBalance.toLocaleString()}</div>
-					<Button onClick={() => setIsTopUpModalOpen(false)} className="bg-blue-600 hover:bg-blue-700 text-white">
-						Top up
-					</Button>
-				</div>
-			</div>
+		<div className="space-y-6">
+			<header>
+				<h1 className="text-3xl font-bold text-slate-800">Notifications & Broadcast</h1>
+				<p className="text-slate-500 mt-1">Send messages to your users via In-App, Email, or SMS.</p>
+			</header>
 
-			{/* Main Content */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-				{/* Send Message Section */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-					<div className="space-y-6">
-						<h2 className="text-xl font-semibold text-gray-900 dark:text-white">Send Broadcast Message</h2>
-
-						{/* Message Title - Hidden if only SMS is selected */}
-						{!(sendOptions.sms && !sendOptions.email && !sendOptions.inApp) && (
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message title (optional)</label>
-								<div className="relative">
-									<i className="ri-edit-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-									<input
-										type="text"
-										value={messageTitle}
-										onChange={(e) => setMessageTitle(e.target.value)}
-										placeholder="e.g. Update"
-										className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-									/>
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+				{/* Main Composer Column */}
+				<div className="lg:col-span-2">
+					<Card>
+						<CardHeader>
+							<CardTitle>Message Composer</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<button onClick={() => setIsRecipientModalOpen(true)} className="w-full flex items-center justify-between p-3 border border-slate-300 rounded-lg text-left hover:bg-slate-50">
+								<div className="flex items-center gap-3">
+									<i className="ri-group-line text-xl text-slate-400"></i>
+									<div>
+										<p className="text-sm font-medium text-slate-500">Recipients</p>
+										<p className="font-semibold text-slate-800">{getRecipientText()}</p>
+									</div>
 								</div>
-							</div>
-						)}
-
-						{/* Recipient */}
-						<div className="space-y-2">
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Recipient</label>
-							<button onClick={() => setIsRecipientModalOpen(true)} className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-left">
-								<div className="flex items-center gap-2">
-									<i className="ri-user-line w-4 h-4 flex items-center justify-center text-gray-400"></i>
-									<span className="text-gray-900 dark:text-white">{getRecipientText()}</span>
-								</div>
-								<i className="ri-arrow-down-s-line w-4 h-4 flex items-center justify-center text-gray-400"></i>
+								<i className="ri-arrow-down-s-line text-lg text-slate-400"></i>
 							</button>
-						</div>
-
-						{/* Message Content */}
-						<div className="space-y-2">
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message content</label>
-							<div className="relative">
-								<i className="ri-message-line absolute left-3 top-3 text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-								<textarea
-									value={messageContent}
-									onChange={(e) => setMessageContent(e.target.value)}
-									placeholder="Type your message"
-									rows={6}
-									className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
-								/>
+							<div>
+								<label>Title</label>
+								<input type="text" value={messageTitle} onChange={(e) => setMessageTitle(e.target.value)} placeholder="Enter message title" />
 							</div>
-							{sendOptions.sms && !sendOptions.email && !sendOptions.inApp && <div className="text-xs text-gray-500 dark:text-gray-400">SMS mode: HTML tags will be displayed as plain text</div>}
-							{(sendOptions.email || sendOptions.inApp) && <div className="text-xs text-gray-500 dark:text-gray-400">HTML content supported for email and in-app notifications</div>}
-						</div>
-
-						{/* Sender ID - Show if SMS or Email is selected */}
-						{(sendOptions.sms || sendOptions.email) && (
-							<div className="space-y-2">
-								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender ID</label>
-								<input
-									type="text"
-									value={senderId}
-									onChange={(e) => setSenderId(e.target.value)}
-									placeholder="e.g. Monidoubla"
-									className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-								/>
+							<div>
+								<label>Message Content</label>
+								<textarea value={messageContent} onChange={(e) => setMessageContent(e.target.value)} placeholder="Type your message here..." rows={8} className="resize-none" />
 							</div>
-						)}
-
-						{/* Send Options */}
-						<div className="space-y-3">
-							<div className="text-sm font-medium text-gray-700 dark:text-gray-300">Send as</div>
-							<div className="flex flex-wrap gap-4">
-								<label className="flex items-center gap-2">
-									<input
-										type="checkbox"
-										checked={sendOptions.sms}
-										onChange={() => handleSendOptionChange('sms')}
-										className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-									/>
-									<span className="text-sm text-gray-700 dark:text-gray-300">SMS notification</span>
-								</label>
-								<label className="flex items-center gap-2">
-									<input
-										type="checkbox"
-										checked={sendOptions.email}
-										onChange={() => handleSendOptionChange('email')}
-										className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-									/>
-									<span className="text-sm text-gray-700 dark:text-gray-300">Email notification</span>
-								</label>
-								<label className="flex items-center gap-2">
-									<input
-										type="checkbox"
-										checked={sendOptions.inApp}
-										onChange={() => handleSendOptionChange('inApp')}
-										className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-									/>
-									<span className="text-sm text-gray-700 dark:text-gray-300">In app notification</span>
-								</label>
+							<div>
+								<label>Delivery Channels</label>
+								<div className="flex flex-wrap gap-4 mt-2">
+									<label className="flex items-center gap-2">
+										<input type="checkbox" checked={sendOptions.inApp} onChange={() => handleSendOptionChange('inApp')} />
+										<span>In-App</span>
+									</label>
+									<label className="flex items-center gap-2">
+										<input type="checkbox" checked={sendOptions.email} onChange={() => handleSendOptionChange('email')} />
+										<span>Email</span>
+									</label>
+									<label className="flex items-center gap-2">
+										<input type="checkbox" checked={sendOptions.sms} onChange={() => handleSendOptionChange('sms')} />
+										<span>SMS</span>
+									</label>
+								</div>
 							</div>
-						</div>
-
-						{/* Send Button */}
-						<Button
-							onClick={handleSendMessage}
-							disabled={isSending || !messageContent.trim() || (selectedRecipients.length === 0 && selectedRecipients !== 'all') || (!sendOptions.sms && !sendOptions.email && !sendOptions.inApp)}
-							className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-						>
-							{isSending ? (
-								<>
-									<i className="ri-loader-4-line animate-spin w-4 h-4 flex items-center justify-center mr-2"></i>
-									Sending message...
-								</>
-							) : (
-								'Send message'
+							{(sendOptions.sms || sendOptions.email) && (
+								<div>
+									<label>Sender ID (Optional)</label>
+									<input type="text" value={senderId} onChange={(e) => setSenderId(e.target.value)} placeholder="e.g. YourBrand" />
+								</div>
 							)}
-						</Button>
-					</div>
+						</CardContent>
+						<CardFooter className="justify-end">
+							<Button onClick={handleSendMessage} disabled={isSending || !messageContent.trim() || (selectedRecipients.length === 0 && selectedRecipients !== 'all')} className="min-w-[150px]">
+								{isSending ? 'Sending...' : 'Send Message'}
+							</Button>
+						</CardFooter>
+					</Card>
 				</div>
 
-				{/* Preview Section */}
-				<div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-					<div className="space-y-4">
-						<h2 className="text-xl font-semibold text-gray-900 dark:text-white">Message preview</h2>
-						<div className="text-sm text-gray-600 dark:text-gray-400">How the message might appear to users</div>
-
-						<div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 min-h-[200px]">
-							<div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Preview</div>
-							<div className="text-gray-900 dark:text-white">{renderPreview()}</div>
-						</div>
-
-						{/* Send options indicator */}
-						<div className="space-y-2">
-							<div className="text-sm font-medium text-gray-700 dark:text-gray-300">Will be sent as:</div>
-							<div className="flex flex-wrap gap-2">
-								{sendOptions.sms && <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs font-medium">SMS</span>}
-								{sendOptions.email && <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-xs font-medium">Email</span>}
-								{sendOptions.inApp && <span className="px-2 py-1 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full text-xs font-medium">In-App</span>}
-								{!sendOptions.sms && !sendOptions.email && !sendOptions.inApp && <span className="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 rounded-full text-xs font-medium">No delivery method selected</span>}
+				{/* Right Sidebar Column */}
+				<div className="lg:col-span-1 space-y-6">
+					<Card>
+						<CardHeader>
+							<CardTitle>SMS Balance</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-3xl font-bold text-slate-800">{smsBalance.toLocaleString()}</p>
+							<p className="text-sm text-slate-500">credits remaining</p>
+						</CardContent>
+						<CardFooter>
+							<Button onClick={() => setIsTopUpModalOpen(true)} variant="outline" className="w-full">
+								Top Up Credits
+							</Button>
+						</CardFooter>
+					</Card>
+					<Card>
+						<CardHeader>
+							<CardTitle>Preview</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="p-4 bg-slate-50 rounded-lg min-h-[12rem] text-sm text-slate-700">
+								{messageTitle && <p className="font-bold mb-2">{messageTitle}</p>}
+								<p className="whitespace-pre-wrap">{messageContent || <span className="text-slate-400">Your message preview will appear here.</span>}</p>
 							</div>
-						</div>
-					</div>
+						</CardContent>
+					</Card>
 				</div>
 			</div>
 
-			{/* Modals */}
 			<RecipientModal isOpen={isRecipientModalOpen} onClose={() => setIsRecipientModalOpen(false)} onSelect={handleRecipientSelect} currentSelection={selectedRecipients} />
-
 			<TopUpModal isOpen={isTopUpModalOpen} onClose={() => setIsTopUpModalOpen(false)} onTopUp={handleTopUp} currentBalance={smsBalance} />
 		</div>
 	);

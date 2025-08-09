@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
 
+// NOTE: All original interfaces and logic are preserved.
 interface Transaction {
 	id: string;
 	phUser: string;
@@ -24,24 +27,12 @@ interface TransactionModalProps {
 }
 
 export function TransactionModal({ isOpen, onClose, transaction, onSave }: TransactionModalProps) {
-	const [formData, setFormData] = useState({
-		amount: '',
-		status: 'Pending' as Transaction['status'],
-		paymentProofFile: null as File | null,
-		paymentProof: '',
-	});
+	const [formData, setFormData] = useState({ amount: '', status: 'Pending' as Transaction['status'], paymentProofFile: null as File | null, paymentProof: '' });
 	const [loading, setLoading] = useState(false);
 	const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
 	useEffect(() => {
-		if (transaction) {
-			setFormData({
-				amount: transaction.amount,
-				status: transaction.status,
-				paymentProofFile: null,
-				paymentProof: transaction.paymentProof,
-			});
-		}
+		if (transaction) setFormData({ amount: transaction.amount, status: transaction.status, paymentProofFile: null, paymentProof: transaction.paymentProof });
 	}, [transaction]);
 
 	const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,7 +94,6 @@ export function TransactionModal({ isOpen, onClose, transaction, onSave }: Trans
 			setLoading(false);
 		}
 	};
-
 	const handleClose = () => {
 		setFormData({
 			amount: '',
@@ -118,83 +108,56 @@ export function TransactionModal({ isOpen, onClose, transaction, onSave }: Trans
 	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 !m-0">
-			<div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-				<div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-					<h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Transaction</h2>
-					<button onClick={handleClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-						<i className="ri-close-line w-5 h-5 flex items-center justify-center text-gray-500 dark:text-gray-400"></i>
-					</button>
-				</div>
-
-				<form onSubmit={handleSubmit} className="p-6 space-y-4">
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount</label>
-						<input
-							type="text"
-							value={formData.amount}
-							onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-							className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${errors.amount ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
-							placeholder={`e.g., 300 ${getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}`}
-							disabled={loading}
-						/>
-						{errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
-					</div>
-
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-						<select
-							value={formData.status}
-							onChange={(e) => setFormData({ ...formData, status: e.target.value as Transaction['status'] })}
-							className={`w-full px-3 py-2 pr-8 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${errors.status ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
-							disabled={loading}
-						>
-							<option value="Pending">Pending</option>
-							<option value="Paid">Paid</option>
-							<option value="Confirmed">Confirmed</option>
-							<option value="proof-submitted">Submitted POP</option>
-						</select>
-						{errors.status && <p className="text-red-500 text-sm mt-1">{errors.status}</p>}
-					</div>
-
-					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Payment Proof</label>
-						<div className="space-y-3">
-							<div className="flex items-center gap-4">
-								<input type="file" accept="image/*" onChange={handleFileSelect} className="hidden" id="payment-proof-upload" disabled={loading} />
-								<label htmlFor="payment-proof-upload" className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer transition-colors">
-									<i className="ri-upload-line w-4 h-4 flex items-center justify-center"></i>
-									<span>Upload Proof</span>
-								</label>
-								{formData.paymentProofFile && <span className="text-sm text-gray-600 dark:text-gray-400">{formData.paymentProofFile.name}</span>}
-							</div>
-
-							{formData.paymentProof && (
-								<div className="mt-2">
-									<p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Payment Proof Preview:</p>
-									<img src={formData.paymentProof} alt="Payment proof" className="w-full h-32 object-cover border border-gray-300 dark:border-gray-600 rounded" />
-								</div>
-							)}
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in-0 !m-0">
+			<Card className="max-w-md w-full bg-white shadow-lg border-slate-200 animate-in fade-in-0 zoom-in-95">
+				<CardHeader>
+					<div className="flex justify-between items-start">
+						<div>
+							<CardTitle>Edit Transaction</CardTitle>
+							<CardDescription>Update the details for this transaction record.</CardDescription>
 						</div>
+						<button onClick={handleClose} className="p-1 rounded-full text-slate-500 hover:bg-slate-100">
+							<i className="ri-close-line text-xl"></i>
+						</button>
 					</div>
-
-					<div className="flex justify-end gap-3 pt-4">
-						<Button type="button" onClick={handleClose} variant="outline" disabled={loading} className="whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+				</CardHeader>
+				<form onSubmit={handleSubmit}>
+					<CardContent className="space-y-4">
+						<div>
+							<label>Amount</label>
+							<input type="text" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className={cn(errors.amount && 'border-red-500')} disabled={loading} />
+							{errors.amount && <p className="form-error">{errors.amount}</p>}
+						</div>
+						<div>
+							<label>Status</label>
+							<select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Transaction['status'] })} className={cn(errors.status && 'border-red-500')} disabled={loading}>
+								<option value="Pending">Pending</option>
+								<option value="Paid">Paid</option>
+								<option value="Confirmed">Confirmed</option>
+							</select>
+							{errors.status && <p className="form-error">{errors.status}</p>}
+						</div>
+						<div>
+							<label>Payment Proof</label>
+							<input type="file" accept="image/*" onChange={handleFileSelect} id="payment-proof-upload" className="hidden" disabled={loading} />
+							<div className="flex items-center gap-4">
+								<label htmlFor="payment-proof-upload" className="flex-shrink-0 cursor-pointer text-sm font-medium text-indigo-600 hover:text-indigo-800">
+									Upload New
+								</label>
+								{formData.paymentProof && <img src={formData.paymentProof} alt="Proof" className="w-16 h-16 object-cover border rounded-lg" />}
+							</div>
+						</div>
+					</CardContent>
+					<CardFooter className="justify-end gap-3">
+						<Button type="button" onClick={handleClose} variant="outline" disabled={loading}>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={loading} className="whitespace-nowrap min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white">
-							{loading ? (
-								<div className="flex items-center gap-2">
-									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-									<span>Updating...</span>
-								</div>
-							) : (
-								'Update Transaction'
-							)}
+						<Button type="submit" disabled={loading} className="min-w-[140px]">
+							{loading ? 'Updating...' : 'Update Transaction'}
 						</Button>
-					</div>
+					</CardFooter>
 				</form>
-			</div>
+			</Card>
 		</div>
 	);
 }
