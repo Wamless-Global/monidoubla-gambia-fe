@@ -62,7 +62,7 @@ export default function LoginPageContent() {
 	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		if (validateForm()) {
-			const toastId = toast.loading('Logging you in...');
+			const toastId = toast.info('Logging you in...');
 			try {
 				const response = await fetchWithAuth(`/api/auth/login`, {
 					method: 'POST',

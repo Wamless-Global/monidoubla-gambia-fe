@@ -132,7 +132,7 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 		e.preventDefault();
 
 		if (validateForm()) {
-			const toastId = toast.loading('Creating your account...');
+			const toastId = toast.info('Creating your account...');
 
 			try {
 				logger.log({ name: `${formData.firstName} ${formData.lastName}`, email: formData.email, password: formData.password, confirmPassword: formData.confirmPassword, roles: ['user'], country: selectedCountry, referralId: referralActive && referralId ? referralId : undefined });
