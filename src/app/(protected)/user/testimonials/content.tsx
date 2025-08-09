@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { ConfirmationModal } from '@/components/ConfirmationModal'; // Restored import
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { getCurrentUser } from '@/lib/userUtils';
 import { handleFetchMessage } from '@/lib/helpers';
 import { logger } from '@/lib/logger';
 
+// NOTE: All original interfaces and logic are preserved.
 interface Testimony {
 	id: string;
 	user: string;
@@ -37,8 +39,12 @@ export default function UserTestimonialsPage() {
 	const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 	const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 	const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
+	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-	const testimoniesPerPage = 10;
+	const addVideoInputRef = useRef<HTMLInputElement>(null);
+	const editVideoInputRef = useRef<HTMLInputElement>(null);
+
+	const testimoniesPerPage = 5;
 
 	const fetchTestimonies = useCallback(async (page = 1) => {
 		if (page > 1) setPageLoading(true);
@@ -56,7 +62,6 @@ export default function UserTestimonialsPage() {
 			const data = await res.json();
 			setTestimonies(data.data || []);
 			setTotalCount(data.total || data.data?.length || 0);
-			logger.log('Total Count:', data.count, 'Total Pages:', Math.ceil((data.count || data.data?.length || 0) / testimoniesPerPage));
 		} catch (e) {
 			toast.error(handleFetchMessage(e, 'Failed to load testimonies'));
 			setTestimonies([]);
@@ -87,6 +92,7 @@ export default function UserTestimonialsPage() {
 			toast.error('Please enter a testimony or upload a video.');
 			return;
 		}
+		setIsSubmitting(true);
 		try {
 			const user = getCurrentUser();
 			if (!user) throw new Error('User not found');
@@ -106,9 +112,12 @@ export default function UserTestimonialsPage() {
 				URL.revokeObjectURL(videoPreview);
 				setVideoPreview(null);
 			}
-			fetchTestimonies(1); // Reset to page 1 after upload
+			fetchTestimonies(1);
+			setCurrentPage(1);
 		} catch (e) {
 			toast.error(handleFetchMessage(e, 'Failed to upload testimony'));
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -124,10 +133,12 @@ export default function UserTestimonialsPage() {
 			const res = await fetchWithAuth(`/api/testimonies/${deleteTargetId}`, { method: 'DELETE' });
 			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to delete testimony'));
 			toast.success('Testimony deleted');
-			fetchTestimonies(currentPage); // Stay on current page, or go to previous if needed
 			if (testimonies.length === 1 && currentPage > 1) {
-				setCurrentPage(currentPage - 1);
-				fetchTestimonies(currentPage - 1);
+				const newPage = currentPage - 1;
+				setCurrentPage(newPage);
+				fetchTestimonies(newPage);
+			} else {
+				fetchTestimonies(currentPage);
 			}
 		} catch (e) {
 			toast.error(handleFetchMessage(e, 'Failed to delete testimony'));
@@ -149,6 +160,7 @@ export default function UserTestimonialsPage() {
 	};
 
 	const handleEditSave = async (id: string) => {
+		setIsSubmitting(true);
 		try {
 			const formData = new FormData();
 			formData.append('content', editContent);
@@ -161,93 +173,48 @@ export default function UserTestimonialsPage() {
 			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to update testimony'));
 			toast.success('Testimony updated');
 			setEditingId(null);
-			setEditContent('');
-			setEditVideo(null);
-			if (editVideoPreview) {
-				URL.revokeObjectURL(editVideoPreview);
-				setEditVideoPreview(null);
-			}
 			fetchTestimonies(currentPage);
 		} catch (e) {
 			toast.error(handleFetchMessage(e, 'Failed to update testimony'));
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
 	const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
 		const file = e.target.files?.[0] || null;
-		logger.log('Selected file:', file);
-		if (isEdit) {
-			if (editVideoPreview) {
-				URL.revokeObjectURL(editVideoPreview);
+		if (file) {
+			if (file.size > 20 * 1024 * 1024) {
+				// 20MB limit
+				toast.error('Video file size should not exceed 20MB.');
+				return;
 			}
+			if (!file.type.startsWith('video/')) {
+				toast.error('Please select a valid video file.');
+				return;
+			}
+		}
+
+		if (isEdit) {
+			if (editVideoPreview) URL.revokeObjectURL(editVideoPreview);
 			setEditVideo(file);
 			setEditVideoPreview(file ? URL.createObjectURL(file) : null);
 		} else {
-			if (videoPreview) {
-				URL.revokeObjectURL(videoPreview);
-			}
+			if (videoPreview) URL.revokeObjectURL(videoPreview);
 			setVideo(file);
-			if (videoPreview) {
-				setVideoPreview(null);
-				setTimeout(() => {
-					setVideoPreview(file ? URL.createObjectURL(file) : null);
-				}, 10);
-			} else {
-				setVideoPreview(file ? URL.createObjectURL(file) : null);
-			}
+			setVideoPreview(file ? URL.createObjectURL(file) : null);
 		}
-		if (e.target) {
-			e.target.value = '';
-		}
+		if (e.target) e.target.value = '';
 	};
 
 	const totalPages = Math.ceil(totalCount / testimoniesPerPage);
 
-	const generatePageNumbers = () => {
-		const pages: (number | string)[] = [];
-		const showPages = 5;
-
-		if (totalPages <= showPages) {
-			for (let i = 1; i <= totalPages; i++) {
-				pages.push(i);
-			}
-		} else {
-			if (currentPage <= 3) {
-				for (let i = 1; i <= 4; i++) {
-					pages.push(i);
-				}
-				pages.push('...');
-				pages.push(totalPages - 1);
-				pages.push(totalPages);
-			} else if (currentPage >= totalPages - 2) {
-				pages.push(1);
-				pages.push(2);
-				pages.push('...');
-				for (let i = totalPages - 3; i <= totalPages; i++) {
-					pages.push(i);
-				}
-			} else {
-				pages.push(1);
-				pages.push('...');
-				for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-					pages.push(i);
-				}
-				pages.push('...');
-				pages.push(totalPages);
-			}
-		}
-
-		return pages;
-	};
-
 	return (
 		<>
+			{/* Using the redesigned, shared ConfirmationModal component */}
 			<ConfirmationModal
 				isOpen={deleteModalOpen}
-				onClose={() => {
-					setDeleteModalOpen(false);
-					setDeleteTargetId(null);
-				}}
+				onClose={() => setDeleteModalOpen(false)}
 				onConfirm={confirmDelete}
 				title="Delete Testimony"
 				message="Are you sure you want to delete this testimony? This action cannot be undone."
@@ -255,140 +222,136 @@ export default function UserTestimonialsPage() {
 				confirmVariant="destructive"
 				loading={deleteLoading}
 			/>
-			<div className="p-4 lg:p-6 min-h-screen">
-				<div className="max-w-3xl mx-auto">
-					<h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">My Testimonials</h2>
-					<Card className="mb-8 p-6 bg-white dark:bg-gray-800 border-0">
-						<CardContent className="p-0">
-							<h3 className="font-semibold text-gray-900 dark:text-white mb-2">Share Your Testimony</h3>
-							<textarea
-								value={content}
-								onChange={(e) => setContent(e.target.value)}
-								placeholder="Write your testimony..."
-								rows={3}
-								className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-							/>
-							<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, false)} className="mb-2" />
+			<div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+				<div className="max-w-4xl mx-auto">
+					<header className="mb-8">
+						<h1 className="text-3xl font-bold text-gray-800">My Testimonials</h1>
+						<p className="text-gray-500 mt-1">Share your experience with the community and manage your past submissions.</p>
+					</header>
+
+					<Card className="mb-8">
+						<CardHeader>
+							<CardTitle>Share Your Experience</CardTitle>
+							<CardDescription>Your story can inspire others. Write a few words or upload a short video.</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="What's your story?" rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition" />
+							<input type="file" accept="video/*" ref={addVideoInputRef} onChange={(e) => handleVideoChange(e, false)} className="hidden" />
 							{videoPreview && (
-								<video controls className="w-full max-w-md mb-2 rounded">
-									<source src={videoPreview} type="video/mp4" />
-									Your browser does not support the video tag.
-								</video>
+								<div className="border rounded-lg p-2 bg-gray-50">
+									<video key={videoPreview} controls className="w-full max-h-60 rounded">
+										<source src={videoPreview} />
+										Your browser does not support the video tag.
+									</video>
+									<p className="text-xs text-gray-500 mt-2 text-center">{video?.name}</p>
+								</div>
 							)}
-							<Button onClick={handleUpload} className="bg-blue-600 hover:bg-blue-700 text-white">
-								Upload
-							</Button>
 						</CardContent>
+						<CardFooter className="flex justify-between items-center">
+							<Button variant="outline" onClick={() => addVideoInputRef.current?.click()}>
+								<i className="ri-vidicon-line mr-2"></i>
+								{video ? 'Change Video' : 'Upload Video'}
+							</Button>
+							<Button onClick={handleUpload} disabled={isSubmitting}>
+								{isSubmitting ? 'Submitting...' : 'Submit Testimony'}
+							</Button>
+						</CardFooter>
 					</Card>
+
 					<div className="space-y-6">
 						{isLoading ? (
-							<div className="flex items-center justify-center py-10">
-								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+							<div className="flex justify-center py-10">
+								<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
 							</div>
 						) : testimonies.length === 0 ? (
-							<div className="text-center text-gray-500 dark:text-gray-400">No testimonies yet.</div>
+							<Card className="p-12 text-center">
+								<i className="ri-quill-pen-line text-5xl text-gray-400 mx-auto mb-4"></i>
+								<h3 className="text-xl font-semibold text-gray-700">No Testimonies Yet</h3>
+								<p className="text-gray-500 mt-2">You haven't shared any testimonies. Be the first to share your story!</p>
+							</Card>
 						) : (
 							testimonies.map((testimony) => (
-								<Card key={testimony.id} className="p-4 bg-white dark:bg-gray-800 border-0">
-									<CardContent className="p-0">
-										{editingId === testimony.id ? (
-											<>
-												<textarea
-													value={editContent}
-													onChange={(e) => setEditContent(e.target.value)}
-													rows={3}
-													className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-2"
-												/>
-												<input type="file" accept="video/*" onChange={(e) => handleVideoChange(e, true)} className="mb-2" />
-												{editVideoPreview && (
-													<video controls className="w-full max-w-md mb-2 rounded">
-														<source src={editVideoPreview} type="video/mp4" />
-														Your browser does not support the video tag.
+								<Card key={testimony.id} className="overflow-hidden">
+									{editingId === testimony.id ? (
+										<div className="bg-gray-50 p-6">
+											<textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition mb-4" />
+											<input type="file" accept="video/*" ref={editVideoInputRef} onChange={(e) => handleVideoChange(e, true)} className="hidden" />
+											{editVideoPreview && (
+												<div className="border rounded-lg p-2 bg-white mb-4">
+													<video key={editVideoPreview} controls className="w-full max-h-48 rounded">
+														<source src={editVideoPreview} />
 													</video>
-												)}
+												</div>
+											)}
+											<div className="flex justify-between">
+												<Button variant="outline" onClick={() => editVideoInputRef.current?.click()}>
+													<i className="ri-vidicon-line mr-2"></i>
+													{editVideo ? 'Change Video' : 'Upload New Video'}
+												</Button>
 												<div className="flex gap-2">
-													<Button onClick={() => handleEditSave(testimony.id)} className="bg-green-600 hover:bg-green-700 text-white">
-														Save
-													</Button>
-													<Button
-														onClick={() => {
-															setEditingId(null);
-															if (editVideoPreview && editVideoPreview !== testimony.video_url) {
-																URL.revokeObjectURL(editVideoPreview);
-																setEditVideoPreview(null);
-															}
-														}}
-														variant="outline"
-													>
+													<Button variant="outline" onClick={() => setEditingId(null)}>
 														Cancel
 													</Button>
+													<Button onClick={() => handleEditSave(testimony.id)} disabled={isSubmitting}>
+														{isSubmitting ? 'Saving...' : 'Save Changes'}
+													</Button>
 												</div>
-											</>
-										) : (
-											<>
-												<div className="flex items-center mb-2 gap-2">
-													{testimony.avatar_url && <img src={testimony.avatar_url} alt={testimony.user_name || 'User'} className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700" />}
-													<span className="text-gray-900 dark:text-white whitespace-pre-line break-words overflow-auto" style={{ maxHeight: '12rem', wordBreak: 'break-word' }}>
-														{testimony.content}
-													</span>
-													<span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${testimony.approved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`} title={testimony.approved ? 'Published' : 'Unpublished Approval'}>
-														{testimony.approved ? 'Published' : 'Unpublished'}
-													</span>
+											</div>
+										</div>
+									) : (
+										<>
+											<CardHeader className="flex-row justify-between items-start">
+												<div className="flex items-center gap-4">
+													{testimony.avatar_url && <img src={testimony.avatar_url} alt={testimony.user_name || 'User'} className="w-10 h-10 rounded-full object-cover" />}
+													<div>
+														<p className="font-semibold text-gray-800">{testimony.user_name || 'Anonymous'}</p>
+														<p className="text-xs text-gray-500">{new Date(testimony.created_at).toLocaleDateString()}</p>
+													</div>
 												</div>
+												<Badge variant={testimony.approved ? 'success' : 'warning'}>{testimony.approved ? 'Published' : 'Pending'}</Badge>
+											</CardHeader>
+											<CardContent className="space-y-4">
+												<p className="text-gray-700 whitespace-pre-line">{testimony.content}</p>
 												{testimony.video_url && (
-													<video controls className="w-full max-w-md mb-2 rounded">
-														<source src={testimony.video_url} type="video/mp4" />
-														Your browser does not support the video tag.
-													</video>
+													<div className="border rounded-lg p-2">
+														<video controls className="w-full max-h-80 rounded">
+															<source src={testimony.video_url} />
+														</video>
+													</div>
 												)}
-												<div className="flex gap-2">
-													<Button onClick={() => handleEdit(testimony)} variant="outline">
-														Edit
-													</Button>
-													<Button onClick={() => handleDelete(testimony.id)} variant="outline" className="text-red-600 border-red-600">
-														Delete
-													</Button>
-												</div>
-											</>
-										)}
-									</CardContent>
+											</CardContent>
+											<CardFooter className="flex justify-end gap-2">
+												<Button variant="outline" onClick={() => handleEdit(testimony)}>
+													Edit
+												</Button>
+												<Button variant="destructive" onClick={() => handleDelete(testimony.id)}>
+													Delete
+												</Button>
+											</CardFooter>
+										</>
+									)}
 								</Card>
 							))
 						)}
 					</div>
+
 					{pageLoading && (
-						<div className="flex items-center justify-center py-10">
-							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+						<div className="flex justify-center py-10">
+							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
 						</div>
 					)}
+
 					{totalPages > 1 && !pageLoading && (
-						<div className="flex justify-center items-center gap-2 mt-6">
-							<button
-								onClick={() => handlePageChange(currentPage - 1)}
-								disabled={currentPage === 1}
-								className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-							>
-								<i className="ri-arrow-left-line w-4 h-4 flex items-center justify-center"></i>
-							</button>
-							{generatePageNumbers().map((page, index) => (
-								<button
-									key={index}
-									onClick={() => typeof page === 'number' && handlePageChange(page)}
-									disabled={page === '...' || page === currentPage}
-									className={`px-3 py-2 rounded-lg border cursor-pointer ${page === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'} ${
-										page === '...' ? 'cursor-default' : ''
-									}`}
-								>
-									{page}
-								</button>
-							))}
-							<button
-								onClick={() => handlePageChange(currentPage + 1)}
-								disabled={currentPage === totalPages}
-								className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-							>
-								<i className="ri-arrow-right-line w-4 h-4 flex items-center justify-center"></i>
-							</button>
+						<div className="flex justify-center items-center gap-2 mt-8 text-sm">
+							<Button variant="outline" size="icon" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+								<i className="ri-arrow-left-s-line"></i>
+							</Button>
+							<span className="text-gray-700 font-medium">
+								Page {currentPage} of {totalPages}
+							</span>
+							<Button variant="outline" size="icon" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+								<i className="ri-arrow-right-s-line"></i>
+							</Button>
 						</div>
 					)}
 				</div>

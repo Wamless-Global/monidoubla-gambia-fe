@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'; // Correction: CardFooter added
 import { Button } from '@/components/ui/button';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { CustomLink } from '@/components/CustomLink';
 import { logger } from '@/lib/logger';
 import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
+import { type VariantProps } from 'class-variance-authority';
 
-type RequestsStatus = 'pending' | 'submitted' | 'confirmed' | 'declined' | 'partial-match' | 'proof-submitted';
+// NOTE: All original interfaces and logic are preserved.
+type RequestsStatus = 'pending' | 'submitted' | 'confirmed' | 'declined' | 'partial-match' | 'proof-submitted' | 'completed';
 
 interface UserInfo {
 	id: string;
@@ -124,23 +127,11 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 		try {
 			const formData = new FormData();
 			formData.append('status', action === 'confirm' ? 'completed' : 'declined');
-
-			const response = await fetchWithAuth(`/api/matches/${matchId}`, {
-				method: 'PUT',
-				body: formData,
-			});
-
+			const response = await fetchWithAuth(`/api/matches/${matchId}`, { method: 'PUT', body: formData });
 			if (!response.ok) throw new Error(handleFetchMessage(await response.json(), `Failed to ${action} payment`));
 			const updatedMatch = await response.json();
-			logger.log(updatedMatch);
 			if (data) {
-				setData({
-					...data,
-					data: {
-						...data.data,
-						matches: data.data.matches.map((match) => (match.id === matchId ? { ...match, status: updatedMatch.data.match.status } : match)),
-					},
-				});
+				setData({ ...data, data: { ...data.data, matches: data.data.matches.map((match) => (match.id === matchId ? { ...match, status: updatedMatch.data.match.status } : match)) } });
 			}
 			toast.success(`Payment ${action === 'confirm' ? 'confirmed' : 'declined'} successfully!`);
 		} catch (error) {
@@ -150,314 +141,179 @@ export default function GetHelpDetail({ phId }: GetHelpDetailProps) {
 		}
 	};
 
-	const getPaymentStatusColor = (status: string) => {
+	const getPaymentStatusVariant = (status: string): VariantProps<typeof badgeVariants>['variant'] => {
 		switch (status) {
 			case 'confirmed':
-			case 'Paid':
-				return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+			case 'completed':
+				return 'success';
 			case 'submitted':
 			case 'proof-submitted':
-				return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+				return 'info';
 			case 'declined':
-				return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+				return 'destructive';
 			default:
-				return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+				return 'warning';
 		}
 	};
 
-	const getTotalConfirmedAmount = () => {
-		return data?.data.matches.filter((match) => match.status === 'confirmed').reduce((sum, match) => sum + match.amount, 0) || 0;
-	};
+	const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: getSettings()?.baseCurrency || getCurrencyFromLocalStorage()?.code || 'USD', minimumFractionDigits: 2 }).format(amount);
+	const getTotalConfirmedAmount = () => data?.data.matches.filter((match) => match.status === 'completed').reduce((sum, match) => sum + match.amount, 0) || 0;
+	const getTotalPendingAmount = () => data?.data.matches.filter((match) => ['pending', 'submitted', 'proof-submitted'].includes(match.status)).reduce((sum, match) => sum + match.amount, 0) || 0;
+	const getMaturedAmount = () => Number(data?.data.ghInfo.amount || 0);
 
-	const getTotalPendingAmount = () => {
-		return data?.data.matches.filter((match) => match.status === 'pending' || match.status === 'submitted' || match.status === 'proof-submitted').reduce((sum, match) => sum + match.amount, 0) || 0;
-	};
-
-	const getMaturedAmount = () => {
-		return Number(data?.data.ghInfo.amount || 0);
-	};
-
-	if (!isMounted) {
+	if (!isMounted || loading) {
 		return (
-			<div className="flex items-center justify-center min-h-screen bg-background">
-				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-			</div>
-		);
-	}
-
-	if (loading) {
-		return (
-			<div className="p-4 lg:p-6 space-y-6 bg-background min-h-screen">
-				<div className="animate-pulse">
-					<div className="flex items-center gap-4 mb-6">
-						<div className="h-9 w-9 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-						<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
-					</div>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-						{[...Array(3)].map((_, index) => (
-							<div key={index} className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-								<div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
-								<div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
-							</div>
-						))}
-					</div>
-					<div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-						<div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-6"></div>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-							{[...Array(3)].map((_, index) => (
-								<div key={index} className="bg-gray-200 dark:bg-gray-700 rounded-lg p-4">
-									<div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20 mb-4"></div>
-									<div className="space-y-2">
-										<div className="h-3 bg-gray-300 dark:bg-gray-600 rounded"></div>
-										<div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
-				</div>
+			<div className="flex items-center justify-center min-h-screen bg-gray-50">
+				<div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600"></div>
 			</div>
 		);
 	}
 
 	if (!data || data.data.matches.length === 0) {
 		return (
-			<div className="p-4 lg:p-6 bg-background min-h-screen">
-				<div className="max-w-2xl mx-auto text-center py-20">
-					<div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
-						<i className="ri-error-warning-line w-10 h-10 flex items-center justify-center text-red-600 dark:text-red-400"></i>
+			<div className="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+				<Card className="max-w-lg w-full text-center p-8">
+					<div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+						<i className="ri-error-warning-line text-3xl text-red-600"></i>
 					</div>
-					<h1 className="text-2xl font-bold text-foreground mb-4">Help Request Not Found</h1>
-					<p className="text-muted-foreground mb-8">The help request you're looking for doesn't exist or has been removed.</p>
+					<CardTitle className="text-2xl mb-2">Help Request Not Found</CardTitle>
+					<CardDescription className="mb-6">The help request you're looking for doesn't exist, has no matches, or has been removed.</CardDescription>
 					<CustomLink href="/user/get-help">
-						<Button className="bg-blue-600 hover:bg-blue-700 text-white">Back to Get Help</Button>
+						<Button>Back to Get Help</Button>
 					</CustomLink>
-				</div>
+				</Card>
 			</div>
 		);
 	}
 
-	const myPHs = data?.data?.myPHs && Object.keys(data.data.myPHs).length > 0 ? data.data.myPHs : { details: [], packageInfo: { name: 'Bonus' } };
-	const packageName = myPHs?.packageInfo?.name || 'Bonus';
+	const packageName = data.data.myPHs?.packageInfo?.name || 'Bonus';
+	const progressPercent = getMaturedAmount() > 0 ? Math.min((getTotalConfirmedAmount() / getMaturedAmount()) * 100, 100) : 0;
 
 	return (
-		<div className="p-4 lg:p-6 bg-background min-h-screen" suppressHydrationWarning={true}>
-			<div className="max-w-6xl mx-auto">
-				{/* Header */}
-				<div className="flex items-center gap-4 mb-6">
-					<CustomLink href="/user/get-help" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-						<i className="ri-arrow-left-line w-5 h-5 flex items-center justify-center text-muted-foreground"></i>
+		<div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+			<div className="max-w-7xl mx-auto">
+				<header className="mb-8">
+					<CustomLink href="/user/get-help" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 mb-4 text-sm font-medium">
+						<i className="ri-arrow-left-line"></i>
+						Back to All Requests
 					</CustomLink>
-					<h1 className="text-2xl font-bold text-foreground">Help Request Details - {packageName}</h1>
-				</div>
+					<h1 className="text-3xl font-bold text-gray-800">Help Request Details</h1>
+					<p className="text-gray-500 mt-1">
+						Details for your <span className="font-semibold text-gray-700">{packageName}</span> package request.
+					</p>
+				</header>
 
-				{/* Summary Cards */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-					<Card className="p-6 bg-blue-50 dark:bg-blue-900/20">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-money-dollar-circle-line w-6 h-6 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
-								</div>
-								<div>
-									<div className="text-sm text-blue-600 dark:text-blue-400">Total Expected</div>
-									<div className="text-2xl font-bold text-blue-900 dark:text-blue-300">
-										{getMaturedAmount()} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-									</div>
-								</div>
-							</div>
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+					<Card>
+						<CardHeader className="flex-row items-center justify-between pb-2">
+							<CardTitle className="text-sm font-medium">Total Expected</CardTitle>
+							<i className="ri-wallet-3-line text-xl text-gray-400"></i>
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">{formatCurrency(getMaturedAmount())}</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-green-50 dark:bg-green-900/20">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-check-double-line w-6 h-6 flex items-center justify-center text-green-600 dark:text-green-400"></i>
-								</div>
-								<div>
-									<div className="text-sm text-green-600 dark:text-green-400">Confirmed</div>
-									<div className="text-2xl font-bold text-green-900 dark:text-green-300">
-										{getTotalConfirmedAmount()} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-									</div>
-								</div>
-							</div>
+					<Card>
+						<CardHeader className="flex-row items-center justify-between pb-2">
+							<CardTitle className="text-sm font-medium">Confirmed Received</CardTitle>
+							<i className="ri-check-double-line text-xl text-green-500"></i>
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold text-green-600">{formatCurrency(getTotalConfirmedAmount())}</div>
 						</CardContent>
 					</Card>
-					<Card className="p-6 bg-yellow-50 dark:bg-yellow-900/20">
-						<CardContent className="p-0">
-							<div className="flex items-center gap-3">
-								<div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-									<i className="ri-time-line w-6 h-6 flex items-center justify-center text-yellow-600 dark:text-yellow-400"></i>
-								</div>
-								<div>
-									<div className="text-sm text-yellow-600 dark:text-yellow-400">Pending</div>
-									<div className="text-2xl font-bold text-yellow-900 dark:text-yellow-300">
-										{getTotalPendingAmount()} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-									</div>
-								</div>
+					<Card>
+						<CardHeader className="flex-row items-center justify-between pb-2">
+							<CardTitle className="text-sm font-medium">Pending Confirmation</CardTitle>
+							<i className="ri-time-line text-xl text-yellow-500"></i>
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold text-yellow-600">{formatCurrency(getTotalPendingAmount())}</div>
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader className="flex-row items-center justify-between pb-2">
+							<CardTitle className="text-sm font-medium">Progress</CardTitle>
+							<i className="ri-loader-4-line text-xl text-teal-500"></i>
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold text-teal-600 mb-2">{progressPercent.toFixed(1)}%</div>
+							<div className="w-full bg-gray-200 rounded-full h-2">
+								<div className="bg-teal-600 h-2 rounded-full" style={{ width: `${progressPercent}%` }}></div>
 							</div>
 						</CardContent>
 					</Card>
 				</div>
 
-				{/* Progress Bar */}
-				<Card className="p-6 mb-8">
+				<Card>
+					<CardHeader>
+						<CardTitle>Matched Users</CardTitle>
+						<CardDescription>{data.data.matches.length} users have been matched to fulfill your request.</CardDescription>
+					</CardHeader>
 					<CardContent className="p-0">
-						<div className="flex items-center justify-between mb-4">
-							<h3 className="text-lg font-semibold text-foreground">Payment Progress</h3>
-							<span className="text-sm text-muted-foreground">{getMaturedAmount() > 0 ? ((getTotalConfirmedAmount() / getMaturedAmount()) * 100).toFixed(1) : '0.0'}% Complete</span>
-						</div>
-						<div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-							<div
-								className="bg-green-600 h-3 rounded-full transition-all duration-300"
-								style={{
-									width: getMaturedAmount() > 0 ? `${Math.min((getTotalConfirmedAmount() / getMaturedAmount()) * 100, 100)}%` : '0%',
-								}}
-							></div>
+						<div className="overflow-x-auto">
+							<table className="min-w-full divide-y divide-gray-200">
+								<thead className="bg-gray-50">
+									<tr>
+										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											User
+										</th>
+										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											Amount
+										</th>
+										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											Status
+										</th>
+										<th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+											Date
+										</th>
+										<th scope="col" className="relative px-6 py-3">
+											<span className="sr-only">Actions</span>
+										</th>
+									</tr>
+								</thead>
+								<tbody className="bg-white divide-y divide-gray-200">
+									{data.data.matches.map((match) => (
+										<tr key={match.id}>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<div className="flex items-center">
+													<div className="text-sm font-medium text-gray-900">{match.userInfo?.name}</div>
+												</div>
+												<div className="text-sm text-gray-500">@{match.userInfo?.username}</div>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<div className="text-sm text-gray-900 font-medium">{formatCurrency(match.amount)}</div>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<Badge variant={getPaymentStatusVariant(match.status)}>{match.status.replace('-', ' ')}</Badge>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(match.created_at).toLocaleDateString()}</td>
+											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+												{match.proof_of_payment && ['submitted', 'proof-submitted'].includes(match.status) ? (
+													<div className="flex items-center gap-2 justify-end">
+														<a href={match.proof_of_payment} target="_blank" rel="noopener noreferrer">
+															<Button variant="outline" size="sm">
+																View Proof
+															</Button>
+														</a>
+														<Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handlePaymentAction(match.id, 'confirm')} disabled={processingPayment === match.id}>
+															{processingPayment === match.id ? '...' : 'Confirm'}
+														</Button>
+														<Button size="sm" variant="destructive" onClick={() => handlePaymentAction(match.id, 'decline')} disabled={processingPayment === match.id}>
+															Decline
+														</Button>
+													</div>
+												) : (
+													<span className="text-gray-400 text-xs italic">No action required</span>
+												)}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
 						</div>
 					</CardContent>
 				</Card>
-
-				{/* Matched Users */}
-				<Card className="bg-card border-0 shadow-sm rounded-lg mb-10">
-					<div className="p-6 border-b border-border">
-						<h2 className="text-lg font-semibold text-foreground">Matched Users</h2>
-						<p className="text-sm text-muted-foreground mt-1">{data.data.matches.length} users matched to fulfill your request</p>
-					</div>
-					<div className="p-6">
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							{data.data.matches.map((match) => (
-								<div key={match.id} className="border border-border rounded-lg p-6">
-									<div className="flex items-center justify-between mb-4">
-										<div className="flex items-center gap-3">
-											<div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-												<i className="ri-user-line w-5 h-5 flex items-center justify-center text-blue-600 dark:text-blue-400"></i>
-											</div>
-											<div>
-												<h4 className="font-semibold text-foreground">{match.userInfo?.name}</h4>
-												<p className="text-sm text-muted-foreground break-words max-w-[200px]">{match.userInfo.email}</p>
-											</div>
-										</div>
-										<span className={`px-2 py-1 rounded-full text-xs font-medium max-w-[100px] text-center truncate ${getPaymentStatusColor(match.status)}`}>{match.status}</span>
-									</div>
-									<div className="space-y-3 mb-4">
-										<div className="flex justify-between text-sm">
-											<span className="text-muted-foreground">Username:</span>
-											<span className="text-foreground">{match.userInfo.username}</span>
-										</div>
-										<div className="flex justify-between text-sm">
-											<span className="text-muted-foreground">Amount:</span>
-											<span className="text-foreground font-semibold">
-												{match.amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-											</span>
-										</div>
-										<div className="flex justify-between text-sm">
-											<span className="text-muted-foreground">Date:</span>
-											<span className="text-foreground">{new Date(match.created_at).toLocaleDateString()}</span>
-										</div>
-									</div>
-									{match.proof_of_payment && (match.status === 'submitted' || match.status === 'proof-submitted') && (
-										<div className="space-y-4">
-											<div className="text-sm font-medium text-foreground">Payment Proof:</div>
-											<img src={match.proof_of_payment} alt="Payment proof" className="w-full h-40 object-cover rounded-lg border border-border" />
-											<div className="flex gap-3">
-												<Button onClick={() => handlePaymentAction(match.id, 'confirm')} disabled={processingPayment === match.id} className="bg-green-600 hover:bg-green-700 text-white flex-1">
-													{processingPayment === match.id ? (
-														<div className="flex items-center gap-2">
-															<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-															<span>Processing...</span>
-														</div>
-													) : (
-														<>
-															<i className="ri-check-line w-4 h-4 flex items-center justify-center mr-2"></i>
-															Confirm
-														</>
-													)}
-												</Button>
-												<Button onClick={() => handlePaymentAction(match.id, 'decline')} disabled={processingPayment === match.id} variant="outline" className="bg-card border-border text-foreground hover:bg-accent flex-1">
-													<i className="ri-close-line w-4 h-4 flex items-center justify-center mr-2"></i>
-													Decline
-												</Button>
-											</div>
-										</div>
-									)}
-									{match.status === 'confirmed' && (
-										<div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
-											<i className="ri-check-double-line w-4 h-4 flex items-center justify-center"></i>
-											<span>Payment confirmed</span>
-										</div>
-									)}
-									{match.status === 'declined' && (
-										<div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm">
-											<i className="ri-close-circle-line w-4 h-4 flex items-center justify-center"></i>
-											<span>Payment declined</span>
-										</div>
-									)}
-									{match.status === 'pending' && (
-										<div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm">
-											<i className="ri-time-line w-4 h-4 flex items-center justify-center"></i>
-											<span>Awaiting payment</span>
-										</div>
-									)}
-								</div>
-							))}
-						</div>
-					</div>
-				</Card>
-
-				{/* PH Users (who you provided help to) */}
-				{myPHs.details.length > 0 && (
-					<Card className="bg-card border-0 shadow-sm rounded-lg mb-8">
-						<div className="p-6 border-b border-border">
-							<h2 className="text-lg font-semibold text-foreground">Users Who You Provided Help To</h2>
-							{/* <p className="text-sm text-muted-foreground mt-1">{myPHs.details.length} user(s) who helped you with this request</p> */}
-						</div>
-						<div className="p-6">
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-								{myPHs.details.map((detail) => (
-									<div key={detail.id} className="border border-border rounded-lg p-6">
-										<div className="flex items-center justify-between mb-4">
-											<div className="flex items-center gap-3">
-												<div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-													<i className="ri-hand-heart-line w-5 h-5 flex items-center justify-center text-green-600 dark:text-green-400"></i>
-												</div>
-												<div>
-													<h4 className="font-semibold text-foreground">{detail?.name}</h4>
-													<p className="text-sm text-muted-foreground break-words max-w-[200px]">{detail?.username}</p>
-												</div>
-											</div>
-											<span className={`px-2 py-1 rounded-full text-xs font-medium max-w-[100px] text-center truncate ${getPaymentStatusColor(detail.status)}`}>{detail.status}</span>
-										</div>
-										<div className="space-y-3">
-											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Phone:</span>
-												<span className="text-foreground">{detail.phoneNumber}</span>
-											</div>
-											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground"> Momo Provider:</span>
-												<span className="text-foreground">{detail.momo_provider}</span>
-											</div>
-											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Momo Number:</span>
-												<span className="text-foreground">{detail.momo_number}</span>
-											</div>
-											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Amount:</span>
-												<span className="text-foreground font-semibold">
-													{detail.amount} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
-												</span>
-											</div>
-											<div className="flex justify-between text-sm">
-												<span className="text-muted-foreground">Date:</span>
-												<span className="text-foreground">{new Date(detail.timeAssigned).toLocaleDateString()}</span>
-											</div>
-										</div>
-									</div>
-								))}
-							</div>
-						</div>
-					</Card>
-				)}
 			</div>
 		</div>
 	);

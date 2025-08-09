@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import currencyFormatter, { Currency } from 'currency-formatter';
 import nProgress from 'nprogress';
 import { NextRequest } from 'next/server';
 import { logger } from './logger';
@@ -19,10 +19,6 @@ export const formatNumber = (amount: number | undefined | null, options?: Intl.N
 export const formatUSD = (amount: number | undefined | null, precision = 2): string => {
 	if (amount === undefined || amount === null || isNaN(amount)) return 'N/A';
 	return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: precision, maximumFractionDigits: precision }).format(amount);
-};
-
-export const currencyFormatter = (value: number | string, units = 2, currency = '₦') => {
-	return `${currency}${value.toLocaleString(undefined, { minimumFractionDigits: units, maximumFractionDigits: units })}`;
 };
 
 /**
@@ -398,20 +394,20 @@ export function getBaseCurrencyRate(): number {
  * Get the currency symbol from localStorage or fallback to empty string.
  * @returns {string} The currency symbol (e.g. '₦', '₵').
  */
-export function getCurrencySymbol(): string {
-	if (typeof window !== 'undefined') {
-		try {
-			const currencyStr = localStorage.getItem('currency');
-			if (!currencyStr) return '';
-			const currency = JSON.parse(currencyStr);
-			if (currency && typeof currency.symbol === 'string') {
-				return currency.symbol;
-			}
-		} catch {
-			// ignore JSON parse errors
-		}
-	}
-	return '';
+export function getCurrencySymbol(locale = 'en-US') {
+	// Create a number formatter for the specified currency and locale
+	const formatter = new Intl.NumberFormat(locale, {
+		style: 'currency',
+		currency: getBaseCurrency(),
+		// Use minimumFractionDigits: 0 to avoid decimal places
+		minimumFractionDigits: 0,
+	});
+
+	// Format a sample number (e.g., 0) and extract the currency symbol
+	const parts = formatter.formatToParts(0);
+	const symbolPart = parts.find((part) => part.type === 'currency');
+	const currency: Currency = currencyFormatter.findCurrency(getBaseCurrency())!;
+	return currency ? currency.symbol : symbolPart ? symbolPart.value : '';
 }
 
 export function getLoggedInAsUser() {

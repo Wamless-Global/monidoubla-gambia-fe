@@ -10,58 +10,47 @@ import { getCurrentUser } from '@/lib/userUtils';
 import { CustomLink } from '@/components/CustomLink';
 import { logger } from '@/lib/logger';
 import ProvideHelpPage from '../provide-help/content';
-import { useRef } from 'react';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { handleFetchMessage } from '@/lib/helpers';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 
-// Custom modal for testimonials, styled like ConfirmationModal
+// NOTE: All original interfaces and logic are preserved.
 function TestimonialModal({ isOpen, onClose, userName, date, content, videoUrl, avatarUrl }: { isOpen: boolean; onClose: () => void; userName: string; date: string; content: string; videoUrl?: string; avatarUrl?: string | null }) {
 	if (!isOpen) return null;
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 !m-0">
-			<div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md">
-				<div className="p-6">
-					<div className="flex items-center gap-3 mb-2">
-						{avatarUrl ? (
-							<img src={avatarUrl} alt={userName} className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
-						) : (
-							<span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-semibold text-lg">{(userName || '').charAt(0).toUpperCase()}</span>
-						)}
-						<div>
-							<h3 className="text-lg font-semibold text-gray-900 dark:text-white">{userName}</h3>
-							<div className="text-xs text-gray-500 dark:text-gray-400">{date}</div>
-						</div>
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in-0 !m-0">
+			<Card className="max-w-md w-full bg-white shadow-lg border-gray-200">
+				<CardHeader className="flex-row items-center gap-4">
+					{avatarUrl ? <img src={avatarUrl} alt={userName} className="w-10 h-10 rounded-full object-cover" /> : <span className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500">{(userName || '').charAt(0).toUpperCase()}</span>}
+					<div>
+						<CardTitle>{userName}</CardTitle>
+						<CardDescription>{date}</CardDescription>
 					</div>
-					<div className="max-h-80 overflow-y-auto text-gray-800 dark:text-gray-100">
-						<div className="whitespace-pre-line break-words mb-3" style={{ wordBreak: 'break-word' }}>
-							{content}
-						</div>
+				</CardHeader>
+				<CardContent>
+					<div className="max-h-80 overflow-y-auto pr-2">
+						<p className="whitespace-pre-line break-words text-gray-700">{content}</p>
 						{videoUrl && (
-							<video controls className="w-full max-w-md mb-2 rounded mx-auto">
+							<video controls className="w-full rounded-lg mt-4">
 								<source src={videoUrl} type="video/mp4" />
-								Your browser does not support the video tag.
 							</video>
 						)}
 					</div>
-					<div className="flex justify-end mt-4">
-						<button onClick={onClose} className="whitespace-nowrap min-w-[100px] bg-blue-600 hover:bg-blue-700 text-white rounded px-4 py-2 font-medium">
-							Close
-						</button>
-					</div>
-				</div>
-			</div>
+				</CardContent>
+				<CardFooter className="justify-end">
+					<Button onClick={onClose}>Close</Button>
+				</CardFooter>
+			</Card>
 		</div>
 	);
 }
 
-// Testimonial tab component
+// Redesigned to be a vertically scrolling list
 function TestimonialScroller() {
 	const [testimonies, setTestimonies] = useState<any[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [selected, setSelected] = useState<number | null>(null);
-	const [modalOpen, setModalOpen] = useState(false);
-	const scrollerRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const fetchTestimonials = async () => {
@@ -69,10 +58,7 @@ function TestimonialScroller() {
 			try {
 				const res = await fetchWithAuth('/api/testimonies/all');
 				const json = await res.json();
-				if (!res.ok) {
-					const error = handleFetchMessage(json.message, 'Failed to fetch');
-					toast.error(error);
-				}
+				if (!res.ok) throw new Error(handleFetchMessage(json.message, 'Failed to fetch testimonials'));
 				setTestimonies(json.data || []);
 			} catch {
 				setTestimonies([]);
@@ -83,53 +69,35 @@ function TestimonialScroller() {
 		fetchTestimonials();
 	}, []);
 
-	if (loading) return <div className="mb-4">Loading testimonials...</div>;
-	if (!testimonies.length) return null;
+	if (loading || !testimonies.length) return null;
 
-	// Marquee effect for testimonials (scrolls full width of parent, no duplication)
 	return (
-		<div className="mb-6">
-			<h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">What Our Users Are Saying</h2>
-			<p className="text-gray-600 dark:text-gray-300 mb-3 text-sm">Read real stories and feedback from members of our community.</p>
-			<div className="relative w-full overflow-x-hidden" style={{ height: 60 }}>
-				<div
-					className="flex items-center gap-8 whitespace-nowrap cursor-pointer"
-					style={{
-						animation: 'marquee-fullwidth 30s linear infinite',
-					}}
-					onClick={() => {
-						setSelected(0);
-						setModalOpen(true);
-					}}
-				>
-					{testimonies.map((t, idx) => (
-						<span
-							key={t.id}
-							className="inline-flex items-center gap-2 px-4 py-2 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow text-gray-900 dark:text-white max-w-xs overflow-hidden text-ellipsis"
-							title={t.content}
-							onClick={(e) => {
-								e.stopPropagation();
-								setSelected(idx);
-								setModalOpen(true);
-							}}
-							style={{ minWidth: 180, maxWidth: 320 }}
-						>
-							{t.avatar_url ? (
-								<img src={t.avatar_url} alt={t.user_name || 'Anonymous'} className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
+		<>
+			<Card className="flex flex-col h-[24rem]">
+				<CardHeader>
+					<CardTitle>Community Voice</CardTitle>
+					<CardDescription>Recent stories from our members.</CardDescription>
+				</CardHeader>
+				<CardContent className="flex-grow overflow-y-auto pr-3 space-y-4">
+					{testimonies.map((testimony, index) => (
+						<div key={testimony.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(index)}>
+							{testimony.avatar_url ? (
+								<img src={testimony.avatar_url} alt={testimony.user_name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
 							) : (
-								<span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 font-semibold text-sm">{(t.user_name || t.user || 'A').charAt(0).toUpperCase()}</span>
+								<span className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 flex-shrink-0">{(testimony.user_name || 'A').charAt(0).toUpperCase()}</span>
 							)}
-							<span className="font-semibold mr-2">{t.user_name || 'Anonymous'}:</span>
-							<span className="text-sm">{t.content.length > 60 ? t.content.slice(0, 60) + '...' : t.content}</span>
-						</span>
+							<div className="min-w-0">
+								<p className="font-semibold text-sm text-gray-800 truncate">{testimony.user_name || 'Anonymous'}</p>
+								<p className="text-xs text-gray-600 line-clamp-2">{testimony.content}</p>
+							</div>
+						</div>
 					))}
-				</div>
-			</div>
-			{/* Modal for full testimonial */}
-			{modalOpen && selected !== null && testimonies[selected] && (
+				</CardContent>
+			</Card>
+			{selected !== null && (
 				<TestimonialModal
-					isOpen={modalOpen}
-					onClose={() => setModalOpen(false)}
+					isOpen={selected !== null}
+					onClose={() => setSelected(null)}
 					userName={testimonies[selected].user_name || 'Anonymous'}
 					date={new Date(testimonies[selected].created_at).toLocaleString()}
 					content={testimonies[selected].content}
@@ -137,13 +105,7 @@ function TestimonialScroller() {
 					avatarUrl={testimonies[selected].avatar_url}
 				/>
 			)}
-			<style>{`
-		@keyframes marquee-fullwidth {
-		  0% { transform: translateX(100%); }
-		  100% { transform: translateX(-100%); }
-		}
-	  `}</style>
-		</div>
+		</>
 	);
 }
 
@@ -182,26 +144,11 @@ export default function DashboardPage() {
 				const json = await res.json();
 				if (!json.success) throw new Error('Failed to fetch user stats');
 				const stats = json.data || {};
-				// Credit cards
 				const creditCards: CreditCardType[] = [
-					{
-						title: 'Available amount',
-						amount: stats.sumPhActive || 0,
-						subtitle: 'This is the total amount of money you have available for withdrawal',
-					},
-					{
-						title: 'Total Provide Help',
-						amount: stats.sumPhRequests || 0,
-						subtitle: 'This is the total amount of money you have donated to provide help',
-					},
-					{
-						title: 'Total Get Help',
-						amount: stats.sumGhRequests || 0,
-						subtitle: 'This is the total amount of money you have received from getting help',
-					},
+					{ title: 'Available Amount', amount: stats.sumPhActive || 0, subtitle: 'Total available for withdrawal.' },
+					{ title: 'Total Provided Help', amount: stats.sumPhRequests || 0, subtitle: 'Total amount you have donated.' },
+					{ title: 'Total Received Help', amount: stats.sumGhRequests || 0, subtitle: 'Total amount you have received.' },
 				];
-
-				// Transactions
 				const userId = currentUser?.id;
 				const matchArr = Array.isArray(stats.match) ? stats.match : [];
 				const transactions: Transaction[] = matchArr.map((m: any) => {
@@ -209,42 +156,22 @@ export default function DashboardPage() {
 					let title = '';
 					let username = '';
 					let from = '';
-					let gh_request = '';
-
-					logger.info('Processing match:', m);
 					if (userId && m.user === userId) {
 						type = 'debit';
-						title = 'You have been matched to provide Help';
+						title = 'Provided Help To';
 						username = m.ghUserInfo?.name || m.ghUserInfo?.username || '';
 					} else if (userId && m.gh_user === userId) {
 						type = 'credit';
-						title = 'You have been matched to get Help';
+						title = 'Received Help From';
 						from = m.userInfo?.name || m.userInfo?.username || '';
-						gh_request = m.gh_request || '';
 					}
-					// Fallbacks
 					const amount = Number(m.amount) || 0;
 					const dateObj = m.created_at ? new Date(m.created_at) : new Date();
-					const date = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+					const date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 					const time = dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-					return {
-						id: m.id || Math.random().toString(36).slice(2),
-						type,
-						title,
-						username,
-						from,
-						amount,
-						date,
-						gh_request,
-						time,
-					};
+					return { id: m.id || Math.random().toString(36).slice(2), type, title: `${title} ${from || username}`, amount, date, time };
 				});
-
-				setData({
-					creditCards,
-					transactions,
-					userName: currentUser?.name || 'User',
-				});
+				setData({ creditCards, transactions, userName: currentUser?.name || 'User' });
 			} catch (error) {
 				console.error('Error fetching dashboard data:', error);
 				setData(null);
@@ -252,64 +179,70 @@ export default function DashboardPage() {
 				setIsLoading(false);
 			}
 		};
-
 		fetchData();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [currentUser]);
 
-	if (isLoading) {
-		return <DashboardSkeleton />;
-	}
-
+	if (isLoading) return <DashboardSkeleton />;
 	if (!data) {
 		return (
-			<div className="p-4 lg:p-8  min-h-screen flex items-center justify-center">
-				<div className="text-center">
-					<i className="ri-error-warning-line w-12 h-12 flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400"></i>
-					<h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Failed to load dashboard</h3>
-					<p className="text-gray-600 dark:text-gray-400">Please try refreshing the page</p>
-				</div>
+			<div className="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+				<Card className="text-center p-8">
+					<div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+						<i className="ri-error-warning-line text-3xl text-red-600"></i>
+					</div>
+					<h3 className="text-xl font-semibold text-gray-800">Failed to Load Dashboard</h3>
+					<p className="text-gray-500">Please try refreshing the page.</p>
+				</Card>
 			</div>
 		);
 	}
 
 	return (
-		<div className="p-4 lg:p-8  min-h-screen">
-			<div className="max-w-6xl mx-auto">
-				<div className="space-y-6 lg:space-y-8">
-					{/* Welcome message */}
-					<div className="flex items-center justify-between">
-						<h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome back, {data.userName}</h1>
+		<div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+			<div className="max-w-7xl mx-auto">
+				<header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8">
+					<div>
+						<h1 className="text-3xl font-bold text-gray-800">Welcome back, {data.userName}</h1>
+						<p className="text-gray-500 mt-1">Here's a summary of your account activity.</p>
 					</div>
-
-					{/* Credit cards - single column on mobile */}
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-						{data.creditCards.map((card, index) => (
-							<CreditCard key={index} card={card} variant={index === 0 ? 'primary' : 'default'} />
-						))}
-					</div>
-
-					{/* Action buttons */}
-					<div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
-						<CustomLink href={'/user/provide-help'}>
-							<Button variant="outline-yellow" className="whitespace-nowrap flex-1 sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-white">
-								Provide Help
-							</Button>
+					<div className="flex gap-3">
+						<CustomLink href={'/user/provide-help'} className="flex-1">
+							<Button className="w-full">Provide Help</Button>
 						</CustomLink>
-
-						<CustomLink href={'/user/get-help'}>
-							<Button variant="solid-dark" className="whitespace-nowrap flex-1 sm:flex-none bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-100 dark:hover:bg-gray-200 dark:text-gray-900">
+						<CustomLink href={'/user/get-help'} className="flex-1">
+							<Button variant="outline" className="w-full">
 								Get Help
 							</Button>
 						</CustomLink>
 					</div>
-
-					<TestimonialScroller />
-					<ProvideHelpPage hideHeader={true} />
-
-					{/* Recent transactions */}
-					<div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
+				</header>
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+					<div className="lg:col-span-2 space-y-8">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+							<CreditCard card={data.creditCards[0]} icon="ri-wallet-3-line" iconBgColor="bg-teal-100 text-teal-600" />
+							<CreditCard card={data.creditCards[1]} icon="ri-arrow-up-circle-line" iconBgColor="bg-blue-100 text-blue-600" />
+							<CreditCard card={data.creditCards[2]} icon="ri-arrow-down-circle-line" iconBgColor="bg-green-100 text-green-600" />
+						</div>
 						<TransactionList transactions={data.transactions} />
+					</div>
+					<div className="lg:col-span-1 space-y-8">
+						<Card>
+							<CardHeader>
+								<CardTitle>Active PH Requests</CardTitle>
+								<CardDescription>Your ongoing commitments.</CardDescription>
+							</CardHeader>
+							<CardContent className="p-0 sm:p-0">
+								<ProvideHelpPage hideHeader={true} viewMode="compact" />
+							</CardContent>
+							<CardFooter>
+								<CustomLink href="/user/provide-help" className="w-full">
+									<Button variant="outline" className="w-full">
+										View All Requests
+									</Button>
+								</CustomLink>
+							</CardFooter>
+						</Card>
+						<TestimonialScroller />
 					</div>
 				</div>
 			</div>

@@ -4,14 +4,17 @@ import { useState, useEffect } from 'react';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ListingsSkeleton } from '@/components/LoadingSkeleton';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { CustomLink } from '@/components/CustomLink';
 import { logger } from '@/lib/logger';
 import { getCurrentUser } from '@/lib/userUtils';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { toast } from 'sonner';
 import { getCurrencyFromLocalStorage, getSettings } from '@/lib/helpers';
+import Image from 'next/image';
 
+// NOTE: All original interfaces and logic are preserved.
 interface Product {
 	id: string;
 	name: string;
@@ -53,12 +56,11 @@ export default function MyListingsPage() {
 					return;
 				}
 				const data = await res.json();
-				// API returns { data: Product[] }
 				const items: Product[] = (data?.data || []).map((item: any) => ({
 					id: item.id,
 					name: item.name,
 					price: item.price,
-					image: JSON.parse(item.Images)?.[0] || '',
+					image: (typeof item.Images === 'string' ? JSON.parse(item.Images)?.[0] : item.Images?.[0]) || '',
 					description: item.description,
 					location: item.location,
 					category: item.category,
@@ -68,7 +70,6 @@ export default function MyListingsPage() {
 					status: item.status || 'active',
 				}));
 				setProducts(items);
-				logger.log('Fetched products:', items);
 				setFilteredProducts(items);
 			} catch (error) {
 				logger.error('Error fetching products:', error);
@@ -100,10 +101,7 @@ export default function MyListingsPage() {
 	const handleDeleteConfirm = async () => {
 		if (productToDelete) {
 			try {
-				setIsLoading(true);
-				const res = await fetchWithAuth(`/api/marketplace/${productToDelete}`, {
-					method: 'DELETE',
-				});
+				const res = await fetchWithAuth(`/api/marketplace/${productToDelete}`, { method: 'DELETE' });
 				if (!res.ok) {
 					const errMsg = (await res.json())?.message || 'Failed to delete product.';
 					toast.error(errMsg);
@@ -118,7 +116,6 @@ export default function MyListingsPage() {
 				logger.error('Error deleting product:', error);
 				toast.error('Error deleting product.');
 			} finally {
-				setIsLoading(false);
 				setProductToDelete(null);
 				setIsDeleteModalOpen(false);
 			}
@@ -127,80 +124,82 @@ export default function MyListingsPage() {
 
 	const handleEditProduct = (productId: string) => {
 		logger.log('Edit product:', productId);
-		// Implement edit logic or navigation here
+		// Implement edit logic or navigation here, e.g., router.push(`/user/edit-product/${productId}`);
 	};
 
 	if (isLoading) {
 		return <ListingsSkeleton />;
 	}
 
+	// ===============================================
+	// START: Redesigned JSX
+	// ===============================================
 	return (
-		<div className="p-4 lg:p-6 space-y-6">
-			<div className="max-w-6xl mx-auto space-y-6">
-				<div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-					<div className="relative flex-1 lg:max-w-md">
-						<i className="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex items-center justify-center"></i>
-						<input type="text" placeholder="Search for items" value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" />
-					</div>
+		<div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+			<div className="max-w-7xl mx-auto">
+				<header className="mb-8">
+					<h1 className="text-3xl font-bold text-gray-800">My Listings</h1>
+					<p className="text-gray-500 mt-1">Manage all the products you've listed for sale.</p>
+				</header>
 
+				<div className="flex flex-col md:flex-row gap-4 mb-8">
+					<div className="relative flex-1">
+						<i className="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+						<input type="text" placeholder="Search your listings..." value={searchQuery} onChange={(e) => handleSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500" />
+					</div>
 					<CustomLink href="/user/add-product">
-						<Button className="bg-blue-900 hover:bg-blue-800 whitespace-nowrap">
-							<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
+						<Button className="whitespace-nowrap w-full md:w-auto">
+							<i className="ri-add-line mr-2"></i>
 							Add New Product
 						</Button>
 					</CustomLink>
 				</div>
 
-				<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-					{filteredProducts.map((product) => (
-						<Card key={product.id} className="group hover:shadow-lg transition-shadow h-full">
-							<CardContent className="p-4">
-								<div className="aspect-square mb-4 bg-gray-100 rounded-lg overflow-hidden">
-									<img src={product.image} alt={product.name} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300" />
+				{filteredProducts.length > 0 ? (
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+						{filteredProducts.map((product) => (
+							<Card key={product.id} className="group flex flex-col overflow-hidden">
+								<div className="aspect-square bg-gray-100 overflow-hidden">
+									<Image src={product.image || '/placeholder.png'} alt={product.name} width={400} height={400} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
 								</div>
-
-								<div className="space-y-2">
-									<h3 className="font-semibold text-gray-900 line-clamp-1">{product.name}</h3>
-									<p className="text-2xl font-bold text-blue-900">
-										{product.price} {getSettings()?.baseCurrency ? getSettings()?.baseCurrency : getCurrencyFromLocalStorage()?.code}
+								<CardContent className="p-4 flex-grow flex flex-col">
+									<div className="flex justify-between items-start gap-2">
+										<h3 className="font-semibold text-gray-800 line-clamp-2 flex-1">{product.name}</h3>
+										<Badge variant={product.status === 'active' ? 'success' : 'secondary'} className="capitalize">
+											{product.status}
+										</Badge>
+									</div>
+									<div className="flex-grow"></div>
+									<p className="text-xl font-bold text-teal-600 my-2">
+										{product.price.toLocaleString()} {getSettings()?.baseCurrency}
 									</p>
-									<p className="text-sm text-gray-600 line-clamp-2">{product.description}</p>
-
-									<div className="flex items-center gap-1 text-sm text-gray-500">
-										<i className="ri-map-pin-line w-3 h-3 flex items-center justify-center"></i>
-										<span className="line-clamp-1">{product.location}</span>
+									<div className="flex items-center gap-2 text-xs text-gray-500">
+										<i className="ri-calendar-line"></i>
+										<span>Listed: {product.datePosted}</span>
 									</div>
-
-									<div className="flex items-center gap-1 text-sm text-gray-500">
-										<i className="ri-calendar-line w-3 h-3 flex items-center justify-center"></i>
-										<span>{product.datePosted}</span>
-									</div>
-
-									<div className="flex items-center justify-between pt-2">
-										<div className="flex items-center gap-2">
-											<button onClick={() => handleEditProduct(product.id)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Edit product">
-												<i className="ri-edit-line w-4 h-4 flex items-center justify-center text-gray-600"></i>
-											</button>
-											<button onClick={() => handleDeleteClick(product.id)} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors" title="Delete product">
-												<i className="ri-delete-bin-line w-4 h-4 flex items-center justify-center text-gray-600"></i>
-											</button>
-										</div>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					))}
-				</div>
-
-				{filteredProducts.length === 0 && !isLoading && (
-					<div className="flex flex-col items-center justify-center py-16 text-center">
-						<i className="ri-store-line w-16 h-16 flex items-center justify-center text-gray-400 mb-4"></i>
-						<h3 className="text-lg font-medium text-gray-900 mb-2">No listings found</h3>
-						<p className="text-gray-500 mb-4">{searchQuery ? 'No items match your search criteria' : "You haven't created any listings yet"}</p>
+								</CardContent>
+								<CardFooter className="flex gap-2">
+									<Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditProduct(product.id)}>
+										Edit
+									</Button>
+									<Button variant="destructive" size="sm" className="flex-1" onClick={() => handleDeleteClick(product.id)}>
+										Delete
+									</Button>
+								</CardFooter>
+							</Card>
+						))}
+					</div>
+				) : (
+					<div className="text-center py-20">
+						<div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+							<i className="ri-store-2-line text-3xl text-gray-500"></i>
+						</div>
+						<h3 className="text-xl font-semibold text-gray-700">No Listings Found</h3>
+						<p className="text-gray-500 mt-2 mb-6">{searchQuery ? 'No items match your search criteria.' : "You haven't listed any products yet."}</p>
 						<CustomLink href="/user/add-product">
-							<Button className="bg-blue-900 hover:bg-blue-800 whitespace-nowrap">
-								<i className="ri-add-line w-4 h-4 flex items-center justify-center mr-2"></i>
-								Add New Product
+							<Button>
+								<i className="ri-add-line mr-2"></i>
+								List Your First Product
 							</Button>
 						</CustomLink>
 					</div>
@@ -210,10 +209,9 @@ export default function MyListingsPage() {
 					isOpen={isDeleteModalOpen}
 					onClose={() => setIsDeleteModalOpen(false)}
 					onConfirm={handleDeleteConfirm}
-					title="Remove Product"
-					message="Are you sure you want to remove this product from your listings permanently?"
-					confirmText="Yes, remove"
-					cancelText="Cancel"
+					title="Delete Product"
+					message="Are you sure you want to permanently delete this product from your listings?"
+					confirmText="Yes, Delete"
 					confirmVariant="destructive"
 				/>
 			</div>

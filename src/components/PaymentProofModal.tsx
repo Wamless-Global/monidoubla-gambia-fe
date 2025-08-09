@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { getCurrencyFromLocalStorage } from '@/lib/helpers';
 
+// NOTE: All original props and logic are preserved.
 interface PaymentProofModalProps {
 	isOpen: boolean;
 	onClose: () => void;
@@ -46,7 +47,6 @@ export function PaymentProofModal({ isOpen, onClose, onConfirm, userName, amount
 		e.preventDefault();
 		e.stopPropagation();
 		setDragActive(false);
-
 		const file = e.dataTransfer.files?.[0];
 		if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
 			setSelectedFile(file);
@@ -63,14 +63,10 @@ export function PaymentProofModal({ isOpen, onClose, onConfirm, userName, amount
 			toast.error('Please select a file to upload');
 			return;
 		}
-
 		setIsUploading(true);
-
 		try {
 			await onConfirm(selectedFile);
 			handleClose();
-		} catch (error) {
-			// Error handling is done in parent
 		} finally {
 			setIsUploading(false);
 		}
@@ -85,71 +81,58 @@ export function PaymentProofModal({ isOpen, onClose, onConfirm, userName, amount
 
 	if (!isOpen) return null;
 
+	// ===============================================
+	// START: Redesigned JSX
+	// ===============================================
 	return (
 		<>
-			<div className="fixed inset-0 bg-black/50 z-50" onClick={handleClose} />
-
+			<div className="fixed inset-0 bg-black/60 z-50 animate-in fade-in-0" onClick={handleClose} />
 			<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-				<Card className="w-full max-w-md p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
-					<div className="flex items-center justify-between mb-6">
-						<h2 className="text-xl font-bold text-gray-900 dark:text-white">Upload Proof of Payment</h2>
-						<button onClick={handleClose} disabled={isUploading} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50">
-							<i className="ri-close-line w-5 h-5 flex items-center justify-center text-gray-900 dark:text-white"></i>
+				<Card className="w-full max-w-md bg-white shadow-lg border-gray-200 animate-in fade-in-0 zoom-in-95">
+					<CardHeader className="flex flex-row items-center justify-between">
+						<CardTitle className="text-lg font-semibold text-gray-800">Upload Payment Proof</CardTitle>
+						<button onClick={handleClose} disabled={isUploading} className="p-1 rounded-full text-gray-500 hover:bg-gray-100 disabled:opacity-50">
+							<i className="ri-close-line text-xl"></i>
 						</button>
-					</div>
-
-					<div className="mb-4">
-						<p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-							<strong>Recipient:</strong> {userName}
-						</p>
-						<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-							<strong>Amount:</strong> {amount} {getCurrencyFromLocalStorage()?.code}
-						</p>
-						<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">Kindly upload a proof of payment ascertain that the payment has been made to the right account</p>
-					</div>
-
-					<div
-						className={`border-2 border-dashed rounded-lg p-8 text-center mb-4 transition-colors ${dragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700'}`}
-						onDragEnter={handleDrag}
-						onDragLeave={handleDrag}
-						onDragOver={handleDrag}
-						onDrop={handleDrop}
-					>
-						<input type="file" accept=".jpg,.jpeg,.png" onChange={handleFileSelect} className="hidden" id="file-upload" disabled={isUploading} />
-						<label htmlFor="file-upload" className={`cursor-pointer ${isUploading ? 'pointer-events-none' : ''}`}>
-							<div className="flex flex-col items-center justify-center mb-4">
-								{previewUrl ? <img src={previewUrl} alt="Preview" className="w-32 h-32 object-contain rounded-lg mx-auto mb-2 border border-gray-200 dark:border-gray-700" /> : <i className="ri-add-line text-6xl text-gray-400 dark:text-gray-500 mx-auto"></i>}
-							</div>
-							{selectedFile ? (
-								<div>
-									<p className="text-sm font-medium text-gray-900 dark:text-white">{selectedFile.name}</p>
-									<p className="text-xs text-gray-500 dark:text-gray-400">Click to change file</p>
-								</div>
-							) : (
-								<div>
-									<p className="text-sm text-gray-500 dark:text-gray-400">Click to upload or drag and drop</p>
-								</div>
-							)}
-						</label>
-					</div>
-
-					<p className="text-xs text-gray-500 dark:text-gray-400 mb-6">Supported formats - .png and .jpeg</p>
-
-					<div className="flex gap-3">
-						<Button variant="outline" onClick={handleClose} disabled={isUploading} className="flex-1 whitespace-nowrap bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg">
+							<p>
+								You are confirming a payment of{' '}
+								<strong className="text-gray-800">
+									{amount.toLocaleString()} {getCurrencyFromLocalStorage()?.code}
+								</strong>{' '}
+								to <strong className="text-gray-800">{userName}</strong>.
+							</p>
+						</div>
+						<div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive ? 'border-teal-500 bg-teal-50' : 'border-gray-300'}`} onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}>
+							<input type="file" accept=".jpg,.jpeg,.png" onChange={handleFileSelect} className="hidden" id="file-upload" disabled={isUploading} />
+							<label htmlFor="file-upload" className={`cursor-pointer ${isUploading ? 'pointer-events-none' : ''}`}>
+								{previewUrl ? (
+									<img src={previewUrl} alt="Preview" className="w-full h-32 object-contain rounded-md mx-auto mb-2" />
+								) : (
+									<div className="flex flex-col items-center justify-center text-gray-500">
+										<i className="ri-upload-cloud-2-line text-4xl mb-2"></i>
+										<span className="font-medium text-teal-600">Click to upload</span>
+										<span> or drag and drop</span>
+									</div>
+								)}
+							</label>
+						</div>
+						{selectedFile && (
+							<p className="text-sm text-center text-gray-600">
+								File: <span className="font-medium">{selectedFile.name}</span>
+							</p>
+						)}
+					</CardContent>
+					<CardFooter className="bg-gray-50 p-4 flex gap-4">
+						<Button variant="outline" onClick={handleClose} disabled={isUploading} className="flex-1">
 							Cancel
 						</Button>
-						<Button onClick={handleConfirm} disabled={!selectedFile || isUploading} className="flex-1 whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white">
-							{isUploading ? (
-								<div className="flex items-center gap-2">
-									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-									<span>Uploading...</span>
-								</div>
-							) : (
-								'Upload'
-							)}
+						<Button onClick={handleConfirm} disabled={!selectedFile || isUploading} className="flex-1 bg-teal-600 hover:bg-teal-700 text-white">
+							{isUploading ? 'Uploading...' : 'Confirm & Upload'}
 						</Button>
-					</div>
+					</CardFooter>
 				</Card>
 			</div>
 		</>

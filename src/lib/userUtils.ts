@@ -129,15 +129,11 @@ export interface LocalUser {
 	avatar_url?: string;
 	roles: string[];
 	registrationDate?: string;
-	donationCount?: number;
-	totalInvested?: number;
 	email_status?: string;
 	status?: string;
 	country?: string;
 	phone_number?: string | null;
-	wallet_balance?: number;
 	referral_id?: string | null;
-	telegram_user_id?: string | null;
 	fiat_name?: string;
 	fiat_code?: string;
 	fiat_symbol?: string;
@@ -145,10 +141,8 @@ export interface LocalUser {
 	agreed_to_ph_terms?: boolean;
 	agreed_to_gh_terms?: boolean;
 
-	bank_name?: string | null;
-	account_number?: string | null;
-	account_name?: string | null;
 	momo_number?: string | null;
+	momo_name?: string | null;
 	momo_provider?: string | null;
 }
 

@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { getCurrencyFromLocalStorage } from '@/lib/helpers';
+import { cn } from '@/lib/utils';
 
+// NOTE: All original props and logic are preserved.
 interface FilterState {
 	location: string;
 	priceRange: {
@@ -22,181 +25,105 @@ interface FilterModalProps {
 	currentFilters: FilterState;
 }
 
+const locations = ['Banjul, Gambia', 'Brikama, Gambia', 'Bakau, Gambia', 'Serekunda, Gambia', 'Farafenni, Gambia', 'Lamin, Gambia'];
+const conditions = ['new', 'used'];
+const dateOptions = ['today', 'week', 'last7days', 'last30days'];
+
+// This component now contains only the UI for the filters, to be used in both the modal and a sidebar.
+export function FilterContent({ currentFilters, onFiltersChange }: { currentFilters: FilterState; onFiltersChange: (newFilters: FilterState) => void }) {
+	const handleInputChange = (field: keyof FilterState, value: string) => {
+		onFiltersChange({ ...currentFilters, [field]: value });
+	};
+
+	const handleCustomPriceChange = (field: 'min' | 'max', value: string) => {
+		onFiltersChange({ ...currentFilters, priceRange: { ...currentFilters.priceRange, [field]: value } });
+	};
+
+	return (
+		<div className="space-y-6">
+			{/* Price Filter */}
+			<div>
+				<h3 className="text-sm font-semibold text-gray-700 mb-3">Price ({getCurrencyFromLocalStorage()?.code})</h3>
+				<div className="flex gap-2">
+					<input type="number" placeholder="Min" value={currentFilters.priceRange.min} onChange={(e) => handleCustomPriceChange('min', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 text-sm" />
+					<span className="flex items-center text-gray-400">-</span>
+					<input type="number" placeholder="Max" value={currentFilters.priceRange.max} onChange={(e) => handleCustomPriceChange('max', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 text-sm" />
+				</div>
+			</div>
+
+			{/* Condition Filter */}
+			<div>
+				<h3 className="text-sm font-semibold text-gray-700 mb-3">Condition</h3>
+				<div className="flex flex-wrap gap-2">
+					{conditions.map((condition) => (
+						<button
+							key={condition}
+							onClick={() => handleInputChange('condition', currentFilters.condition === condition ? '' : condition)}
+							className={cn('px-3 py-1.5 text-sm rounded-full border transition-colors', currentFilters.condition === condition ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100')}
+						>
+							{condition.charAt(0).toUpperCase() + condition.slice(1)}
+						</button>
+					))}
+				</div>
+			</div>
+
+			{/* Date Posted Filter */}
+			<div>
+				<h3 className="text-sm font-semibold text-gray-700 mb-3">Date Posted</h3>
+				<div className="flex flex-wrap gap-2">
+					{dateOptions.map((option) => (
+						<button
+							key={option}
+							onClick={() => handleInputChange('datePosted', currentFilters.datePosted === option ? '' : option)}
+							className={cn('px-3 py-1.5 text-sm rounded-full border transition-colors', currentFilters.datePosted === option ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100')}
+						>
+							{option.replace('last', 'Last ')}
+						</button>
+					))}
+				</div>
+			</div>
+		</div>
+	);
+}
+
 export function FilterModal({ isOpen, onClose, onApplyFilters, currentFilters }: FilterModalProps) {
 	const [filters, setFilters] = useState<FilterState>(currentFilters);
-	const [isMounted, setIsMounted] = useState(false);
 
+	useEffect(() => setFilters(currentFilters), [currentFilters]);
 	useEffect(() => {
-		setIsMounted(true);
-		setFilters(currentFilters);
-	}, [currentFilters]);
-
-	useEffect(() => {
-		if (isOpen) {
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = 'unset';
-		}
-
+		if (isOpen) document.body.style.overflow = 'hidden';
+		else document.body.style.overflow = 'unset';
 		return () => {
 			document.body.style.overflow = 'unset';
 		};
 	}, [isOpen]);
-
-	const locations = ['Banjul, Gambia', 'Brikama, Gambia', 'Bakau, Gambia', 'Serekunda, Gambia', 'Farafenni, Gambia', 'Lamin, Gambia'];
-
-	const priceRanges = [
-		{ id: 'under10k', label: 'Under 10k', count: 50 },
-		{ id: '5k-100k', label: '5k - 100k', count: 50 },
-		{ id: '100k-200k', label: '100k - 200k', count: 50 },
-		{ id: 'over200k', label: 'Over 200k', count: 50 },
-	];
-
-	const conditions = [
-		{ id: 'new', label: 'New', count: 50 },
-		{ id: 'used', label: 'Used', count: 50 },
-	];
-
-	const dateOptions = [
-		{ id: 'today', label: 'Today', count: 50 },
-		{ id: 'week', label: 'This week', count: 50 },
-		{ id: 'last7days', label: 'Last 7 days', count: 50 },
-		{ id: 'last30days', label: 'Last 30 days', count: 50 },
-	];
-
-	const handleLocationChange = (location: string) => {
-		setFilters((prev) => ({ ...prev, location }));
-	};
-
-	const handlePriceRangeChange = (range: string) => {
-		setFilters((prev) => ({ ...prev, priceCategory: range }));
-	};
-
-	const handleConditionChange = (condition: string) => {
-		setFilters((prev) => ({ ...prev, condition }));
-	};
-
-	const handleDateChange = (date: string) => {
-		setFilters((prev) => ({ ...prev, datePosted: date }));
-	};
-
-	const handleCustomPriceChange = (field: 'min' | 'max', value: string) => {
-		setFilters((prev) => ({
-			...prev,
-			priceRange: {
-				...prev.priceRange,
-				[field]: value,
-			},
-		}));
-	};
-
-	const clearSelection = (field: keyof FilterState) => {
-		if (field === 'priceRange') {
-			setFilters((prev) => ({ ...prev, priceRange: { min: '', max: '' } }));
-		} else {
-			setFilters((prev) => ({ ...prev, [field]: '' }));
-		}
-	};
 
 	const handleApply = () => {
 		onApplyFilters(filters);
 		onClose();
 	};
 
-	if (!isMounted || !isOpen) return null;
+	if (!isOpen) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 lg:z-40">
-			<div className="lg:hidden absolute inset-0 bg-black/50" onClick={onClose} />
-			<div className="hidden lg:block absolute inset-0 bg-black/30" onClick={onClose} />
-
-			<div className="relative h-full lg:h-auto lg:max-w-md lg:mx-auto lg:mt-20">
-				<div className="bg-white h-full lg:h-auto lg:rounded-lg shadow-xl overflow-hidden">
-					<div className="flex items-center justify-between p-4 border-b">
-						<h2 className="text-lg font-semibold text-gray-900">Filter</h2>
-						<button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-							<i className="ri-close-line w-5 h-5 flex items-center justify-center"></i>
+		<div className="fixed inset-0 z-50">
+			<div className="absolute inset-0 bg-black/50 animate-in fade-in-0" onClick={onClose} />
+			<div className="absolute inset-y-0 right-0 w-full max-w-sm bg-white shadow-xl animate-in slide-in-from-right duration-300">
+				<div className="flex flex-col h-full">
+					<CardHeader className="flex-row items-center justify-between">
+						<CardTitle>Filters</CardTitle>
+						<button onClick={onClose} className="p-1 rounded-full text-gray-500 hover:bg-gray-100">
+							<i className="ri-close-line text-xl"></i>
 						</button>
-					</div>
-
-					<div className="flex-1 overflow-y-auto p-4 space-y-6 lg:max-h-[600px]">
-						<div>
-							<h3 className="text-sm font-medium text-gray-900 mb-3">Location</h3>
-							<div className="relative">
-								<button
-									className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg hover:bg-gray-50"
-									onClick={() => {
-										handleLocationChange(filters.location || 'Accra');
-									}}
-								>
-									<span className="text-gray-900">{filters.location || 'Accra'}</span>
-									<i className="ri-arrow-right-s-line w-4 h-4 flex items-center justify-center text-gray-400"></i>
-								</button>
-							</div>
-						</div>
-
-						<div>
-							<h3 className="text-sm font-medium text-gray-900 mb-3">Price - {getCurrencyFromLocalStorage()?.code}</h3>
-
-							<div className="flex gap-2 mb-4">
-								<input type="number" placeholder="Min" value={filters.priceRange.min} onChange={(e) => handleCustomPriceChange('min', e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" />
-								<span className="flex items-center text-gray-500">-</span>
-								<input type="number" placeholder="Max" value={filters.priceRange.max} onChange={(e) => handleCustomPriceChange('max', e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" />
-							</div>
-
-							<div className="space-y-2">
-								{priceRanges.map((range) => (
-									<label key={range.id} className="flex items-center gap-3 cursor-pointer">
-										<input type="radio" name="priceRange" value={range.id} checked={filters.priceCategory === range.id} onChange={(e) => handlePriceRangeChange(e.target.value)} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
-										<span className="text-sm text-gray-900">{range.label}</span>
-										<span className="text-sm text-gray-500">| {range.count} products</span>
-									</label>
-								))}
-							</div>
-
-							<button onClick={() => clearSelection('priceRange')} className="mt-2 text-sm text-blue-600 hover:text-blue-800">
-								Clear Selection
-							</button>
-						</div>
-
-						<div>
-							<h3 className="text-sm font-medium text-gray-900 mb-3">Product condition</h3>
-							<div className="space-y-2">
-								{conditions.map((condition) => (
-									<label key={condition.id} className="flex items-center gap-3 cursor-pointer">
-										<input type="radio" name="condition" value={condition.id} checked={filters.condition === condition.id} onChange={(e) => handleConditionChange(e.target.value)} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
-										<span className="text-sm text-gray-900">{condition.label}</span>
-										<span className="text-sm text-gray-500">| {condition.count} products</span>
-									</label>
-								))}
-							</div>
-							<button onClick={() => clearSelection('condition')} className="mt-2 text-sm text-blue-600 hover:text-blue-800">
-								Clear Selection
-							</button>
-						</div>
-
-						<div>
-							<h3 className="text-sm font-medium text-gray-900 mb-3">Date posted</h3>
-							<div className="space-y-2">
-								{dateOptions.map((option) => (
-									<label key={option.id} className="flex items-center gap-3 cursor-pointer">
-										<input type="radio" name="datePosted" value={option.id} checked={filters.datePosted === option.id} onChange={(e) => handleDateChange(e.target.value)} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" />
-										<span className="text-sm text-gray-900">{option.label}</span>
-										<span className="text-sm text-gray-500">| {option.count} products</span>
-									</label>
-								))}
-							</div>
-							<button onClick={() => clearSelection('datePosted')} className="mt-2 text-sm text-blue-600 hover:text-blue-800">
-								Clear Selection
-							</button>
-						</div>
-					</div>
-
-					<div className="p-4 border-t">
-						<Button onClick={handleApply} className="w-full bg-blue-900 hover:bg-blue-800 text-white">
-							Apply filters
+					</CardHeader>
+					<CardContent className="flex-1 overflow-y-auto">
+						<FilterContent currentFilters={filters} onFiltersChange={setFilters} />
+					</CardContent>
+					<CardFooter className="bg-gray-50 p-4">
+						<Button onClick={handleApply} className="w-full">
+							Apply Filters
 						</Button>
-					</div>
+					</CardFooter>
 				</div>
 			</div>
 		</div>

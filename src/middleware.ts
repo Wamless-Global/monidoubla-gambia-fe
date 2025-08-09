@@ -26,9 +26,10 @@ function redirectUer(loginUrl: URL, currentPathname: string, authToken: string |
 	return redirectResponse;
 }
 
+const apiUrl = process.env.API_BASE_URL;
+
 // Helper function to verify token and get user details
 async function verifyTokenAndGetUserDetails(request: NextRequest, authToken?: string): Promise<VerificationResult> {
-	const apiUrl = process.env.API_BASE_URL;
 	if (!apiUrl) {
 		logger.error('Server-side API base URL (API_BASE_URL) is not configured.');
 		return { error: 'API_BASE_URL not configured', status: 500 };
@@ -96,13 +97,59 @@ export async function middleware(request: NextRequest) {
 	const unauthorizedUrl = new URL('/unauthorized', request.url);
 	const accountUrl = new URL('/user', request.url);
 	const adminDashboardUrl = new URL('/admin', request.url);
+	const maintenanceUrl = new URL('/maintenance', request.url);
+	const notFoundUrl = new URL('/not-found', request.url);
 
 	const isAdminPath = pathname.startsWith('/admin');
 	const isAccountPath = pathname.startsWith('/user');
 	const isAuthLoginPath = pathname === '/auth/login';
 	const isUnauthorizedPagePath = pathname === '/unauthorized';
 	const isAgentPortalPath = pathname.startsWith('/user/agent-portal');
+	const isMaintenancePath = pathname === '/maintenance';
 
+	logger.log(`Middleware is running`);
+	// --- Maintenance Mode Logic ---
+	let maintenanceMode = false;
+	try {
+		const maintenanceRes = await fetchWithAuth(`${apiUrl}/admin/maintenance-mode`);
+		if (maintenanceRes.ok) {
+			const data = await maintenanceRes.json();
+			logger.log('Middleware: Fetched maintenance mode status:', data);
+			// Accepts { enabled: true/false } or { maintenanceMode: true/false }
+			maintenanceMode = data.enabled === true || data.maintenanceMode === true;
+		}
+	} catch (e) {
+		logger.warn('Middleware: Could not fetch maintenance mode status, defaulting to false.', e);
+		maintenanceMode = false;
+	}
+
+	// If maintenance mode is enabled and not already on /maintenance, redirect all users except admins
+	logger.log(`Middleware: Maintenance mode is ${maintenanceMode ? 'enabled' : 'disabled'}. Current path: "${pathname}"`);
+	if (maintenanceMode && !isMaintenancePath) {
+		// Allow admins to bypass maintenance mode
+		let isAdmin = false;
+		if (authToken) {
+			const verificationResult = await verifyTokenAndGetUserDetails(request, authToken);
+			if (verificationResult.user && (verificationResult.user.roles.includes('admin') || verificationResult.user.roles.includes('superAdmin'))) {
+				isAdmin = true;
+			}
+		}
+		if (!isAdmin) {
+			logger.log('Middleware: Maintenance mode enabled. Redirecting to /maintenance.');
+			// Append the original path as a query param
+			const maintenanceUrlWithRedirect = new URL(maintenanceUrl.toString());
+			maintenanceUrlWithRedirect.searchParams.set('redirect_to', pathname);
+			return NextResponse.redirect(maintenanceUrlWithRedirect);
+		}
+	}
+
+	// If maintenance mode is NOT enabled and user tries to access /maintenance, redirect to /not-found
+	if (!maintenanceMode && isMaintenancePath) {
+		logger.log('Middleware: Maintenance mode not enabled, redirecting /maintenance to /not-found.');
+		return NextResponse.redirect(notFoundUrl);
+	}
+
+	// ...existing code...
 	// If accessing /unauthorized without a token, redirect to login (they shouldn't be here)
 	if (isUnauthorizedPagePath && !authToken) {
 		logger.log('Middleware: Accessing /unauthorized without token. Redirecting to login.');
@@ -215,5 +262,6 @@ export const config = {
 		'/user/:path*', // Protect all account routes
 		'/auth/login',
 		'/unauthorized',
+		'/maintenance',
 	],
 };

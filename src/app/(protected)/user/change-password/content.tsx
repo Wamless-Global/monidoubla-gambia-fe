@@ -5,10 +5,12 @@ import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { handleFetchMessage } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { ChangePasswordSkeleton } from '@/components/LoadingSkeleton';
+import { CustomLink } from '@/components/CustomLink';
 
 export default function ChangePasswordPage() {
+	// NOTE: All original state and logic are preserved.
 	const [isLoading, setIsLoading] = useState(true);
 	const [formData, setFormData] = useState({
 		currentPassword: '',
@@ -29,17 +31,14 @@ export default function ChangePasswordPage() {
 			await new Promise((resolve) => setTimeout(resolve, 800));
 			setIsLoading(false);
 		};
-
 		loadPage();
 	}, []);
 
 	const validateForm = () => {
 		const newErrors: { [key: string]: string } = {};
-
 		if (!formData.currentPassword) {
 			newErrors.currentPassword = 'Current password is required';
 		}
-
 		if (!formData.newPassword) {
 			newErrors.newPassword = 'New password is required';
 		} else if (formData.newPassword.length < 8) {
@@ -47,36 +46,29 @@ export default function ChangePasswordPage() {
 		} else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.newPassword)) {
 			newErrors.newPassword = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
 		}
-
 		if (!formData.confirmPassword) {
 			newErrors.confirmPassword = 'Please confirm your new password';
 		} else if (formData.newPassword !== formData.confirmPassword) {
 			newErrors.confirmPassword = 'Passwords do not match';
 		}
-
 		if (formData.currentPassword && formData.newPassword && formData.currentPassword === formData.newPassword) {
 			newErrors.newPassword = 'New password must be different from current password';
 		}
-
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-
 		if (!validateForm()) {
 			return;
 		}
-
 		setIsSubmitting(true);
 		setIsSuccess(false);
 		try {
 			const response = await fetchWithAuth('/api/users/me/update-password', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
+				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					currentPassword: formData.currentPassword,
 					newPassword: formData.newPassword,
@@ -87,11 +79,7 @@ export default function ChangePasswordPage() {
 			if (response.ok) {
 				toast.success(data.message || 'Password updated successfully.');
 				setIsSuccess(true);
-				setFormData({
-					currentPassword: '',
-					newPassword: '',
-					confirmPassword: '',
-				});
+				setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
 			} else {
 				toast.error(handleFetchMessage(data, 'Failed to update password.'));
 			}
@@ -132,119 +120,120 @@ export default function ChangePasswordPage() {
 	}
 
 	const passwordStrength = getPasswordStrength(formData.newPassword);
-	const strengthColors = ['bg-red-500', 'bg-red-400', 'bg-yellow-500', 'bg-yellow-400', 'bg-green-500'];
+	// Redesigned strength meter to use consistent Teal accent color
+	const strengthColors = ['bg-teal-100', 'bg-teal-200', 'bg-teal-300', 'bg-teal-500', 'bg-teal-600'];
 	const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
 
+	// ===============================================
+	// START: Redesigned JSX
+	// ===============================================
 	return (
-		<div className="p-4 lg:p-6 min-h-screen bg-background">
+		<div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
 			<div className="max-w-md mx-auto">
-				<Card className="shadow-sm bg-card">
+				<header className="mb-8 text-center">
+					<h1 className="text-3xl font-bold text-gray-800">Security</h1>
+					<p className="text-gray-500 mt-1">Manage your account password.</p>
+				</header>
+
+				<Card>
 					<CardHeader>
-						<CardTitle className="text-xl font-semibold text-card-foreground">Change Login Password</CardTitle>
+						<CardTitle>Change Password</CardTitle>
+						<CardDescription>For your security, we recommend choosing a strong password that you don't use elsewhere.</CardDescription>
 					</CardHeader>
 
-					<CardContent className="space-y-6">
-						{isSuccess && (
-							<div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-								<div className="flex items-center gap-2">
-									<i className="ri-check-circle-fill text-green-600 dark:text-green-400 w-5 h-5 flex items-center justify-center"></i>
-									<p className="text-green-800 dark:text-green-200 text-sm">Password changed successfully!</p>
+					<form onSubmit={handleSubmit}>
+						<CardContent className="space-y-6">
+							{isSuccess && (
+								<div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
+									<i className="ri-checkbox-circle-fill text-green-600"></i>
+									<p className="text-green-800 text-sm font-medium">Password changed successfully!</p>
 								</div>
-							</div>
-						)}
+							)}
 
-						<form onSubmit={handleSubmit} className="space-y-4">
 							<div>
-								<label htmlFor="currentPassword" className="block text-sm font-medium text-foreground mb-2">
-									Current password
+								<label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
+									Current Password
 								</label>
 								<div className="relative">
-									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
 									<input
 										id="currentPassword"
 										type={showPasswords.current ? 'text' : 'password'}
 										value={formData.currentPassword}
 										onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground placeholder:text-muted-foreground ${errors.currentPassword ? 'border-destructive' : 'border-border'}`}
+										className={`w-full px-3 pr-10 py-2 border rounded-lg focus:ring-2 transition-colors ${errors.currentPassword ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
 										placeholder="Enter your current password"
 									/>
-									<button type="button" onClick={() => togglePasswordVisibility('current')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground">
-										<i className={`${showPasswords.current ? 'ri-eye-off-line' : 'ri-eye-line'} w-4 h-4 flex items-center justify-center`}></i>
+									<button type="button" onClick={() => togglePasswordVisibility('current')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700">
+										<i className={showPasswords.current ? 'ri-eye-off-line' : 'ri-eye-line'}></i>
 									</button>
 								</div>
-								{errors.currentPassword && <p className="mt-1 text-sm text-destructive">{errors.currentPassword}</p>}
+								{errors.currentPassword && <p className="mt-1 text-sm text-red-600">{errors.currentPassword}</p>}
 							</div>
 
 							<div>
-								<label htmlFor="newPassword" className="block text-sm font-medium text-foreground mb-2">
+								<label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
 									New Password
 								</label>
 								<div className="relative">
-									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
 									<input
 										id="newPassword"
 										type={showPasswords.new ? 'text' : 'password'}
 										value={formData.newPassword}
 										onChange={(e) => handleInputChange('newPassword', e.target.value)}
-										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground placeholder:text-muted-foreground ${errors.newPassword ? 'border-destructive' : 'border-border'}`}
+										className={`w-full px-3 pr-10 py-2 border rounded-lg focus:ring-2 transition-colors ${errors.newPassword ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
 										placeholder="Enter your new password"
 									/>
-									<button type="button" onClick={() => togglePasswordVisibility('new')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground">
-										<i className={`${showPasswords.new ? 'ri-eye-off-line' : 'ri-eye-line'} w-4 h-4 flex items-center justify-center`}></i>
+									<button type="button" onClick={() => togglePasswordVisibility('new')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700">
+										<i className={showPasswords.new ? 'ri-eye-off-line' : 'ri-eye-line'}></i>
 									</button>
 								</div>
 
 								{formData.newPassword && (
-									<div className="mt-2">
-										<div className="flex gap-1 mb-1">
+									<div className="mt-2 space-y-1">
+										<div className="flex gap-1.5">
 											{[...Array(5)].map((_, i) => (
-												<div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-muted'}`} />
+												<div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i < passwordStrength ? strengthColors[passwordStrength - 1] : 'bg-gray-200'}`} />
 											))}
 										</div>
-										<p className="text-xs text-muted-foreground">Password strength: {passwordStrength > 0 ? strengthLabels[passwordStrength - 1] : 'Too weak'}</p>
+										<p className="text-xs font-medium" style={{ color: passwordStrength > 0 ? strengthColors[passwordStrength - 1] : 'inherit' }}>
+											Strength: {passwordStrength > 0 ? strengthLabels[passwordStrength - 1] : 'Too weak'}
+										</p>
 									</div>
 								)}
 
-								{errors.newPassword && <p className="mt-1 text-sm text-destructive">{errors.newPassword}</p>}
+								{errors.newPassword && <p className="mt-1 text-sm text-red-600">{errors.newPassword}</p>}
 							</div>
 
 							<div>
-								<label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
-									Confirm Password
+								<label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+									Confirm New Password
 								</label>
 								<div className="relative">
-									<i className="ri-lock-line absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 flex items-center justify-center"></i>
 									<input
 										id="confirmPassword"
 										type={showPasswords.confirm ? 'text' : 'password'}
 										value={formData.confirmPassword}
 										onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring transition-colors bg-background text-foreground placeholder:text-muted-foreground ${errors.confirmPassword ? 'border-destructive' : 'border-border'}`}
-										placeholder="Enter your password again"
+										className={`w-full px-3 pr-10 py-2 border rounded-lg focus:ring-2 transition-colors ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-teal-500'}`}
+										placeholder="Enter your new password again"
 									/>
-									<button type="button" onClick={() => togglePasswordVisibility('confirm')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground">
-										<i className={`${showPasswords.confirm ? 'ri-eye-off-line' : 'ri-eye-line'} w-4 h-4 flex items-center justify-center`}></i>
+									<button type="button" onClick={() => togglePasswordVisibility('confirm')} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700">
+										<i className={showPasswords.confirm ? 'ri-eye-off-line' : 'ri-eye-line'}></i>
 									</button>
 								</div>
-								{errors.confirmPassword && <p className="mt-1 text-sm text-destructive">{errors.confirmPassword}</p>}
+								{errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
 							</div>
+						</CardContent>
 
-							<Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 whitespace-nowrap" disabled={isSubmitting}>
-								{isSubmitting ? (
-									<>
-										<i className="ri-loader-4-line animate-spin mr-2 w-4 h-4 flex items-center justify-center"></i>
-										Changing Password...
-									</>
-								) : (
-									'Save changes'
-								)}
+						<CardFooter className="flex flex-col gap-4">
+							<Button type="submit" className="w-full" disabled={isSubmitting}>
+								{isSubmitting ? 'Changing Password...' : 'Save Changes'}
 							</Button>
-						</form>
-
-						<div className="text-center">
-							<button className="text-primary hover:text-primary/90 text-sm font-medium">Forgot password</button>
-						</div>
-					</CardContent>
+							<CustomLink href="/user/profile">
+								<Button variant="ghost">Back to Profile</Button>
+							</CustomLink>
+						</CardFooter>
+					</form>
 				</Card>
 			</div>
 		</div>

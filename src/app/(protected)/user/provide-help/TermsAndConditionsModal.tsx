@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { getCurrentUser, setCurrentUser } from '@/lib/userUtils';
 import { toast } from 'sonner';
-
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { handleFetchMessage } from '@/lib/helpers';
 
+// NOTE: All original props and logic are preserved.
 interface TermsModalProps {
 	isOpen: boolean;
 	onAgree: () => void;
@@ -22,15 +22,9 @@ const TermsAndConditionsModal: React.FC<TermsModalProps> = ({ isOpen, onAgree })
 		try {
 			const user = getCurrentUser();
 			if (!user) throw new Error('User not found');
-
-			// Prepare form data for update
 			const formData = new FormData();
 			formData.append('agreed_to_ph_terms', 'true');
-
-			const res = await fetchWithAuth('/api/users/profile', {
-				method: 'PUT',
-				body: formData,
-			});
+			const res = await fetchWithAuth('/api/users/profile', { method: 'PUT', body: formData });
 			const updatedUser = await res.json();
 			if (res.ok) {
 				setCurrentUser({ ...updatedUser.data });
@@ -48,27 +42,30 @@ const TermsAndConditionsModal: React.FC<TermsModalProps> = ({ isOpen, onAgree })
 		}
 	};
 
+	// ===============================================
+	// START: Redesigned JSX
+	// ===============================================
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 !mt-0">
-			<Card className="max-w-lg w-full p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
-				<CardContent className="p-0">
-					<h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Provide Help Terms & Conditions</h2>
-					<div className="mb-6 text-gray-700 dark:text-gray-300 text-sm max-h-60 overflow-y-auto">
-						<p className="mb-2">By continuing, you agree to the following terms and conditions for providing help on this platform:</p>
-						<ul className="list-disc pl-5 space-y-2">
-							<li>You understand that providing help is voluntary and it involves your finance.</li>
-							<li>You agree to follow all platform rules and act in good faith with other users.</li>
-							{/* <li>You will not hold the platform responsible for any loss or delay in matching or payment.</li>
-							<li>You agree to provide accurate information and proof of payment when required.</li> */}
-							<li>Violation of these terms may result in account suspension or removal.</li>
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in-0 !mt-0">
+			<Card className="max-w-lg w-full bg-white shadow-lg border-gray-200 animate-in fade-in-0 zoom-in-95">
+				<CardHeader>
+					<CardTitle className="text-lg font-semibold text-gray-800">Provide Help Terms & Conditions</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="text-sm text-gray-600 max-h-60 overflow-y-auto pr-2 space-y-4">
+						<p>By continuing, you acknowledge and agree to the following terms for providing help on this platform:</p>
+						<ul className="list-disc pl-5 space-y-2 text-gray-700">
+							<li>You understand that providing help is a voluntary action involving your personal finances.</li>
+							<li>You agree to follow all platform rules and to act in good faith when interacting with other users.</li>
+							<li>You agree that any violation of these terms may result in the suspension or termination of your account.</li>
 						</ul>
 					</div>
-					<div className="flex justify-end gap-2">
-						<Button onClick={handleAgree} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-							{loading ? 'Processing...' : 'I Agree & Continue'}
-						</Button>
-					</div>
 				</CardContent>
+				<CardFooter className="bg-gray-50 p-4">
+					<Button onClick={handleAgree} disabled={loading} className="w-full bg-teal-600 hover:bg-teal-700 text-white">
+						{loading ? 'Processing...' : 'I Agree & Continue'}
+					</Button>
+				</CardFooter>
 			</Card>
 		</div>
 	);
