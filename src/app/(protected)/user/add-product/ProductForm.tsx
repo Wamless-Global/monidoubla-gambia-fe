@@ -6,10 +6,11 @@ import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { getCurrencyFromLocalStorage, handleFetchMessage, getSettings } from '@/lib/helpers';
 import { getCurrentUser } from '@/lib/userUtils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { CustomLink } from '@/components/CustomLink';
 import { cn } from '@/lib/utils';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 // NOTE: All original interfaces and logic are preserved.
 interface FormData {
@@ -46,7 +47,7 @@ const initialFormData: FormData = {
 	},
 };
 
-const locations = ['Monrovia', 'Gbarnga', 'Buchanan', 'Kakata', 'Zwedru', 'Harper', 'Voinjama', 'Robertsport', 'Sanniquellie', 'Greenville'];
+const locations = ['Banjul', 'Brikama', 'Bakau', 'Serekunda', 'Farafenni', 'Lamin', 'Soma', 'Basse', 'Gunjur', 'Barra'];
 const categories = ['Electronics', 'Clothing', 'Vehicles', 'Houses', 'Furniture', 'Books', 'Sports', 'Tools', 'Jewelry', 'Other'];
 
 export function ProductForm() {
@@ -75,12 +76,13 @@ export function ProductForm() {
 
 	const validateStep2 = () => {
 		const newErrors: { [key: string]: string } = {};
+		const phoneNumber = parsePhoneNumberFromString(formData.contactInfo.phone);
 		if (!formData.category) newErrors.category = 'Category is required';
 		if (!formData.condition) newErrors.condition = 'Condition is required';
 		if (formData.images.length === 0) newErrors.images = 'At least one image is required';
 		else if (formData.images.length > 4) newErrors.images = 'Maximum 4 images allowed';
 		if (!formData.contactInfo.phone.trim()) newErrors.phone = 'Phone number is required';
-		else if (!/^\d{10,15}$/.test(formData.contactInfo.phone.replace(/\s/g, ''))) newErrors.phone = 'Please enter a valid phone number';
+		else if (!(phoneNumber && phoneNumber.isValid())) newErrors.phone = 'Please enter a valid phone number';
 		if (!formData.contactInfo.email.trim()) newErrors.email = 'Email is required';
 		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactInfo.email)) newErrors.email = 'Please enter a valid email address';
 		setErrors(newErrors);
