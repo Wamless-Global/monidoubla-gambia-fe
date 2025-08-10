@@ -73,7 +73,7 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
 				{navigationItems.map((section) => (
 					<ul className="!mt-0" key={section.category}>
 						{section.items.map((item) => (
-							<li key={item.name}>
+							<li key={item.name} className="">
 								<button
 									onClick={() => handleNavigation(item.href)}
 									className={cn('w-full flex items-center gap-3 px-4 py-1.5 sm:py-2.5 rounded-md text-sm transition-colors duration-150 group', pathname === item.href ? 'bg-teal-50 text-teal-600 font-semibold' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900')}

@@ -220,11 +220,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 									</div>
 								</CardContent>
 								<CardFooter>
-									<Button asChild size="lg" className="w-full">
-										<a href={`tel:${product.contactInfo.phone}`}>
+									<a href={`tel:${product.contactInfo.phone}`} className="w-full">
+										<Button asChild size="lg" className="w-full">
 											<i className="ri-phone-line mr-2"></i>Call Seller
-										</a>
-									</Button>
+										</Button>
+									</a>
 								</CardFooter>
 							</Card>
 						</div>

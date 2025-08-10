@@ -47,7 +47,7 @@ export default function NetworkPage() {
 	const threshold = Number(getSettings()?.bonusThreshold || 0);
 	const router = useRouter();
 
-	const usersPerPage = 5;
+	const usersPerPage = 15;
 
 	// NOTE: All original functions and effects are preserved.
 	const fetchNetworkData = useCallback(async (searchTerm = '', page = 1) => {
@@ -252,7 +252,7 @@ export default function NetworkPage() {
 									}}
 									disabled={availableAmount < threshold || isRequestingGH === 'bonus'}
 								>
-									{isRequestingGH === 'bonus' ? (
+									{isRequestingGH ? (
 										<div className="flex items-center justify-center gap-2">
 											<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
 											<span>Processing...</span>
