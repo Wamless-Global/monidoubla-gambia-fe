@@ -347,3 +347,30 @@ export async function setUserPassword(userId: string, newPassword: string, confi
 		return { success: false };
 	}
 }
+
+// Suspend or unsuspend a user
+export async function updateUserStatus(userId: string, status: 'Active' | 'Suspended'): Promise<{ success: boolean; message?: string }> {
+	if (!userId) {
+		toast.error('User ID is missing. Cannot update status.');
+		return { success: false };
+	}
+	try {
+		const response = await fetchWithAuth(`/api/users/${userId}`, {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ status }),
+		});
+		const data = await response.json();
+		if (!response.ok) {
+			const errorMessage = data?.message || 'Failed to update user status.';
+			logger.error('Backend API Error (PUT /api/users/[id]/status):', errorMessage);
+			toast.error(errorMessage);
+			return { success: false, message: errorMessage };
+		}
+		toast.success(data.message || 'User status updated successfully');
+		return { success: true, message: data.message };
+	} catch (error) {
+		toast.error(handleFetchMessage(error, 'An error occurred while updating user status.'));
+		return { success: false };
+	}
+}

@@ -31,6 +31,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export function NotificationPanel({ isOpen, onClose, handleUnread, userId }: NotificationPanelProps) {
 	const [notifications, setNotifications] = useState<Notification[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [clearing, setClearing] = useState(false);
 
 	const unreadCount = notifications.filter((n) => !n.is_read).length;
 
@@ -144,10 +145,13 @@ export function NotificationPanel({ isOpen, onClose, handleUnread, userId }: Not
 
 	const clearAllNotifications = async () => {
 		try {
+			setClearing(true);
 			await Promise.all(notifications.map((n) => fetch(`/api/notifications/${n.id}`, { method: 'DELETE' })));
 			setNotifications([]);
 		} catch (e) {
 			logger.error('Failed to clear notifications', e);
+		} finally {
+			setClearing(false);
 		}
 	};
 
@@ -193,8 +197,26 @@ export function NotificationPanel({ isOpen, onClose, handleUnread, userId }: Not
 					</CardContent>
 					{notifications.length > 0 && (
 						<CardFooter>
-							<Button variant="outline" onClick={clearAllNotifications} className="w-full">
-								Clear All Notifications
+							<Button
+								onClick={async () => {
+									setClearing(true);
+									try {
+										await clearAllNotifications();
+									} finally {
+										setClearing(false);
+									}
+								}}
+								variant="outline"
+								className="w-full"
+							>
+								{clearing ? (
+									<>
+										<i className="ri-loader-4-line animate-spin w-4 h-4 flex items-center justify-center mr-2"></i>
+										Clearing...
+									</>
+								) : (
+									<>Clear Notification</>
+								)}
 							</Button>
 						</CardFooter>
 					)}

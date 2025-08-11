@@ -121,9 +121,10 @@ export function TransactionModal({ isOpen, onClose, transaction, onSave }: Trans
 						<div>
 							<label>Status</label>
 							<select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as Transaction['status'] })} className={cn(errors.status && 'border-red-500')} disabled={loading}>
-								<option value="Pending">Pending</option>
-								<option value="Paid">Paid</option>
-								<option value="Confirmed">Confirmed</option>
+								<option value="pending">Pending</option>
+								<option value="proof-submitted">Submitted POP</option>
+								<option value="confirmed">Confirmed</option>
+								<option value="expired">Expired</option>
 							</select>
 							{errors.status && <p className="form-error">{errors.status}</p>}
 						</div>

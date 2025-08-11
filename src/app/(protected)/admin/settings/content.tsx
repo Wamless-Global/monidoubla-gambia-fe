@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
-import { handleFetchMessage } from '@/lib/helpers';
+import { handleFetchMessage, getSettings } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 
-// NOTE: All original interfaces and logic are preserved.
+// Interfaces from the original file to ensure all fields are captured
 interface GeneralSettings {
 	platformName: string;
 	platformCurrency: string;
@@ -22,6 +22,8 @@ interface GeneralSettings {
 	referralBonusWithdrawableAmount?: number;
 	referralBonusReleaseType?: 'completed' | 'matured';
 	platform_base_currency?: string;
+	logoFile?: File;
+	logoUrl?: string;
 }
 
 interface NotificationSettings {
@@ -44,16 +46,18 @@ interface SystemSettings {
 	enableTwoFA: boolean;
 	requireEmailVerification: boolean;
 	maxLoginAttempts: number;
+	enforcePhoneBeforePHGH: boolean;
+	enforceMomoBeforePHGH?: boolean;
+	countdownDuration: string;
+	allowExtraTimeOnProof: boolean;
+	extraTimeAmount: string;
+	penaltyApplication: 'both' | 'ph' | 'gh';
 }
 
 interface SecuritySettings {
 	allowLogin: boolean;
 	allowAccountCreation: boolean;
-	enableGoogleAuth: boolean;
-	enableFacebookAuth: boolean;
-	enableTwitterAuth: boolean;
-	enableAppleAuth: boolean;
-	enableGithubAuth: boolean;
+	allowDuplicatePhoneSignup: boolean;
 }
 
 function parseSettings(settingsArr: { setting_key: string; setting_value: string }[], defaults: Record<string, any>) {
@@ -88,7 +92,6 @@ export default function SettingsPage() {
 	const [generalSettings, setGeneralSettings] = useState<GeneralSettings>({
 		platformName: '',
 		platformCurrency: '',
-		platform_base_currency: '',
 		country: '',
 		autoMatching: false,
 		commissionRate: '',
@@ -97,10 +100,25 @@ export default function SettingsPage() {
 		referralGeneration: '',
 		referralBonusWithdrawableAmount: 0,
 		referralBonusReleaseType: 'completed',
+		platform_base_currency: '',
 	});
 	const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({ smsProvider: 'twilio', smsApiKey: '', smsApiSecret: '', smsSenderId: '', emailHost: '', emailPort: 0, emailUser: '', emailPassword: '', emailFromName: '' });
-	const [systemSettings, setSystemSettings] = useState<SystemSettings>({ maxTransactionAmount: 0, minTransactionAmount: 0, sessionTimeout: 0, backupFrequency: '', enableTwoFA: false, requireEmailVerification: false, maxLoginAttempts: 0 });
-	const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({ allowLogin: false, allowAccountCreation: false, enableGoogleAuth: false, enableFacebookAuth: false, enableTwitterAuth: false, enableAppleAuth: false, enableGithubAuth: false });
+	const [systemSettings, setSystemSettings] = useState<SystemSettings>({
+		maxTransactionAmount: 0,
+		minTransactionAmount: 0,
+		sessionTimeout: 0,
+		backupFrequency: '',
+		enableTwoFA: false,
+		requireEmailVerification: false,
+		maxLoginAttempts: 0,
+		enforcePhoneBeforePHGH: false,
+		enforceMomoBeforePHGH: false,
+		countdownDuration: '',
+		allowExtraTimeOnProof: false,
+		extraTimeAmount: '',
+		penaltyApplication: 'both',
+	});
+	const [securitySettings, setSecuritySettings] = useState<SecuritySettings>({ allowLogin: false, allowAccountCreation: false, allowDuplicatePhoneSignup: false });
 	const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
 	useEffect(() => {
@@ -126,11 +144,21 @@ export default function SettingsPage() {
 		}
 	};
 
+	const handleLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (file && (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/svg+xml')) {
+			setGeneralSettings((prev) => ({ ...prev, logoFile: file, logoUrl: URL.createObjectURL(file) }));
+		} else if (file) {
+			toast.error('Please select a valid image file (JPEG, PNG, or SVG)');
+		}
+	};
+
 	const validateGeneralSettings = (): boolean => {
 		const newErrors: { [key: string]: string } = {};
-		if (!generalSettings.platformName.trim() || generalSettings.platformName.length < 2) newErrors.platformName = 'Platform name must be at least 2 characters';
+		if (!generalSettings.platformName.trim()) newErrors.platformName = 'Platform name is required';
+		else if (generalSettings.platformName.length < 2) newErrors.platformName = 'Platform name must be at least 2 characters';
 		if (!generalSettings.platformCurrency.trim()) newErrors.platformCurrency = 'Platform currency is required';
-		if (generalSettings.maintenanceMode && !generalSettings.maintenanceMessage.trim()) newErrors.maintenanceMessage = 'Maintenance message is required when enabled';
+		if (generalSettings.maintenanceMode && !generalSettings.maintenanceMessage.trim()) newErrors.maintenanceMessage = 'Maintenance message is required when maintenance mode is enabled';
 		setErrors((prev) => ({ ...prev, ...newErrors }));
 		return Object.keys(newErrors).length === 0;
 	};
@@ -145,19 +173,22 @@ export default function SettingsPage() {
 	};
 
 	const validateSystemSettings = (): boolean => {
-		const newErrors: { [key: string]: string } = {};
-		if (systemSettings.maxTransactionAmount <= systemSettings.minTransactionAmount) newErrors.maxTransactionAmount = 'Maximum must be greater than minimum';
-		if (systemSettings.minTransactionAmount < 1) newErrors.minTransactionAmount = 'Minimum must be greater than 0';
-		if (systemSettings.sessionTimeout < 5 || systemSettings.sessionTimeout > 480) newErrors.sessionTimeout = 'Must be between 5-480 minutes';
-		if (systemSettings.maxLoginAttempts < 1 || systemSettings.maxLoginAttempts > 20) newErrors.maxLoginAttempts = 'Must be between 1-20';
+		const newErrors: Record<string, string> = {};
+		if (systemSettings.maxTransactionAmount <= systemSettings.minTransactionAmount) newErrors.maxTransactionAmount = 'Maximum transaction amount must be greater than minimum';
+		if (systemSettings.minTransactionAmount < 1) newErrors.minTransactionAmount = 'Minimum transaction amount must be greater than 0';
+		if (systemSettings.sessionTimeout < 5 || systemSettings.sessionTimeout > 480) newErrors.sessionTimeout = 'Session timeout must be between 5-480 minutes';
+		if (systemSettings.maxLoginAttempts < 1 || systemSettings.maxLoginAttempts > 20) newErrors.maxLoginAttempts = 'Maximum login attempts must be between 1-20';
+		const countdownRegex = /^(\d+)\s+(minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)$/i;
+		if (systemSettings.countdownDuration && !countdownRegex.test(systemSettings.countdownDuration.trim())) newErrors.countdownDuration = 'Countdown format should be like "30 minutes", "24 hours", "7 days", "1 month"';
+		if (systemSettings.extraTimeAmount && !countdownRegex.test(systemSettings.extraTimeAmount.trim())) newErrors.extraTimeAmount = 'Extra time format should be like "30 minutes", "24 hours", "7 days", "1 month"';
 		setErrors((prev) => ({ ...prev, ...newErrors }));
 		return Object.keys(newErrors).length === 0;
 	};
 
 	const objectToUpdates = (obj: Record<string, any>) =>
 		Object.entries(obj)
-			.filter(([key]) => key !== 'logoFile')
-			.map(([key, value]) => ({ key, setting_value: String(value) }));
+			.filter(([key, value]) => key !== 'logoFile' && key !== 'smsSenderId' && value !== '' && value !== null && value !== undefined)
+			.map(([key, value]) => ({ key, setting_value: typeof value === 'string' ? value : JSON.stringify(value) }));
 
 	const handleSaveSettings = async (section: string, settingsData: any, validator?: () => boolean) => {
 		if (validator && !validator()) {
@@ -227,30 +258,41 @@ export default function SettingsPage() {
 						<CardContent className="space-y-4">
 							<div>
 								<label>Platform Name</label>
-								<input type="text" value={generalSettings.platformName} onChange={(e) => setGeneralSettings((prev) => ({ ...prev, platformName: e.target.value }))} placeholder="Enter platform name" />
+								<input type="text" value={generalSettings.platformName} onChange={(e) => setGeneralSettings({ ...generalSettings, platformName: e.target.value })} />
 							</div>
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div>
+									<label>Platform Currency</label>
+									<input type="text" value={generalSettings.platformCurrency} onChange={(e) => setGeneralSettings({ ...generalSettings, platformCurrency: e.target.value })} placeholder="e.g. GHC" />
+								</div>
+								<div>
 									<label>Platform Base Currency</label>
-									<input type="text" value={generalSettings.platform_base_currency ?? ''} onChange={(e) => setGeneralSettings((prev) => ({ ...prev, platform_base_currency: e.target.value }))} placeholder="e.g. USD" />
+									<input type="text" value={generalSettings.platform_base_currency ?? ''} onChange={(e) => setGeneralSettings({ ...generalSettings, platform_base_currency: e.target.value })} placeholder="e.g. USD" />
 								</div>
 								<div>
 									<label>Country</label>
-									<input type="text" value={generalSettings.country} onChange={(e) => setGeneralSettings((prev) => ({ ...prev, country: e.target.value }))} placeholder="Enter country" />
+									<input type="text" value={generalSettings.country} onChange={(e) => setGeneralSettings({ ...generalSettings, country: e.target.value })} />
+								</div>
+							</div>
+							<div className="pt-4 border-t">
+								<div className="flex items-center justify-between">
+									<div>
+										<h4 className="font-medium">Auto Matching</h4>
+									</div>
+									<ToggleSwitch enabled={generalSettings.autoMatching} onChange={() => setGeneralSettings({ ...generalSettings, autoMatching: !generalSettings.autoMatching })} />
 								</div>
 							</div>
 							<div className="pt-4 border-t">
 								<div className="flex items-center justify-between">
 									<div>
 										<h4 className="font-medium">Maintenance Mode</h4>
-										<p className="text-sm text-slate-500">Temporarily disable access to the user-facing site.</p>
 									</div>
-									<ToggleSwitch enabled={generalSettings.maintenanceMode} onChange={() => setGeneralSettings((prev) => ({ ...prev, maintenanceMode: !prev.maintenanceMode }))} />
+									<ToggleSwitch enabled={generalSettings.maintenanceMode} onChange={() => setGeneralSettings({ ...generalSettings, maintenanceMode: !generalSettings.maintenanceMode })} />
 								</div>
 								{generalSettings.maintenanceMode && (
 									<div className="mt-4">
 										<label>Maintenance Message</label>
-										<textarea value={generalSettings.maintenanceMessage} onChange={(e) => setGeneralSettings((prev) => ({ ...prev, maintenanceMessage: e.target.value }))} placeholder="Site is down for maintenance..." rows={3} />
+										<textarea value={generalSettings.maintenanceMessage} onChange={(e) => setGeneralSettings({ ...generalSettings, maintenanceMessage: e.target.value })} rows={3} />
 									</div>
 								)}
 							</div>
@@ -271,16 +313,20 @@ export default function SettingsPage() {
 							<div className="flex items-center justify-between pt-4 first:pt-0">
 								<div>
 									<h4 className="font-medium text-slate-800">Allow User Login</h4>
-									<p className="text-sm text-slate-500">Enable or disable user login globally.</p>
 								</div>
-								<ToggleSwitch enabled={securitySettings.allowLogin} onChange={() => setSecuritySettings((prev) => ({ ...prev, allowLogin: !prev.allowLogin }))} />
+								<ToggleSwitch enabled={securitySettings.allowLogin} onChange={() => setSecuritySettings({ ...securitySettings, allowLogin: !securitySettings.allowLogin })} />
 							</div>
 							<div className="flex items-center justify-between pt-4">
 								<div>
 									<h4 className="font-medium text-slate-800">Allow Account Creation</h4>
-									<p className="text-sm text-slate-500">Enable or disable new user registrations.</p>
 								</div>
-								<ToggleSwitch enabled={securitySettings.allowAccountCreation} onChange={() => setSecuritySettings((prev) => ({ ...prev, allowAccountCreation: !prev.allowAccountCreation }))} />
+								<ToggleSwitch enabled={securitySettings.allowAccountCreation} onChange={() => setSecuritySettings({ ...securitySettings, allowAccountCreation: !securitySettings.allowAccountCreation })} />
+							</div>
+							<div className="flex items-center justify-between pt-4">
+								<div>
+									<h4 className="font-medium text-slate-800">Allow Duplicate Phone Signup</h4>
+								</div>
+								<ToggleSwitch enabled={securitySettings.allowDuplicatePhoneSignup} onChange={() => setSecuritySettings({ ...securitySettings, allowDuplicatePhoneSignup: !securitySettings.allowDuplicatePhoneSignup })} />
 							</div>
 						</CardContent>
 						<CardFooter>
@@ -296,27 +342,41 @@ export default function SettingsPage() {
 							<CardDescription>Configure email and SMS providers.</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							<h4 className="font-medium text-slate-800">Email Settings</h4>
+							<h4 className="font-medium text-slate-800">SMS Settings</h4>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+								<div>
+									<label>SMS Provider</label>
+									<select value={notificationSettings.smsProvider} onChange={(e) => setNotificationSettings({ ...notificationSettings, smsProvider: e.target.value })}>
+										<option value="TwilioSmsProvider">Twilio</option>
+										<option value="termii">Termii</option>
+									</select>
+								</div>
+								<div>
+									<label>Sender ID</label>
+									<input type="text" value={notificationSettings.smsSenderId} disabled placeholder="Sender ID is disabled" className="cursor-not-allowed bg-slate-100" />
+								</div>
+							</div>
+							<h4 className="font-medium text-slate-800 pt-4 border-t">Email Settings</h4>
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div>
 									<label>SMTP Host</label>
-									<input type="text" value={notificationSettings.emailHost} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailHost: e.target.value }))} placeholder="e.g. smtp.mailgun.org" />
+									<input type="text" value={notificationSettings.emailHost} onChange={(e) => setNotificationSettings({ ...notificationSettings, emailHost: e.target.value })} />
 								</div>
 								<div>
 									<label>SMTP Port</label>
-									<input type="number" value={notificationSettings.emailPort} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailPort: parseInt(e.target.value) || 587 }))} placeholder="e.g. 587" />
+									<input type="number" value={notificationSettings.emailPort} onChange={(e) => setNotificationSettings({ ...notificationSettings, emailPort: parseInt(e.target.value) || 587 })} />
 								</div>
 								<div>
 									<label>Email Username</label>
-									<input type="email" value={notificationSettings.emailUser} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailUser: e.target.value }))} placeholder="Your email username" />
+									<input type="email" value={notificationSettings.emailUser} onChange={(e) => setNotificationSettings({ ...notificationSettings, emailUser: e.target.value })} />
 								</div>
 								<div>
 									<label>Email Password</label>
-									<input type="password" value={notificationSettings.emailPassword} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailPassword: e.target.value }))} placeholder="Your email password" />
+									<input type="password" value={notificationSettings.emailPassword} onChange={(e) => setNotificationSettings({ ...notificationSettings, emailPassword: e.target.value })} />
 								</div>
 								<div className="sm:col-span-2">
 									<label>From Name</label>
-									<input type="text" value={notificationSettings.emailFromName} onChange={(e) => setNotificationSettings((prev) => ({ ...prev, emailFromName: e.target.value }))} placeholder="e.g. Acme Inc." />
+									<input type="text" value={notificationSettings.emailFromName} onChange={(e) => setNotificationSettings({ ...notificationSettings, emailFromName: e.target.value })} />
 								</div>
 							</div>
 						</CardContent>
@@ -335,36 +395,49 @@ export default function SettingsPage() {
 						<CardContent className="space-y-4">
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div>
-									<label>Min Transaction Amount</label>
-									<input type="number" value={systemSettings.minTransactionAmount} onChange={(e) => setSystemSettings((prev) => ({ ...prev, minTransactionAmount: Number(e.target.value) }))} />
-								</div>
-								<div>
-									<label>Max Transaction Amount</label>
-									<input type="number" value={systemSettings.maxTransactionAmount} onChange={(e) => setSystemSettings((prev) => ({ ...prev, maxTransactionAmount: Number(e.target.value) }))} />
-								</div>
-								<div>
 									<label>Session Timeout (minutes)</label>
-									<input type="number" min="5" max="480" value={systemSettings.sessionTimeout} onChange={(e) => setSystemSettings((prev) => ({ ...prev, sessionTimeout: parseInt(e.target.value) || 60 }))} />
+									<input type="number" min="5" max="480" value={systemSettings.sessionTimeout} onChange={(e) => setSystemSettings({ ...systemSettings, sessionTimeout: parseInt(e.target.value) || 60 })} />
 								</div>
 								<div>
 									<label>Max Login Attempts</label>
-									<input type="number" min="1" max="20" value={systemSettings.maxLoginAttempts} onChange={(e) => setSystemSettings((prev) => ({ ...prev, maxLoginAttempts: parseInt(e.target.value) || 5 }))} />
+									<input type="number" min="1" max="20" value={systemSettings.maxLoginAttempts} onChange={(e) => setSystemSettings({ ...systemSettings, maxLoginAttempts: parseInt(e.target.value) || 5 })} />
 								</div>
 							</div>
-							<div className="pt-4 border-t border-slate-200 space-y-4 divide-y divide-slate-200">
-								<div className="flex items-center justify-between pt-4 first:pt-0">
+							<div className="pt-4 border-t border-slate-200 space-y-4">
+								<h4 className="font-semibold text-slate-800">PH/GH Enforcement & Penalties</h4>
+								<div className="flex items-center justify-between">
 									<div>
-										<h4 className="font-medium text-slate-800">Enable Two-Factor Auth</h4>
-										<p className="text-sm text-slate-500">Require 2FA for all admin accounts.</p>
+										<h4 className="font-medium">Enforce Phone Before PH/GH</h4>
 									</div>
-									<ToggleSwitch enabled={systemSettings.enableTwoFA} onChange={() => setSystemSettings((prev) => ({ ...prev, enableTwoFA: !prev.enableTwoFA }))} />
+									<ToggleSwitch enabled={systemSettings.enforcePhoneBeforePHGH} onChange={() => setSystemSettings({ ...systemSettings, enforcePhoneBeforePHGH: !systemSettings.enforcePhoneBeforePHGH })} />
 								</div>
-								<div className="flex items-center justify-between pt-4">
+								<div className="flex items-center justify-between">
 									<div>
-										<h4 className="font-medium text-slate-800">Require Email Verification</h4>
-										<p className="text-sm text-slate-500">Users must verify their email after registration.</p>
+										<h4 className="font-medium">Enforce Momo Before PH/GH</h4>
 									</div>
-									<ToggleSwitch enabled={systemSettings.requireEmailVerification} onChange={() => setSystemSettings((prev) => ({ ...prev, requireEmailVerification: !prev.requireEmailVerification }))} />
+									<ToggleSwitch enabled={systemSettings.enforceMomoBeforePHGH ?? false} onChange={() => setSystemSettings({ ...systemSettings, enforceMomoBeforePHGH: !systemSettings.enforceMomoBeforePHGH })} />
+								</div>
+								<div>
+									<label>Countdown Duration</label>
+									<input type="text" value={systemSettings.countdownDuration} onChange={(e) => setSystemSettings({ ...systemSettings, countdownDuration: e.target.value })} placeholder='e.g., "7 days", "24 hours"' />
+								</div>
+								<div className="flex items-center justify-between">
+									<div>
+										<h4 className="font-medium">Allow Extra Time On Proof</h4>
+									</div>
+									<ToggleSwitch enabled={systemSettings.allowExtraTimeOnProof} onChange={() => setSystemSettings({ ...systemSettings, allowExtraTimeOnProof: !systemSettings.allowExtraTimeOnProof })} />
+								</div>
+								<div>
+									<label>Extra Time Amount</label>
+									<input type="text" value={systemSettings.extraTimeAmount} onChange={(e) => setSystemSettings({ ...systemSettings, extraTimeAmount: e.target.value })} placeholder='e.g., "30 minutes", "1 day"' />
+								</div>
+								<div>
+									<label>Penalty Application</label>
+									<select value={systemSettings.penaltyApplication} onChange={(e) => setSystemSettings({ ...systemSettings, penaltyApplication: e.target.value as 'both' | 'ph' | 'gh' })}>
+										<option value="both">Apply to both users</option>
+										<option value="ph">Apply to PH user only</option>
+										<option value="gh">Apply to GH user only</option>
+									</select>
 								</div>
 							</div>
 						</CardContent>

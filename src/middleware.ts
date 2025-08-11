@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 
 interface UserDetails {
 	roles: string[];
+	status: string;
 }
 
 interface VerificationResult {
@@ -72,8 +73,12 @@ async function handleProtectedRoute(request: NextRequest, authToken: string | un
 
 	const verificationResult = await verifyTokenAndGetUserDetails(request, authToken);
 
-	if (!authToken || verificationResult.error || !verificationResult.user) {
+	if (!authToken || verificationResult.error || !verificationResult.user || !verificationResult.user.status) {
 		redirectUer(loginUrl, currentPathname, authToken, verificationResult);
+		return redirectUer(loginUrl, currentPathname, authToken, verificationResult);
+	}
+
+	if (verificationResult.user.status.toLocaleLowerCase() === 'suspended') {
 		return redirectUer(loginUrl, currentPathname, authToken, verificationResult);
 	}
 
@@ -104,7 +109,6 @@ export async function middleware(request: NextRequest) {
 	const isAccountPath = pathname.startsWith('/user');
 	const isAuthLoginPath = pathname === '/auth/login';
 	const isUnauthorizedPagePath = pathname === '/unauthorized';
-	const isAgentPortalPath = pathname.startsWith('/user/agent-portal');
 	const isMaintenancePath = pathname === '/maintenance';
 
 	logger.log(`Middleware is running`);
@@ -149,22 +153,10 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.redirect(notFoundUrl);
 	}
 
-	// ...existing code...
 	// If accessing /unauthorized without a token, redirect to login (they shouldn't be here)
 	if (isUnauthorizedPagePath && !authToken) {
 		logger.log('Middleware: Accessing /unauthorized without token. Redirecting to login.');
 		return NextResponse.redirect(loginUrl);
-	}
-
-	// Restrict /user/agent-portal to agents only
-	if (isAgentPortalPath) {
-		const verificationResult = await verifyTokenAndGetUserDetails(request, authToken);
-
-		if (!authToken || verificationResult.error || !verificationResult.user) return redirectUer(loginUrl, pathname, authToken, verificationResult);
-
-		if (!verificationResult.user || !verificationResult.user.roles.includes('agent')) {
-			return NextResponse.redirect(unauthorizedUrl);
-		}
 	}
 
 	if (isAdminPath) {
@@ -191,6 +183,8 @@ export async function middleware(request: NextRequest) {
 
 		const verificationResult = await verifyTokenAndGetUserDetails(request, authToken);
 		if (verificationResult.user) {
+			logger.log(verificationResult);
+
 			const redirectToParam = request.nextUrl.searchParams.get('redirect_to');
 			let targetPath: string | null = null;
 
@@ -231,15 +225,6 @@ export async function middleware(request: NextRequest) {
 		const response = NextResponse.next(); // Stay on login page
 		response.cookies.delete('auth_token');
 		return response;
-	}
-
-	// Custom restriction: If agent tries to access /user/agents-apply, redirect to agent-portal
-	if (pathname === '/user/agents-apply' && authToken) {
-		const verificationResult = await verifyTokenAndGetUserDetails(request, authToken);
-		if (verificationResult.user && verificationResult.user.roles.includes('agent')) {
-			const agentPortalUrl = new URL('/user/agent-portal', request.url);
-			return NextResponse.redirect(agentPortalUrl);
-		}
 	}
 
 	logger.log(`Middleware: No specific route handling matched for path "${pathname}". Proceeding with default behavior.`);

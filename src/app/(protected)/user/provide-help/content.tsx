@@ -9,12 +9,13 @@ import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { logger } from '@/lib/logger';
 import { getCurrentUser } from '@/lib/userUtils';
-import { getCurrencyFromLocalStorage, parseMaturityDays, getSettings, handleFetchMessage } from '@/lib/helpers';
+import { getCurrencyFromLocalStorage, parseMaturityDays, getSettings, handleFetchMessage, formatDateNice, getCountdown } from '@/lib/helpers';
 import { useRouter } from 'next/navigation';
 import nProgress from 'nprogress';
 import { cn } from '@/lib/utils';
+import { notExpired } from '../get-help/[id]/GetHelpDetail';
 
-// NOTE: All original interfaces and logic are preserved.
+// Interfaces updated to include all fields from the original file
 export interface Package {
 	id: string;
 	name: string;
@@ -34,7 +35,8 @@ interface AssignedUser {
 	momo_number: string;
 	momo_name: string;
 	timeAssigned: string;
-	status: 'pending' | 'proof-submitted' | 'confirmed' | 'declined' | 'cancelled';
+	status: 'pending' | 'proof-submitted' | 'confirmed' | 'declined' | 'cancelled' | 'expired';
+	expiry: string | null;
 }
 
 interface PHRequest {
@@ -68,6 +70,7 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 	const [packages, setPackages] = useState<Package[]>([]);
 	const [tick, setTick] = useState(0);
 	const [showTermsModal, setShowTermsModal] = useState(false);
+	const [expiredMatches, setExpiredMatches] = useState<Set<string>>(new Set());
 	const router = useRouter();
 
 	const fetchPHRequests = useCallback(
@@ -90,6 +93,7 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 								momo_provider: u.momo_provider,
 								timeAssigned: u.timeAssigned || '',
 								status: u.status,
+								expiry: u.expiry,
 						  }))
 						: [];
 					const totalAssigned = assignedUsers.reduce((sum, u) => sum + (u.amount || 0), 0);
@@ -100,19 +104,15 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 						maturityPeriod = 0,
 						packageName = '';
 					if (pkg) {
-						profitPercentage = Number(pkg.gain || pkg.profitPercentage || 0);
+						profitPercentage = Number(pkg.gain || 0);
 						maturityPeriod = parseMaturityDays(pkg.maturity || '0');
 						packageName = pkg.name || '';
 					}
 					let expectedMaturity = '';
 					if ((req.confirmed_at || req.created_at) && maturityPeriod > 0) {
 						const base = new Date(req.confirmed_at || req.created_at);
-						if (maturityPeriod < 1) {
-							const minutes = Math.round(maturityPeriod * 24 * 60);
-							base.setMinutes(base.getMinutes() + minutes);
-						} else {
-							base.setDate(base.getDate() + maturityPeriod);
-						}
+						if (maturityPeriod < 1) base.setMinutes(base.getMinutes() + Math.round(maturityPeriod * 24 * 60));
+						else base.setDate(base.getDate() + maturityPeriod);
 						expectedMaturity = base.toISOString();
 					}
 					return { id: req.id, packageName, amount: reqAmount, expectedMaturity, dateCreated: req.created_at, status: req.status, profitPercentage, maturityPeriod, matchingProgress, assignedUsers };
@@ -177,12 +177,10 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 					setWaitingProgress(progress);
 					if (progress >= 100) clearInterval(interval);
 				}, 100);
-
 				const payload = { user: user.id, amount: Number(amount), package: selectedPackage.id, status: 'pending' };
 				const res = await fetchWithAuth('/api/ph-requests', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 				const data = await res.json();
 				if (!res.ok) throw new Error(data?.message || 'Failed to create PH request');
-
 				setTimeout(() => {
 					fetchPHRequests(1);
 					setCurrentState('view-requests');
@@ -192,7 +190,6 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 					toast.success('PH request created successfully! Waiting for match...');
 				}, 1000);
 			} catch (err: any) {
-				logger.error('Failed to create PH request', err);
 				toast.error(err?.message || 'Failed to create PH request');
 				setCurrentState('enter-amount');
 				setWaitingProgress(0);
@@ -217,11 +214,10 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 			const res = await fetchWithAuth(`/api/matches/${selectedUser.id}`, { method: 'PUT', body: formData });
 			const data = await res.json();
 			if (!res.ok) throw new Error(handleFetchMessage(data, 'Failed to upload payment proof'));
-			setPHRequests((prev) => prev.map((request) => ({ ...request, assignedUsers: request.assignedUsers.map((user) => (user.id === selectedUser.id ? { ...user, status: 'proof-submitted' as const } : user)) })));
+			setPHRequests((prev) => prev.map((request) => ({ ...request, assignedUsers: request.assignedUsers.map((user) => (user.id === selectedUser.id ? { ...user, status: 'proof-submitted' as const, expiry: data.data.expiry } : user)) })));
 			toast.success('Payment proof uploaded successfully!');
 			setIsPaymentModalOpen(false);
 		} catch (err: any) {
-			logger.error('Failed to upload payment proof', err);
 			toast.error(handleFetchMessage(err, 'Failed to upload payment proof'));
 		}
 	};
@@ -241,6 +237,7 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 				return 'bg-gray-100 text-gray-800';
 			case 'cancelled':
 			case 'declined':
+			case 'expired':
 				return 'bg-red-100 text-red-800';
 			default:
 				return 'bg-gray-100 text-gray-800';
@@ -270,32 +267,31 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 		}
 	};
 
-	const getCountdown = (dateString: string) => {
-		if (!dateString) return { text: 'N/A', complete: false };
-		const now = new Date();
-		const target = new Date(dateString);
-		const diff = target.getTime() - now.getTime();
-		if (diff <= 0) return { text: 'Matured', complete: true };
-		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-		const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-		const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-		const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-		let result = '';
-		if (days > 0) result += `${days}d `;
-		if (hours > 0 || days > 0) result += `${hours}h `;
-		if (minutes > 0 || hours > 0 || days > 0) result += `${minutes}m `;
-		result += `${seconds}s`;
-		return { text: result.trim(), complete: false };
-	};
-
 	useEffect(() => {
 		fetchPHRequests(currentPage);
 	}, [currentPage, fetchPHRequests]);
-
 	useEffect(() => {
 		const interval = setInterval(() => setTick((t) => t + 1), 1000);
 		return () => clearInterval(interval);
 	}, []);
+
+	useEffect(() => {
+		phRequests.forEach((request) => {
+			request.assignedUsers.forEach((user) => {
+				if ((user.status === 'proof-submitted' || user.status === 'declined') && user.expiry && new Date() >= new Date(user.expiry) && !expiredMatches.has(user.id)) {
+					fetchWithAuth(`/api/matches/expired/${user.id}`, { method: 'PUT' })
+						.then(() => {
+							toast.error('The user has been banned for not completing the request on time');
+							setPHRequests((prev) => prev.map((r) => ({ ...r, assignedUsers: r.assignedUsers.map((u) => (u.id === user.id ? { ...u, status: 'expired' } : u)) })));
+							setExpiredMatches((prev) => new Set([...prev, user.id]));
+						})
+						.catch((err) => {
+							toast.error(handleFetchMessage(err, 'Failed to mark as expired'));
+						});
+				}
+			});
+		});
+	}, [phRequests, tick, expiredMatches]);
 
 	const renderSelectPackage = () => (
 		<div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
@@ -338,7 +334,7 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 										</div>
 									</div>
 								</CardContent>
-								<CardFooter className="p-6">
+								<CardFooter className="p-6 pt-0">
 									<Button onClick={() => handlePackageSelect(pkg)} variant="outline" className="w-full border-teal-500 text-teal-600 hover:bg-teal-50 hover:text-teal-700">
 										Select Package
 									</Button>
@@ -476,7 +472,6 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 		if (isLoading) {
 			return <div className="p-4 text-center text-sm text-gray-500">Loading...</div>;
 		}
-
 		return (
 			<div className={cn(viewMode === 'full' && 'bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8')}>
 				<div className={cn(viewMode === 'full' && 'max-w-7xl mx-auto')}>
@@ -502,9 +497,8 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 					) : (
 						<div className={cn('space-y-4', viewMode === 'full' && 'space-y-8')}>
 							{phRequests.map((request) => {
-								if (viewMode === 'compact') {
-									return <CompactRequestCard key={request.id} request={request} />;
-								}
+								if (viewMode === 'compact') return <CompactRequestCard key={request.id} request={request} />;
+
 								const countdown = getCountdown(request.expectedMaturity);
 								return (
 									<Card key={request.id} className="bg-white shadow-sm border-gray-200 overflow-hidden">
@@ -515,9 +509,41 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 													<CardDescription>{request.packageName}</CardDescription>
 												</div>
 												<div className="flex items-center gap-2">
-													<span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusClass(request.status)}`}>{getStatusText(request.status, countdown.complete)}</span>
-													{request.status === 'active' && countdown.complete && (
-														<Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" disabled={isRequestingGH === request.id} onClick={() => {}}>
+													<span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusClass(request.status)}`}>{getStatusText(request.status, countdown.toLocaleLowerCase() == 'expired')}</span>
+													{request.status === 'active' && countdown.toLocaleLowerCase() == 'expired' && (
+														<Button
+															size="sm"
+															className="bg-green-600 hover:bg-green-700 text-white"
+															disabled={isRequestingGH === request.id}
+															onClick={async () => {
+																setIsRequestingGH(request.id);
+																try {
+																	const user = getCurrentUser();
+																	if (!user) {
+																		toast.error('User not found. Please log in again.');
+																		return;
+																	}
+																	const gain = (request.amount * (request.profitPercentage || 0)) / 100;
+																	const res = await fetchWithAuth('/api/gh-requests', {
+																		method: 'POST',
+																		headers: { 'Content-Type': 'application/json' },
+																		body: JSON.stringify({ user: user.id, amount: gain, status: 'pending', requestId: request.id }),
+																	});
+																	const data = await res.json();
+																	if (!res.ok) {
+																		throw new Error(data?.message || 'Failed to request GH');
+																	} else {
+																		nProgress.start();
+																		router.push('/user/get-help');
+																	}
+																	toast.success('GH request submitted successfully!');
+																} catch (err: any) {
+																	toast.error(err?.message || 'Failed to request GH');
+																} finally {
+																	setIsRequestingGH(null);
+																}
+															}}
+														>
 															{isRequestingGH === request.id ? 'Requesting...' : 'Request GH'}
 														</Button>
 													)}
@@ -535,7 +561,7 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 													</div>
 													<div className="flex justify-between items-baseline">
 														<span className="text-sm text-gray-500">Maturity Countdown</span>
-														<span className={`font-semibold ${countdown.complete ? 'text-green-600' : 'text-gray-800'}`}>{request.status === 'active' ? countdown.text : 'N/A'}</span>
+														<span className={`font-semibold ${countdown.toLocaleLowerCase() == 'expired' ? 'text-green-600' : 'text-gray-800'}`}>{request.status === 'active' ? countdown : 'N/A'}</span>
 													</div>
 													<div>
 														<span className="text-sm text-gray-500">Match Progress</span>
@@ -553,26 +579,65 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 													<div>
 														<h4 className="font-medium text-gray-800 mb-4">Assigned Users ({request.assignedUsers.length})</h4>
 														<div className="space-y-4">
-															{request.assignedUsers.map((user) => (
-																<div key={user.id} className="grid grid-cols-4 gap-4 items-center p-4 bg-gray-50 rounded-lg">
-																	<div className="col-span-2 sm:col-span-1">
-																		<p className="font-semibold text-gray-800">{user.name}</p>
-																		<p className="text-xs text-gray-500">@{user.username}</p>
+															{request.assignedUsers.map((user) => {
+																const isExpired = user.expiry ? new Date() > new Date(user.expiry) : false;
+																const effectiveStatus = !notExpired.includes(user.status) && isExpired ? 'expired' : user.status;
+																const showButton = ['pending', 'proof-submitted', 'confirmed', 'declined'].includes(effectiveStatus);
+																return (
+																	<div key={user.id} className="border border-gray-200 rounded-lg p-4">
+																		<div className="flex items-start justify-between mb-3">
+																			<div className="flex items-center gap-3">
+																				<div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+																					<i className="ri-user-line text-xl text-indigo-600"></i>
+																				</div>
+																				<div>
+																					<h5 className="font-semibold text-gray-800">{user.name}</h5>
+																					<p className="text-sm text-gray-500">@{user.username}</p>
+																				</div>
+																			</div>
+																			<span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusClass(effectiveStatus)}`}>{getStatusText(effectiveStatus, false)}</span>
+																		</div>
+																		<div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mb-3">
+																			<div>
+																				<span className="text-gray-500">Phone: </span>
+																				<span className="text-gray-800 font-medium">{user.phoneNumber}</span>
+																			</div>
+																			<div>
+																				<span className="text-gray-500">Amount: </span>
+																				<span className="font-semibold text-gray-800">
+																					{user.amount} {getSettings()?.baseCurrency}
+																				</span>
+																			</div>
+																			<div>
+																				<span className="text-gray-500">MoMo Name: </span>
+																				<span className="text-gray-800 font-medium">{user.momo_name}</span>
+																			</div>
+																			<div>
+																				<span className="text-gray-500">MoMo Provider: </span>
+																				<span className="text-gray-800 font-medium">{user.momo_provider}</span>
+																			</div>
+																			<div className="col-span-2">
+																				<span className="text-gray-500">MoMo Number: </span>
+																				<span className="text-gray-800 font-medium">{user.momo_number}</span>
+																			</div>
+																			<div className="col-span-2">
+																				<span className="text-gray-500">Assigned: </span>
+																				<span className="text-gray-800 font-medium">{formatDateNice(user.timeAssigned)}</span>
+																			</div>
+																		</div>
+																		{user.expiry && effectiveStatus !== 'expired' && (
+																			<div className="mb-3">
+																				<span className="text-sm font-semibold text-red-600">Time left: {getCountdown(user.expiry)}</span>
+																			</div>
+																		)}
+																		{showButton && (
+																			<Button size="sm" onClick={() => handleUploadPayment(user)} disabled={user.status === 'confirmed' || user.status === 'proof-submitted'}>
+																				{user.status === 'confirmed' ? 'Payment Confirmed' : user.status === 'proof-submitted' ? 'Proof Submitted' : 'I have made payment'}
+																			</Button>
+																		)}
 																	</div>
-																	<div className="col-span-2 sm:col-span-1">
-																		<p className="font-semibold text-gray-800">{user.amount.toLocaleString()}</p>
-																		<p className="text-xs text-gray-500">Amount</p>
-																	</div>
-																	<div className="text-center">
-																		<span className={`px-2.5 py-1 text-xs font-medium rounded-full ${getStatusClass(user.status)}`}>{getStatusText(user.status, false)}</span>
-																	</div>
-																	<div className="text-right">
-																		<Button size="sm" onClick={() => handleUploadPayment(user)} disabled={user.status === 'confirmed' || user.status === 'proof-submitted'} className="bg-teal-600 hover:bg-teal-700 text-white">
-																			{user.status === 'confirmed' ? 'Confirmed' : user.status === 'proof-submitted' ? 'Pending' : 'Pay Now'}
-																		</Button>
-																	</div>
-																</div>
-															))}
+																);
+															})}
 														</div>
 													</div>
 												) : (
@@ -609,20 +674,27 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 	};
 
 	const renderCurrentState = () => {
-		if (hideHeader) return renderViewRequests();
-
-		switch (currentState) {
-			case 'select-package':
-				return renderSelectPackage();
-			case 'enter-amount':
-				return renderEnterAmount();
-			case 'waiting':
-				return renderWaiting();
-			case 'view-requests':
-			default:
-				return renderViewRequests();
+		if (hideHeader) {
+			if (phRequests.length > 0) return renderViewRequests();
+		} else {
+			switch (currentState) {
+				case 'select-package':
+					return renderSelectPackage();
+				case 'enter-amount':
+					return renderEnterAmount();
+				case 'waiting':
+					return renderWaiting();
+				case 'view-requests':
+				default:
+					return renderViewRequests();
+			}
 		}
 	};
 
-	return <>{!showTermsModal && renderCurrentState()}</>;
+	return (
+		<>
+			<TermsAndConditionsModal isOpen={showTermsModal} onAgree={() => setShowTermsModal(false)} />
+			{!showTermsModal && renderCurrentState()}
+		</>
+	);
 }

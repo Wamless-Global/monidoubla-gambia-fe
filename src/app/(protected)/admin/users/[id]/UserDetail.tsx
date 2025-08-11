@@ -9,7 +9,7 @@ import { UserEditModal } from '@/components/UserEditModal';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { CustomLink } from '@/components/CustomLink';
-import { fetchUserByUsername, loginAsUser, resendVerificationEmail, sendPasswordResetLink, deleteUser as deleteUserUtil, verifyEmail } from '@/lib/userUtils';
+import { fetchUserByUsername, loginAsUser, verifyEmail, resendVerificationEmail, sendPasswordResetLink, deleteUser as deleteUserUtil, updateUserStatus } from '@/lib/userUtils';
 import { User } from '../content';
 import { logger } from '@/lib/logger';
 import { cn } from '@/lib/utils';
@@ -77,6 +77,7 @@ export default function UserDetail({ username }: UserDetailProps) {
 				bio: '',
 				status: fetchedUser.status,
 				emailVerified: fetchedUser.email_status === 'Active',
+				isActive: fetchedUser.status === 'Active',
 			};
 			setUser(mappedUsers);
 			// TODO: fetch transactions and listings for user if API available
@@ -122,7 +123,7 @@ export default function UserDetail({ username }: UserDetailProps) {
 		setActionLoading(false);
 		if (result.success) {
 			toast.success(result.message || 'Email verified successfully');
-			setUser({ ...user, emailVerified: true });
+			setUser({ ...user, isActive: true });
 		} else {
 			toast.error(result.message || 'Failed to verify email');
 		}
@@ -206,7 +207,7 @@ export default function UserDetail({ username }: UserDetailProps) {
 							<h2 className="text-xl font-bold text-slate-800 mt-4">{user.name}</h2>
 							<p className="text-sm text-slate-500">@{user.username}</p>
 							<div className="flex items-center justify-center gap-2 mt-2">
-								<Badge variant={user.emailVerified ? 'success' : 'warning'}>{user.emailVerified ? 'Verified' : 'Unverified'}</Badge>
+								<Badge variant={user.isActive ? 'success' : 'destructive'}>{user.status}</Badge>
 								<Badge variant="secondary">{user.role}</Badge>
 							</div>
 						</CardContent>
@@ -226,11 +227,32 @@ export default function UserDetail({ username }: UserDetailProps) {
 							<Button variant="outline" className="w-full justify-start" onClick={handleResetPassword} disabled={actionLoading}>
 								<i className="ri-key-2-line mr-2"></i>Send Password Reset
 							</Button>
-							{!user.emailVerified && (
+							{!user.isActive && (
 								<Button variant="outline" className="w-full justify-start" onClick={handleResendVerification} disabled={actionLoading}>
 									<i className="ri-mail-send-line mr-2"></i>Resend Verification
 								</Button>
 							)}
+							{/* Suspend/Unsuspend User */}
+							<Button
+								size="sm"
+								variant={user.status === 'Suspended' ? 'default' : 'destructive'}
+								onClick={async () => {
+									setActionLoading(true);
+									const newStatus = user.status === 'Suspended' ? 'Active' : 'Suspended';
+									const result = await updateUserStatus(user.id, newStatus);
+									setActionLoading(false);
+									if (result.success) {
+										setUser({ ...user, status: newStatus, isActive: newStatus === 'Active' });
+										toast.success(result.message || `User ${newStatus === 'Suspended' ? 'suspended' : 'unsuspended'} successfully.`);
+									} else {
+										toast.error(result.message || 'Failed to update user status.');
+									}
+								}}
+								disabled={actionLoading}
+								className={user.status === 'Suspended' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700'}
+							>
+								{actionLoading ? (user.status === 'Suspended' ? 'Unsuspending...' : 'Suspending...') : user.status === 'Suspended' ? 'Unsuspend User' : 'Suspend User'}
+							</Button>
 							<Button variant="destructive" className="w-full justify-start" onClick={handleDeleteUser}>
 								<i className="ri-delete-bin-line mr-2"></i>Delete User
 							</Button>

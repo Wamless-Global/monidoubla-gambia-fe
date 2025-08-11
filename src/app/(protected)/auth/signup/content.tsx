@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
+import { isValidPhoneNumber, CountryCode } from 'libphonenumber-js';
 import { Button } from '@/components/ui/button';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
 import { handleFetchMessage } from '@/lib/helpers';
@@ -17,7 +18,11 @@ type FormData = {
 	email: string;
 	password: string;
 	confirmPassword: string;
+	phone: string;
 	agreeTerms: boolean;
+	momo_number: string;
+	momo_name: string;
+	momo_provider: string;
 };
 
 type Errors = {
@@ -26,8 +31,12 @@ type Errors = {
 	email?: string;
 	password?: string;
 	confirmPassword?: string;
+	phone?: string;
 	agreeTerms?: string;
 	country?: string;
+	momo_number?: string;
+	momo_name?: string;
+	momo_provider?: string;
 };
 
 export default function SignupPageContent({ referralData, countries }: SignupPageContentProps & { countries: { status: string; countries: Country[] } }) {
@@ -37,7 +46,11 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 		email: '',
 		password: '',
 		confirmPassword: '',
+		phone: '',
 		agreeTerms: false,
+		momo_number: '',
+		momo_name: '',
+		momo_provider: '',
 	});
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -105,6 +118,33 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 			newErrors.email = 'Email is invalid';
 		}
 
+		if (!formData.phone.trim()) {
+			newErrors.phone = 'Phone number is required';
+		} else {
+			try {
+				let countryCode: CountryCode = 'LR'; // Default to Liberia
+				if (selectedCountry === 'decaa447-5a78-42e1-9d4a-af500cf59689') countryCode = 'LR';
+				let phone = formData.phone.trim();
+				// If phone does not start with +, try to convert to international format
+				if (!phone.startsWith('+')) {
+					// Remove leading zero if present
+					if (phone.startsWith('0')) {
+						phone = phone.substring(1);
+					}
+					// Prepend country calling code for Liberia (+231)
+					if (countryCode === 'LR') {
+						phone = '+231' + phone;
+					}
+					// Add more country mappings here if needed
+				}
+				if (!isValidPhoneNumber(phone)) {
+					newErrors.phone = 'Phone number is invalid';
+				}
+			} catch {
+				newErrors.phone = 'Phone number is invalid';
+			}
+		}
+
 		if (!formData.password) {
 			newErrors.password = 'Password is required';
 		} else if (formData.password.length < 8) {
@@ -121,6 +161,16 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 
 		if (!selectedCountry) {
 			newErrors.country = 'Country is required';
+		}
+
+		if (!formData.momo_number.trim()) {
+			newErrors.momo_number = 'Mobile Money number is required';
+		}
+		if (!formData.momo_name.trim()) {
+			newErrors.momo_name = 'Mobile Money name is required';
+		}
+		if (!formData.momo_provider.trim()) {
+			newErrors.momo_provider = 'Mobile Money provider is required';
 		}
 
 		setErrors(newErrors);
@@ -236,6 +286,70 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 							</label>
 							<input type="email" id="email" name="email" value={formData.email} onChange={handleInputChange} className={`input ${errors.email ? 'border-red-500' : ''}`} placeholder="Enter your email" />
 							{errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+						</div>
+
+						<div>
+							<label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+								Phone Number
+							</label>
+							<input
+								type="tel"
+								id="phone"
+								name="phone"
+								value={formData.phone}
+								onChange={handleInputChange}
+								className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+								placeholder="Enter your phone number"
+							/>
+							{errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
+						</div>
+
+						<div>
+							<label htmlFor="momo_number" className="block text-sm font-medium text-gray-700 mb-2">
+								Mobile Money Number
+							</label>
+							<input
+								type="number"
+								id="momo_number"
+								name="momo_number"
+								value={formData.momo_number}
+								onChange={handleInputChange}
+								className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.momo_number ? 'border-red-500' : 'border-gray-300'}`}
+								placeholder="Enter your mobile money number"
+							/>
+							{errors.momo_number && <p className="mt-1 text-sm text-red-500">{errors.momo_number}</p>}
+						</div>
+
+						<div>
+							<label htmlFor="momo_name" className="block text-sm font-medium text-gray-700 mb-2">
+								Mobile Money Name
+							</label>
+							<input
+								type="text"
+								id="momo_name"
+								name="momo_name"
+								value={formData.momo_name}
+								onChange={handleInputChange}
+								className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.momo_name ? 'border-red-500' : 'border-gray-300'}`}
+								placeholder="Enter your mobile money name"
+							/>
+							{errors.momo_name && <p className="mt-1 text-sm text-red-500">{errors.momo_name}</p>}
+						</div>
+
+						<div>
+							<label htmlFor="momo_provider" className="block text-sm font-medium text-gray-700 mb-2">
+								Mobile Money Provider
+							</label>
+							<input
+								type="text"
+								id="momo_provider"
+								name="momo_provider"
+								value={formData.momo_provider}
+								onChange={handleInputChange}
+								className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.momo_provider ? 'border-red-500' : 'border-gray-300'}`}
+								placeholder="Enter your mobile money provider"
+							/>
+							{errors.momo_provider && <p className="mt-1 text-sm text-red-500">{errors.momo_provider}</p>}
 						</div>
 
 						<div>

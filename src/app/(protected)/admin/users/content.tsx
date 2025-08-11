@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -16,8 +16,9 @@ import { Country, UserStatus } from '@/types';
 import { handleFetchMessage } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { CustomLink } from '@/components/CustomLink';
 
-// NOTE: All original interfaces and logic are preserved.
+// Interface updated to match original for all features
 export interface User {
 	id: string;
 	name: string;
@@ -31,62 +32,92 @@ export interface User {
 	avatar?: string;
 	status?: UserStatus;
 	emailVerified: boolean;
+	isActive?: boolean;
 }
 
 export default function UserManagement({ countries }: { countries: { status: string; countries: Country[] } }) {
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [deleteLoading, setDeleteLoading] = useState(false);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [roleFilter, setRoleFilter] = useState('All Roles');
+	const [locationFilter, setLocationFilter] = useState('All Locations');
+	const [joinedFromFilter, setJoinedFromFilter] = useState('');
+	const [joinedToFilter, setJoinedToFilter] = useState('');
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 	const [editModalOpen, setEditModalOpen] = useState(false);
 	const [addModalOpen, setAddModalOpen] = useState(false);
 	const [viewModalOpen, setViewModalOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState<User | null>(null);
+	const [isMounted, setIsMounted] = useState(false);
 	const [totalCount, setTotalCount] = useState(0);
-	const [deleteLoading, setDeleteLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-	const fetchUsers = useCallback(
-		async (page: number = 1) => {
-			setLoading(true);
-			try {
-				const params = new URLSearchParams({ page: page.toString(), limit: '10' });
-				if (searchTerm) params.append('searchTerm', searchTerm);
-				if (roleFilter !== 'All Roles') params.append('role', roleFilter);
+	const usersPerPage = 10;
 
-				const res = await fetchWithAuth(`/api/users/all?${params.toString()}`);
-				if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch users'));
+	// Full fetchUsers logic from original file
+	const fetchUsers = useCallback(async (filters: any = {}, page: number = 1) => {
+		setLoading(true);
+		setError(null);
+		try {
+			const params = new URLSearchParams();
+			params.append('page', page.toString());
+			if (filters.searchTerm) params.append('searchTerm', filters.searchTerm);
+			if (filters.role && filters.role !== 'All Roles') params.append('role', filters.role);
+			if (filters.location && filters.location !== 'All Locations') params.append('country', filters.location);
+			if (filters.joinedFrom) params.append('startDate', filters.joinedFrom);
+			if (filters.joinedTo) params.append('endDate', filters.joinedTo);
 
-				const result = await res.json();
-				const mappedUsers = result.data.users.map((u: any) => ({
-					id: u.id,
-					name: u.name,
-					username: u.username,
-					email: u.email,
-					avatar: u.avatar_url,
-					role: Array.isArray(u.roles) && u.roles.length > 0 ? u.roles[0].charAt(0).toUpperCase() + u.roles[0].slice(1) : 'User',
-					location: u.country || '',
-					dateJoined: u.registrationDate ? new Date(u.registrationDate).toLocaleDateString() : '',
-					phone: u.phone_number || '',
-					bio: '',
-					status: u.status,
-					emailVerified: u.email_status === 'Active',
-				}));
-				setUsers(mappedUsers);
-				setTotalCount(result.data.totalCount);
-			} catch (err) {
-				toast.error(handleFetchMessage(err, 'Failed to fetch users'));
-			} finally {
-				setLoading(false);
+			const apiUrl = `/api/users/all?${params.toString()}`;
+			const response = await fetchWithAuth(apiUrl);
+			if (!response.ok) {
+				const errorData = handleFetchMessage(await response.json(), 'Failed to parse error response');
+				throw new Error(errorData);
 			}
-		},
-		[searchTerm, roleFilter]
-	);
+			const result = await response.json();
+			if (result.status !== 'success') {
+				throw new Error(`API returned non-success status: ${result.status}`);
+			}
+			const mappedUsers = result.data.users.map((u: any) => ({
+				id: u.id,
+				name: u.name,
+				username: u.username,
+				email: u.email,
+				avatar: u.avatar_url,
+				role: Array.isArray(u.roles) && u.roles.length > 0 ? u.roles[0].charAt(0).toUpperCase() + u.roles[0].slice(1) : 'User',
+				location: u.country || '',
+				dateJoined: u.registrationDate ? new Date(u.registrationDate).toLocaleDateString() : '',
+				phone: u.phone_number || '',
+				bio: '',
+				status: u.status,
+				emailVerified: u.email_status === 'Active',
+				isActive: u.status === 'Active',
+			}));
+			setUsers(mappedUsers);
+			setTotalCount(result.data.totalCount);
+		} catch (err: any) {
+			setUsers([]);
+			setTotalCount(0);
+			setError(handleFetchMessage(err, 'Failed to fetch users'));
+			toast.error(handleFetchMessage(err, 'Failed to fetch users'));
+		} finally {
+			setLoading(false);
+		}
+	}, []);
 
 	useEffect(() => {
-		fetchUsers(currentPage);
-	}, [currentPage, fetchUsers]);
+		setIsMounted(true);
+	}, []);
+
+	useEffect(() => {
+		if (isMounted) {
+			const delayDebounce = setTimeout(() => {
+				fetchUsers({ searchTerm, role: roleFilter, location: locationFilter, joinedFrom: joinedFromFilter, joinedTo: joinedToFilter }, currentPage);
+			}, 500); // Debounce search
+			return () => clearTimeout(delayDebounce);
+		}
+	}, [isMounted, searchTerm, roleFilter, locationFilter, joinedFromFilter, joinedToFilter, currentPage, fetchUsers]);
 
 	const handleDeleteUser = (user: User) => {
 		setSelectedUser(user);
@@ -98,8 +129,10 @@ export default function UserManagement({ countries }: { countries: { status: str
 		setDeleteLoading(true);
 		const result = await deleteUserUtil(selectedUser.id);
 		if (result.success) {
-			setUsers(users.filter((u) => u.id !== selectedUser.id));
 			toast.success('User deleted successfully.');
+			fetchUsers({ searchTerm, role: roleFilter, location: locationFilter, joinedFrom: joinedFromFilter, joinedTo: joinedToFilter }, currentPage); // Refresh data
+		} else {
+			toast.error('Failed to delete user.');
 		}
 		setSelectedUser(null);
 		setDeleteModalOpen(false);
@@ -110,15 +143,27 @@ export default function UserManagement({ countries }: { countries: { status: str
 		setSelectedUser({ ...user });
 		setEditModalOpen(true);
 	};
+
 	const handleViewUser = (user: User) => {
 		setSelectedUser(user);
 		setViewModalOpen(true);
 	};
+
 	const handleUserAdded = () => {
-		fetchUsers(1);
+		fetchUsers({}, 1); // Refresh to first page
 	};
 
-	const totalPages = Math.ceil(totalCount / 10);
+	const resetFilters = () => {
+		setSearchTerm('');
+		setRoleFilter('All Roles');
+		setLocationFilter('All Locations');
+		setJoinedFromFilter('');
+		setJoinedToFilter('');
+		setCurrentPage(1);
+		toast.success('Filters reset successfully');
+	};
+
+	const totalPages = Math.ceil(totalCount / usersPerPage);
 
 	return (
 		<div className="space-y-6">
@@ -133,16 +178,23 @@ export default function UserManagement({ countries }: { countries: { status: str
 			</header>
 
 			<Card>
-				<CardHeader className="flex-col sm:flex-row gap-4 justify-between items-center">
-					<div className="relative w-full sm:max-w-xs">
-						<i className="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-						<input type="text" placeholder="Search by name, email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10" />
+				<CardHeader>
+					<div className="flex flex-col lg:flex-row gap-4">
+						<div className="relative flex-1">
+							<i className="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+							<input type="text" placeholder="Search by name, email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10" />
+						</div>
+						<div className="flex flex-col sm:flex-row gap-3">
+							<select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="w-full sm:w-auto">
+								<option value="All Roles">All Roles</option>
+								<option value="User">User</option>
+								<option value="Admin">Admin</option>
+							</select>
+							<Button variant="outline" onClick={resetFilters}>
+								Reset
+							</Button>
+						</div>
 					</div>
-					<select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="w-full sm:w-auto">
-						<option value="All Roles">All Roles</option>
-						<option value="User">User</option>
-						<option value="Admin">Admin</option>
-					</select>
 				</CardHeader>
 				<CardContent className="p-0">
 					<div className="overflow-x-auto">
@@ -173,13 +225,13 @@ export default function UserManagement({ countries }: { countries: { status: str
 									users.map((user) => (
 										<tr key={user.id}>
 											<td className="px-6 py-4 whitespace-nowrap">
-												<div className="flex items-center gap-3">
+												<CustomLink href={`/admin/users/${user.username}`} className="flex items-center gap-3">
 													<img className="h-10 w-10 rounded-full object-cover" src={user.avatar || `https://ui-avatars.com/api/?name=${user.name.replace(' ', '+')}`} alt={user.name} />
 													<div>
 														<div className="text-sm font-medium text-slate-900">{user.name}</div>
 														<div className="text-xs text-slate-500">@{user.username}</div>
 													</div>
-												</div>
+												</CustomLink>
 											</td>
 											<td className="px-6 py-4 whitespace-nowrap">
 												<Badge variant="secondary">{user.role}</Badge>
@@ -214,7 +266,7 @@ export default function UserManagement({ countries }: { countries: { status: str
 				{totalPages > 1 && (
 					<CardFooter className="justify-between items-center">
 						<p className="text-sm text-slate-500">
-							Showing page {currentPage} of {totalPages}
+							Page {currentPage} of {totalPages}
 						</p>
 						<div className="flex items-center gap-2">
 							<Button variant="outline" size="icon" onClick={() => setCurrentPage(currentPage - 1)} disabled={currentPage === 1}>
@@ -227,6 +279,7 @@ export default function UserManagement({ countries }: { countries: { status: str
 					</CardFooter>
 				)}
 			</Card>
+
 			<ConfirmationModal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} onConfirm={confirmDelete} title="Delete User" message={`Are you sure you want to delete ${selectedUser?.name}?`} confirmVariant="destructive" loading={deleteLoading} />
 			{selectedUser && <UserEditModal isOpen={editModalOpen} onClose={() => setEditModalOpen(false)} user={selectedUser} onUserUpdated={handleUserAdded} />}
 			<UserAddModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} countries={countries.countries} onUserAdded={handleUserAdded} />

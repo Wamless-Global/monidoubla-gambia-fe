@@ -239,6 +239,14 @@ export function handleFetchMessage(err: { message?: string; detail?: unknown; er
 		}
 	}
 
+	if (errorMessage == 'Your account has been Suspended. Please contact support.' || errorMessage.includes('Your account has been Suspended. Please contact support.')) {
+		if (redirect) {
+			nProgress.start();
+			window.location.reload();
+			clearLoggedInAsUser();
+		}
+	}
+
 	return errorMessage;
 }
 
@@ -515,3 +523,36 @@ export function parseMaturityDays(maturity: string): number {
 	if (unit.startsWith('minute')) return value / 1440;
 	return 0;
 }
+
+// Countdown timer for maturity
+export const getCountdown = (dateString: string | null) => {
+	if (!dateString) return 'N/A';
+	console.log('Calculating countdown for:', dateString);
+
+	// Get current time in UTC
+	const now = new Date();
+	const utcNow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds()));
+
+	// Parse target time (already in UTC due to 'Z' suffix)
+	const target = new Date(dateString);
+
+	// Calculate difference in milliseconds
+	const diff = target.getTime() - utcNow.getTime();
+
+	if (diff <= 0) return 'Expired';
+
+	// Calculate time components
+	const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+	const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+	const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+	const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+	// Build result string
+	let result = '';
+	if (days > 0) result += `${days}d `;
+	if (hours > 0 || days > 0) result += `${hours}h `;
+	if (minutes > 0 || hours > 0 || days > 0) result += `${minutes}m `;
+	result += `${seconds}s`;
+
+	return result.trim();
+};
