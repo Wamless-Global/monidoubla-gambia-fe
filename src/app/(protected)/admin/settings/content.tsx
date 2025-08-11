@@ -144,15 +144,6 @@ export default function SettingsPage() {
 		}
 	};
 
-	const handleLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0];
-		if (file && (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/svg+xml')) {
-			setGeneralSettings((prev) => ({ ...prev, logoFile: file, logoUrl: URL.createObjectURL(file) }));
-		} else if (file) {
-			toast.error('Please select a valid image file (JPEG, PNG, or SVG)');
-		}
-	};
-
 	const validateGeneralSettings = (): boolean => {
 		const newErrors: { [key: string]: string } = {};
 		if (!generalSettings.platformName.trim()) newErrors.platformName = 'Platform name is required';
@@ -253,7 +244,7 @@ export default function SettingsPage() {
 					<Card id="general">
 						<CardHeader>
 							<CardTitle>General Settings</CardTitle>
-							<CardDescription>Configure basic platform information.</CardDescription>
+							<CardDescription>Configure basic platform information and referral bonuses.</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div>
@@ -272,6 +263,28 @@ export default function SettingsPage() {
 								<div>
 									<label>Country</label>
 									<input type="text" value={generalSettings.country} onChange={(e) => setGeneralSettings({ ...generalSettings, country: e.target.value })} />
+								</div>
+							</div>
+							<div className="pt-4 border-t space-y-4">
+								<h4 className="font-semibold text-slate-800">Referral Settings</h4>
+								<div>
+									<label>Commission Rate (%)</label>
+									<input type="text" value={generalSettings.commissionRate} onChange={(e) => setGeneralSettings({ ...generalSettings, commissionRate: e.target.value })} placeholder="e.g. 10, 5, 2.5" />
+								</div>
+								<div>
+									<label>Referral Generations</label>
+									<input type="text" value={generalSettings.referralGeneration ?? ''} onChange={(e) => setGeneralSettings({ ...generalSettings, referralGeneration: e.target.value })} placeholder="e.g. 1, 2, 3" />
+								</div>
+								<div>
+									<label>Referral Bonus Withdrawable Amount</label>
+									<input type="number" min={0} value={generalSettings.referralBonusWithdrawableAmount ?? 0} onChange={(e) => setGeneralSettings({ ...generalSettings, referralBonusWithdrawableAmount: Number(e.target.value) })} />
+								</div>
+								<div>
+									<label>Referral Bonus Release Condition</label>
+									<select value={generalSettings.referralBonusReleaseType ?? 'completed'} onChange={(e) => setGeneralSettings({ ...generalSettings, referralBonusReleaseType: e.target.value as 'completed' | 'matured' })}>
+										<option value="completed">When user's PH is completed</option>
+										<option value="matured">When user's PH is matured</option>
+									</select>
 								</div>
 							</div>
 							<div className="pt-4 border-t">
@@ -395,12 +408,43 @@ export default function SettingsPage() {
 						<CardContent className="space-y-4">
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div>
+									<label>Min Transaction Amount</label>
+									<input type="number" value={systemSettings.minTransactionAmount} onChange={(e) => setSystemSettings({ ...systemSettings, minTransactionAmount: Number(e.target.value) })} />
+								</div>
+								<div>
+									<label>Max Transaction Amount</label>
+									<input type="number" value={systemSettings.maxTransactionAmount} onChange={(e) => setSystemSettings({ ...systemSettings, maxTransactionAmount: Number(e.target.value) })} />
+								</div>
+								<div>
 									<label>Session Timeout (minutes)</label>
 									<input type="number" min="5" max="480" value={systemSettings.sessionTimeout} onChange={(e) => setSystemSettings({ ...systemSettings, sessionTimeout: parseInt(e.target.value) || 60 })} />
 								</div>
 								<div>
 									<label>Max Login Attempts</label>
 									<input type="number" min="1" max="20" value={systemSettings.maxLoginAttempts} onChange={(e) => setSystemSettings({ ...systemSettings, maxLoginAttempts: parseInt(e.target.value) || 5 })} />
+								</div>
+								<div>
+									<label>Backup Frequency</label>
+									<select value={systemSettings.backupFrequency} onChange={(e) => setSystemSettings((prev) => ({ ...prev, backupFrequency: e.target.value }))}>
+										<option value="hourly">Hourly</option>
+										<option value="daily">Daily</option>
+										<option value="weekly">Weekly</option>
+										<option value="monthly">Monthly</option>
+									</select>
+								</div>
+							</div>
+							<div className="pt-4 border-t border-slate-200 space-y-4 divide-y divide-slate-200">
+								<div className="flex items-center justify-between pt-4 first:pt-0">
+									<div>
+										<h4 className="font-medium text-slate-800">Require Email Verification</h4>
+									</div>
+									<ToggleSwitch enabled={systemSettings.requireEmailVerification} onChange={() => setSystemSettings({ ...systemSettings, requireEmailVerification: !systemSettings.requireEmailVerification })} />
+								</div>
+								<div className="flex items-center justify-between pt-4">
+									<div>
+										<h4 className="font-medium text-slate-800">Enable Two-Factor Auth</h4>
+									</div>
+									<ToggleSwitch enabled={systemSettings.enableTwoFA} onChange={() => setSystemSettings({ ...systemSettings, enableTwoFA: !systemSettings.enableTwoFA })} />
 								</div>
 							</div>
 							<div className="pt-4 border-t border-slate-200 space-y-4">
