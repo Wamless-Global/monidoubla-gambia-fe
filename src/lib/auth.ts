@@ -46,8 +46,6 @@ export const logout = async (): Promise<void> => {
 
 		logger.log('AuthContext: Logout successful via API.');
 		if (typeof window !== 'undefined') {
-			localStorage.removeItem('currency');
-			localStorage.removeItem('settings');
 			removeCurrentUser();
 			clearLoggedInAsUser();
 		}
