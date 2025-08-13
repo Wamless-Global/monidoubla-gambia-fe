@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
 			},
 			{
 				protocol: 'https',
+				hostname: 'woczzifzpllhrgycrano.supabase.co',
+			},
+			{
+				protocol: 'https',
 				hostname: 'auth.monidoublagh.com',
 			},
 			{
