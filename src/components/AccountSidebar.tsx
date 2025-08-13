@@ -58,7 +58,7 @@ export function AccountSidebar({ onClose }: AccountSidebarProps) {
 	};
 
 	return (
-		<aside className="w-64 min-h-screen bg-white text-gray-800 flex flex-col border-r border-gray-200">
+		<aside className="w-64 min-h-screen bg-white text-gray-800 flex flex-col border-r border-gray-200 relative">
 			<div className="flex-shrink-0 px-6 pt-6 pb-4">
 				<div className="flex items-center justify-between">
 					<Logo alt="logo" size="sm" />

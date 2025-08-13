@@ -45,7 +45,7 @@ export function AdminSidebar({ onClose }: AdminSidebarProps) {
 		<div className="w-64 bg-slate-900 text-slate-300 flex flex-col h-full">
 			<div className="flex-shrink-0 px-6 pt-6 pb-4">
 				<div className="flex items-center justify-between">
-					<Logo alt="Logo" size="md" variant="light" />
+					<Logo alt="Logo" size="md" variant="dark" />
 					{onClose && (
 						<button onClick={onClose} className="lg:hidden p-1 rounded-md hover:bg-slate-800" aria-label="Close sidebar">
 							<i className="ri-close-line text-xl"></i>
