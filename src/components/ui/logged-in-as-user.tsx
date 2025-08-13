@@ -15,7 +15,7 @@ export default function LoggedInAs() {
 
 	const endSession = async () => {
 		if (typeof window !== 'undefined') {
-			const toastId = toast.loading('Returning to your admin account...');
+			const toastId = toast.info('Returning to your admin account...');
 			setLogginOut(true);
 			fetch('/api/auth/clear-session', {
 				method: 'POST',

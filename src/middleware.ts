@@ -79,6 +79,10 @@ async function handleProtectedRoute(request: NextRequest, authToken: string | un
 	}
 
 	if (verificationResult.user.status.toLocaleLowerCase() === 'suspended') {
+		// Clear authentication cookies if user is suspended
+		const response = NextResponse.redirect(loginUrl);
+		response.cookies.delete('auth_token');
+		response.cookies.delete('sb-access-token');
 		return redirectUer(loginUrl, currentPathname, authToken, verificationResult);
 	}
 
