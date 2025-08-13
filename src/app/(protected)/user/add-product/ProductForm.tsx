@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { CustomLink } from '@/components/CustomLink';
 import { cn } from '@/lib/utils';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { logger } from '@/lib/logger';
 
 // NOTE: All original interfaces and logic are preserved.
 interface FormData {
@@ -108,6 +109,7 @@ export function ProductForm() {
 				return;
 			}
 			const form = new FormData();
+			logger.log('Submitting product form', formData);
 			form.append('name', formData.productName);
 			form.append('user', user.id);
 			form.append('price', formData.price);
@@ -116,7 +118,7 @@ export function ProductForm() {
 			form.append('previewDesc', formData.previewDescription);
 			form.append('category', formData.category);
 			form.append('condition', formData.condition);
-			form.append('tags', formData.tags.join(','));
+			form.append('tags', formData.tags.length > 0 ? formData.tags.join(',') : 'general');
 			form.append('contactDetails', JSON.stringify({ phone: formData.contactInfo.phone, email: formData.contactInfo.email }));
 			form.append('preferredContact', formData.contactInfo.preferredContact);
 			form.append('status', 'pending');
