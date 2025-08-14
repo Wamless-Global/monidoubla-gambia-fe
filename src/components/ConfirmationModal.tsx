@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 
 // NOTE: All original props and logic are preserved.
 interface ConfirmationModalProps {
@@ -19,17 +19,14 @@ interface ConfirmationModalProps {
 export function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirmText = 'Confirm', cancelText = 'Cancel', confirmVariant = 'default', loading = false }: ConfirmationModalProps) {
 	if (!isOpen) return null;
 
-	// ===============================================
-	// START: Redesigned JSX
-	// ===============================================
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-in fade-in-0 !m-0">
-			<Card className="max-w-md w-full bg-white shadow-lg border-gray-200 animate-in fade-in-0 zoom-in-95">
+			<Card className="max-w-md w-full bg-white shadow-lg border-slate-200 animate-in fade-in-0 zoom-in-95">
 				<CardHeader>
 					<CardTitle>{title}</CardTitle>
 					<CardDescription>{message}</CardDescription>
 				</CardHeader>
-				<CardFooter className="bg-gray-50 p-4 flex justify-end gap-3">
+				<CardFooter className="bg-slate-50 p-4 flex justify-end gap-3">
 					<Button variant="outline" onClick={onClose} disabled={loading}>
 						{cancelText}
 					</Button>

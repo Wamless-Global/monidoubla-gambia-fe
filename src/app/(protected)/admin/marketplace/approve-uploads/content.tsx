@@ -147,13 +147,17 @@ function ItemDetailModal({ isOpen, onClose, item, onApprove, onDisapprove }: Ite
 export default function ApproveUploadsPage() {
 	const [items, setItems] = useState<PendingItem[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [pageLoading, setPageLoading] = useState(false);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [categoryFilter, setCategoryFilter] = useState('All');
 	const [sortBy, setSortBy] = useState('date');
 	const [detailModalOpen, setDetailModalOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState<PendingItem | null>(null);
+	const [approveModal, setApproveModal] = useState<{ isOpen: boolean; item: PendingItem | null }>({ isOpen: false, item: null });
+	const [disapproveModal, setDisapproveModal] = useState<{ isOpen: boolean; item: PendingItem | null }>({ isOpen: false, item: null });
 	const [isMounted, setIsMounted] = useState(false);
+	const [actionLoading, setActionLoading] = useState(false);
 
 	const itemsPerPage = 12;
 
@@ -199,7 +203,6 @@ export default function ApproveUploadsPage() {
 			const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
 			return matchesSearch && matchesCategory;
 		});
-
 		filtered.sort((a, b) => {
 			switch (sortBy) {
 				case 'price-low':
@@ -217,7 +220,11 @@ export default function ApproveUploadsPage() {
 	}, [items, searchTerm, categoryFilter, sortBy]);
 
 	const handlePageChange = (page: number) => {
+		setPageLoading(true);
 		setCurrentPage(page);
+		setTimeout(() => {
+			setPageLoading(false);
+		}, 500);
 	};
 
 	const handleItemClick = (item: PendingItem) => {
@@ -226,28 +233,38 @@ export default function ApproveUploadsPage() {
 	};
 
 	const handleApprove = async (item: PendingItem) => {
+		setActionLoading(true);
 		try {
 			const formData = new FormData();
 			formData.append('status', 'active');
 			const res = await fetchWithAuth(`/api/marketplace/${item.id}`, { method: 'PUT', body: formData });
 			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to approve item.'));
-			setItems(items.filter((i) => i.id !== item.id));
+			setItems((prev) => prev.filter((i) => i.id !== item.id));
 			toast.success('Item approved successfully');
 		} catch (error) {
 			toast.error(handleFetchMessage(error, 'Failed to approve item'));
+		} finally {
+			setActionLoading(false);
+			setApproveModal({ isOpen: false, item: null });
+			setDetailModalOpen(false);
 		}
 	};
 
 	const handleDisapprove = async (item: PendingItem) => {
+		setActionLoading(true);
 		try {
 			const formData = new FormData();
 			formData.append('status', 'delist');
 			const res = await fetchWithAuth(`/api/marketplace/${item.id}`, { method: 'PUT', body: formData });
 			if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to disapprove item.'));
-			setItems(items.filter((i) => i.id !== item.id));
+			setItems((prev) => prev.filter((i) => i.id !== item.id));
 			toast.success('Item disapproved successfully');
 		} catch (error) {
 			toast.error(handleFetchMessage(error, 'Failed to disapprove item'));
+		} finally {
+			setActionLoading(false);
+			setDisapproveModal({ isOpen: false, item: null });
+			setDetailModalOpen(false);
 		}
 	};
 
@@ -309,26 +326,30 @@ export default function ApproveUploadsPage() {
 					</div>
 				</CardHeader>
 				<CardContent>
-					{loading ? (
+					{loading || pageLoading ? (
 						<div className="text-center py-20 text-slate-500">Loading items...</div>
 					) : currentItems.length > 0 ? (
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 							{currentItems.map((item) => (
-								<Card key={item.id} className="group overflow-hidden">
-									<div className="aspect-video bg-slate-100 relative">
-										<Image src={item.image || '/placeholder.png'} alt={item.title} layout="fill" className="object-cover" />
+								<Card key={item.id} className="group overflow-hidden flex flex-col">
+									<div className="aspect-video bg-slate-100 relative cursor-pointer" onClick={() => handleItemClick(item)}>
+										<Image src={item.image || '/placeholder.png'} alt={item.title} layout="fill" className="object-cover group-hover:scale-105 transition-transform" />
 									</div>
-									<div className="p-4">
+									<div className="p-4 flex-grow flex flex-col">
 										<p className="text-xs text-slate-500">{item.category}</p>
 										<h3 className="font-semibold text-slate-800 truncate">{item.title}</h3>
-										<p className="text-lg font-bold text-indigo-600 mt-1">
+										<div className="flex-grow"></div>
+										<p className="text-lg font-bold text-indigo-600 mt-2">
 											{getCurrencyFromLocalStorage()?.symbol}
 											{item.price.toLocaleString()}
 										</p>
 									</div>
-									<CardFooter>
-										<Button variant="outline" className="w-full" onClick={() => handleItemClick(item)}>
-											Review
+									<CardFooter className="flex gap-2">
+										<Button variant="destructive" size="sm" className="flex-1" onClick={() => setDisapproveModal({ isOpen: true, item })}>
+											Disapprove
+										</Button>
+										<Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700" onClick={() => setApproveModal({ isOpen: true, item })}>
+											Approve
 										</Button>
 									</CardFooter>
 								</Card>
@@ -359,6 +380,25 @@ export default function ApproveUploadsPage() {
 				)}
 			</Card>
 			<ItemDetailModal isOpen={detailModalOpen} onClose={() => setDetailModalOpen(false)} item={selectedItem} onApprove={handleApprove} onDisapprove={handleDisapprove} />
+			<ConfirmationModal
+				isOpen={approveModal.isOpen}
+				onClose={() => setApproveModal({ isOpen: false, item: null })}
+				onConfirm={() => handleApprove(approveModal.item!)}
+				title="Approve Item"
+				message={`Are you sure you want to approve "${approveModal.item?.title}"?`}
+				confirmText="Approve"
+				loading={actionLoading}
+			/>
+			<ConfirmationModal
+				isOpen={disapproveModal.isOpen}
+				onClose={() => setDisapproveModal({ isOpen: false, item: null })}
+				onConfirm={() => handleDisapprove(disapproveModal.item!)}
+				title="Disapprove Item"
+				message={`Are you sure you want to disapprove "${disapproveModal.item?.title}"?`}
+				confirmText="Disapprove"
+				confirmVariant="destructive"
+				loading={actionLoading}
+			/>
 		</div>
 	);
 }
