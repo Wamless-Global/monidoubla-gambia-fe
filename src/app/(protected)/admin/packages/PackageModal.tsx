@@ -61,7 +61,8 @@ export function PackageModal({ isOpen, onClose, onSave, package: packageData }: 
 		if (formData.gain <= 0 || formData.gain > 1000) newErrors.gain = 'Gain must be between 1 and 1000';
 		if (formData.minAmount <= 0) newErrors.minAmount = 'Min amount must be greater than 0';
 		if (formData.maxAmount <= formData.minAmount) newErrors.maxAmount = 'Max amount must be greater than min amount';
-		if (!formData.maturity.trim() || !/^(\d+)\s+(day|days|week|weeks|month|months|year|years)$/i.test(formData.maturity.trim())) newErrors.maturity = 'Format must be "7 days", "1 month", etc.';
+		const maturityRegex = /^(\d+)\s+(second|seconds|minute|minutes|hour|hours|day|days|week|weeks|month|months|year|years)$/i;
+		if (!formData.maturity.trim() || !maturityRegex.test(formData.maturity.trim())) newErrors.maturity = 'Format must be "7 days", "1 month", etc.';
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};

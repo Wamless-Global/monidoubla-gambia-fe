@@ -3,6 +3,7 @@ import currencyFormatter, { Currency } from 'currency-formatter';
 import nProgress from 'nprogress';
 import { NextRequest } from 'next/server';
 import { logger } from './logger';
+import { log } from 'console';
 
 export const generateSlug = (name: string) => (name ? name.toLowerCase().replace(/\s+/g, '-') : '');
 
@@ -419,9 +420,13 @@ export function getCurrencySymbol(locale = 'en-US') {
 }
 
 export function getLoggedInAsUser() {
+	logger.log('Checking logged in as user');
 	if (typeof window !== 'undefined') {
 		try {
+			logger.log('Getting logged in as user from localStorage');
 			const isLoggedInAsUserStr = localStorage.getItem(`sb-${process.env.NEXT_PUBLIC_BACKEND_SERVICE}-auth-token`);
+			logger.log('isLoggedInAsUserStr:', isLoggedInAsUserStr);
+			logger.log(`sb-${process.env.NEXT_PUBLIC_BACKEND_SERVICE}-auth-token`);
 			const adminRequest = localStorage.getItem(`admin-login-request`);
 
 			if (!isLoggedInAsUserStr || isLoggedInAsUserStr === 'null' || !adminRequest || adminRequest === 'null') return false;
@@ -434,6 +439,7 @@ export function getLoggedInAsUser() {
 				return false;
 			}
 		} catch {
+			logger.error('Error parsing logged in as user data');
 			// ignore JSON parse errors
 		}
 	}
@@ -525,9 +531,9 @@ export function parseMaturityDays(maturity: string): number {
 }
 
 // Countdown timer for maturity
-export const getCountdown = (dateString: string | null) => {
+export const getCountdown = (dateString: string | null, type = 'expiry') => {
 	if (!dateString) return 'N/A';
-	console.log('Calculating countdown for:', dateString);
+	logger.log('Calculating countdown for:', dateString);
 
 	// Get current time in UTC
 	const now = new Date();
@@ -539,7 +545,7 @@ export const getCountdown = (dateString: string | null) => {
 	// Calculate difference in milliseconds
 	const diff = target.getTime() - utcNow.getTime();
 
-	if (diff <= 0) return 'Expired';
+	if (diff <= 0) return type.toLocaleLowerCase() == 'expiry' ? 'Expired' : 'Matured';
 
 	// Calculate time components
 	const days = Math.floor(diff / (1000 * 60 * 60 * 24));

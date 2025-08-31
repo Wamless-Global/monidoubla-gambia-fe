@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { PaymentProofModal } from '@/components/PaymentProofModal';
 import { toast } from 'sonner';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
-import { logger } from '@/lib/logger';
 import { getCurrentUser } from '@/lib/userUtils';
 import { getCurrencyFromLocalStorage, parseMaturityDays, getSettings, handleFetchMessage, formatDateNice, getCountdown } from '@/lib/helpers';
 import { useRouter } from 'next/navigation';
@@ -499,7 +498,7 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 							{phRequests.map((request) => {
 								if (viewMode === 'compact') return <CompactRequestCard key={request.id} request={request} />;
 
-								const countdown = getCountdown(request.expectedMaturity);
+								const countdown = getCountdown(request.expectedMaturity, 'maturity');
 								return (
 									<Card key={request.id} className="bg-white shadow-sm border-gray-200 overflow-hidden">
 										<CardHeader className="bg-gray-50 border-b border-gray-200">
@@ -625,7 +624,7 @@ export default function ProvideHelpPage({ hideHeader = false, viewMode = 'full',
 																				<span className="text-gray-800 font-medium">{formatDateNice(user.timeAssigned)}</span>
 																			</div>
 																		</div>
-																		{user.expiry && effectiveStatus !== 'expired' && (
+																		{user.expiry && effectiveStatus !== 'expired' && !['completed', 'confirmed'].includes(effectiveStatus) && (
 																			<div className="mb-3">
 																				<span className="text-sm font-semibold text-red-600">Time left: {getCountdown(user.expiry)}</span>
 																			</div>
