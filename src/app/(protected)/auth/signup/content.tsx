@@ -122,8 +122,8 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 			newErrors.phone = 'Phone number is required';
 		} else {
 			try {
-				let countryCode: CountryCode = 'LR'; // Default to Liberia
-				if (selectedCountry === 'decaa447-5a78-42e1-9d4a-af500cf59689') countryCode = 'LR';
+				let countryCode: CountryCode = 'GM'; // Default to Gambia
+				if (selectedCountry === 'decaa447-5a78-42e1-9d4a-af500cf59689') countryCode = 'GM';
 				let phone = formData.phone.trim();
 				// If phone does not start with +, try to convert to international format
 				if (!phone.startsWith('+')) {
@@ -131,9 +131,9 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 					if (phone.startsWith('0')) {
 						phone = phone.substring(1);
 					}
-					// Prepend country calling code for Liberia (+231)
-					if (countryCode === 'LR') {
-						phone = '+231' + phone;
+					// Prepend country calling code for Gambia (+220)
+					if (countryCode === 'GM') {
+						phone = '+220' + phone;
 					}
 					// Add more country mappings here if needed
 				}
@@ -189,10 +189,14 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 				const payload: any = {
 					name: `${formData.firstName} ${formData.lastName}`,
 					email: formData.email,
+					phone: formData.phone,
 					password: formData.password,
 					confirmPassword: formData.confirmPassword,
 					roles: ['user'],
 					country: selectedCountry,
+					momo_number: formData.momo_number,
+					momo_name: formData.momo_name,
+					momo_provider: formData.momo_provider,
 				};
 				if (referralActive && referralId) {
 					payload.referralId = referralId;
