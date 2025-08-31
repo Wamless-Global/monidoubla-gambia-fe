@@ -120,30 +120,31 @@ export default function SignupPageContent({ referralData, countries }: SignupPag
 
 		if (!formData.phone.trim()) {
 			newErrors.phone = 'Phone number is required';
-		} else {
-			try {
-				let countryCode: CountryCode = 'GM'; // Default to Gambia
-				if (selectedCountry === 'decaa447-5a78-42e1-9d4a-af500cf59689') countryCode = 'GM';
-				let phone = formData.phone.trim();
-				// If phone does not start with +, try to convert to international format
-				if (!phone.startsWith('+')) {
-					// Remove leading zero if present
-					if (phone.startsWith('0')) {
-						phone = phone.substring(1);
-					}
-					// Prepend country calling code for Gambia (+220)
-					if (countryCode === 'GM') {
-						phone = '+220' + phone;
-					}
-					// Add more country mappings here if needed
-				}
-				if (!isValidPhoneNumber(phone)) {
-					newErrors.phone = 'Phone number is invalid';
-				}
-			} catch {
-				newErrors.phone = 'Phone number is invalid';
-			}
 		}
+		// else {
+		// 	try {
+		// 		let countryCode: CountryCode = 'GM'; // Default to Gambia
+		// 		if (selectedCountry === 'decaa447-5a78-42e1-9d4a-af500cf59689') countryCode = 'GM';
+		// 		let phone = formData.phone.trim();
+		// 		// If phone does not start with +, try to convert to international format
+		// 		if (!phone.startsWith('+')) {
+		// 			// Remove leading zero if present
+		// 			if (phone.startsWith('0')) {
+		// 				phone = phone.substring(1);
+		// 			}
+		// 			// Prepend country calling code for Gambia (+220)
+		// 			if (countryCode === 'GM') {
+		// 				phone = '+220' + phone;
+		// 			}
+		// 			// Add more country mappings here if needed
+		// 		}
+		// 		if (!isValidPhoneNumber(phone)) {
+		// 			newErrors.phone = 'Phone number is invalid';
+		// 		}
+		// 	} catch {
+		// 		newErrors.phone = 'Phone number is invalid';
+		// 	}
+		// }
 
 		if (!formData.password) {
 			newErrors.password = 'Password is required';
