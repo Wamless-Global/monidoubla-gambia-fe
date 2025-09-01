@@ -71,7 +71,7 @@ export default function EditPHRequestModal({ isOpen, onClose, request, onSave }:
 							<label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
 							<select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value as PHRequest['status'] })} className="w-full">
 								<option value="pending">Pending</option>
-								<option value="waiting-match">Waiting Match</option>
+								{/* <option value="waiting-match">Waiting Match</option> */}
 								<option value="partial-match">Partial Match</option>
 								<option value="matched">Matched</option>
 								<option value="active">Active</option>
