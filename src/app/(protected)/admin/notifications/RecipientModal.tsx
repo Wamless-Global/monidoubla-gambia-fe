@@ -33,6 +33,7 @@ export function RecipientModal({ isOpen, onClose, onSelect, currentSelection }: 
 	const [users, setUsers] = useState<User[]>([]);
 	const [usersLoading, setUsersLoading] = useState(false);
 	const [usersError, setUsersError] = useState<string | null>(null);
+	const [total, setTotal] = useState(0);
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -43,6 +44,7 @@ export function RecipientModal({ isOpen, onClose, onSelect, currentSelection }: 
 				if (!res.ok) throw new Error(handleFetchMessage(await res.json(), 'Failed to fetch users'));
 				const data = await res.json();
 				setUsers(Array.isArray(data?.data?.users) ? data.data.users : []);
+				setTotal(data?.data?.totalCount ? data.data.totalCount : 0);
 			})
 			.catch((err) => {
 				setUsers([]);
@@ -108,7 +110,7 @@ export function RecipientModal({ isOpen, onClose, onSelect, currentSelection }: 
 						<div className="flex items-center gap-2">
 							<input type="checkbox" id="sendToAll" checked={sendToAll} onChange={handleSendToAllToggle} className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
 							<label htmlFor="sendToAll" className="text-sm font-medium text-slate-700">
-								Send to all users ({users.length} users)
+								Send to all users ({total} users)
 							</label>
 						</div>
 					</div>
