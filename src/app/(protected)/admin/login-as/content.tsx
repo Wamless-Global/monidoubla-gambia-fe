@@ -58,7 +58,7 @@ export default function LoggingInPage() {
 				checkUserSession();
 
 				toast.success('Login as user completed!', { id: toastId });
-				// router.replace(window.location.pathname + window.location.search);
+
 				localStorage.setItem('sb-auth-cookie-set', JSON.stringify(true));
 			})
 			.catch((err) => {
